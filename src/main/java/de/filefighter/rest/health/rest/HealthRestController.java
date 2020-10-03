@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Api(value = "System Health", tags = { "SystemHealth" })
-@RequestMapping("/health")
 public class HealthRestController {
 
     private final HealthRestInterface healthRestService;
@@ -18,7 +17,7 @@ public class HealthRestController {
         this.healthRestService = healthRestService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/health")
     public EntityModel<SystemHealth> getSystemHealthInfo(){
         return healthRestService.getSystemHealth();
     }
