@@ -1,0 +1,40 @@
+name: Deploy Docker Image
+
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of the new image'     
+        required: true
+        default: 'latest'
+
+env:
+  IMAGE_NAME: rest
+  VERSION: ${{ github.event.inputs.version }}
+
+jobs:
+  create-new-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.0.8'
+          architecture: x64
+      - name: build image with docker
+        run: mvn spring-boot:build-image -f pom.xml
+        
+      - name: Log into DockerHub Registry
+        # Secret with `read:packages` and `write:packages` scopes saved as `CR_PAT`
+        run: echo "${{ secrets.DOCKER_PW }}" | docker login -u filefighter --password-stdin
+
+      - name: Push image to DockerHub Registr
+        run: |          
+          IMAGE_ID=$(docker images $IMAGE_NAME -q)
+          
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $IMAGE_ID filefighter/$IMAGE_NAME:$VERSION
+          docker push filefighter/$IMAGE_NAME:$VERSION
