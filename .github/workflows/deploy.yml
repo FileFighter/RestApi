@@ -1,0 +1,41 @@
+name: Create new Docker-Image and Deploy
+
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of the new image'     
+        required: true
+        default: 'latest'
+
+env:
+  IMAGE_NAME: rest
+  VERSION: ${{ github.event.inputs.version }}
+
+jobs:
+  create-new-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.0.8'
+          architecture: x64
+      - name: build image with docker
+        run: mvn spring-boot:build-image -f pom.xml
+        
+      - name: Log into GitHub Container Registry
+        # Secret with `read:packages` and `write:packages` scopes saved as `CR_PAT`
+        run: echo "${{ secrets.DOCKER_PW }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Push image to GitHub Container Registry
+        run: |          
+          IMAGE_ID=$(docker images $IMAGE_NAME -q)
+          
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+
+          docker tag $IMAGE_ID docker.pkg.github.com/filefighter/restapi/$IMAGE_NAME:$VERSION
+          docker push docker.pkg.github.com/filefighter/restapi/$IMAGE_NAME:$VERSION
