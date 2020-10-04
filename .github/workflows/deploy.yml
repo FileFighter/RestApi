@@ -1,4 +1,4 @@
-name: Create new Docker-Image and Deploy
+name: Deploy Docker Image
 
 on: 
   workflow_dispatch:
@@ -26,16 +26,16 @@ jobs:
       - name: build image with docker
         run: mvn spring-boot:build-image -f pom.xml
         
-      - name: Log into GitHub Container Registry
+      - name: Log into DockerHub Registry
         # Secret with `read:packages` and `write:packages` scopes saved as `CR_PAT`
-        run: echo "${{ secrets.DOCKER_PW }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.DOCKER_PW }}" | docker login -u filefighter --password-stdin
 
-      - name: Push image to GitHub Container Registry
+      - name: Push image to DockerHub Registr
         run: |          
           IMAGE_ID=$(docker images $IMAGE_NAME -q)
           
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
 
-          docker tag $IMAGE_ID docker.pkg.github.com/filefighter/restapi/$IMAGE_NAME:$VERSION
-          docker push docker.pkg.github.com/filefighter/restapi/$IMAGE_NAME:$VERSION
+          docker tag $IMAGE_ID filefighter/$IMAGE_NAME:$VERSION
+          docker push filefighter/$IMAGE_NAME:$VERSION
