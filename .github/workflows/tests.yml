@@ -16,4 +16,4 @@ jobs:
       - name: Run tests with maven.
         run: mvn -B test --file pom.xml
       - name: upload codecov
-        run: bash <(curl -s https://codecov.io/bash) -vZ
+        run: bash <(curl -s https://codecov.io/bash) -Z
