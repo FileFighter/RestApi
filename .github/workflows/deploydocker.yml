@@ -36,6 +36,5 @@ jobs:
           
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-
           docker tag $IMAGE_ID filefighter/$IMAGE_NAME:$VERSION
           docker push filefighter/$IMAGE_NAME:$VERSION
