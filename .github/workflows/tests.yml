@@ -15,6 +15,3 @@ jobs:
           architecture: x64
       - name: Run tests with maven.
         run: mvn -B test --file pom.xml
-      - name: upload codecov
-        run: bash <(curl -s https://codecov.io/bash) -vZ
-
