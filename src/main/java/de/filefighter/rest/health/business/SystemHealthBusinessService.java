@@ -8,12 +8,20 @@ import java.time.Instant;
 @Service
 public class SystemHealthBusinessService {
 
-    private final long serverStartedAt = Instant.now().getEpochSecond();
+    private final long serverStartedAt;
+
+    public SystemHealthBusinessService() {
+        this.serverStartedAt = this.getCurrentEpochSeconds();
+    }
 
     public SystemHealth getCurrentSystemHealthInfo(){
-        long currentEpoch = Instant.now().getEpochSecond();
+        long currentEpoch = getCurrentEpochSeconds();
         return SystemHealth.builder()
                 .uptimeInSeconds(currentEpoch - serverStartedAt)
                 .create();
+    }
+
+    public long getCurrentEpochSeconds(){
+        return Instant.now().getEpochSecond();
     }
 }
