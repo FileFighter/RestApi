@@ -30,7 +30,7 @@ jobs:
         # Secret with `read:packages` and `write:packages` scopes saved as `CR_PAT`
         run: echo "${{ secrets.DOCKER_PW }}" | docker login -u filefighter --password-stdin
 
-      - name: Push image to DockerHub Registr
+      - name: Push image to DockerHub Registry
         run: |          
           IMAGE_ID=$(docker images $IMAGE_NAME -q)
           
