@@ -27,7 +27,6 @@ jobs:
         run: mvn spring-boot:build-image -f pom.xml -P prod
         
       - name: Log into DockerHub Registry
-        # Secret with `read:packages` and `write:packages` scopes saved as `CR_PAT`
         run: echo "${{ secrets.DOCKER_PW }}" | docker login -u filefighter --password-stdin
 
       - name: Push image to DockerHub Registry
