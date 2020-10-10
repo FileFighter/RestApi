@@ -1,11 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="RestApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+  <configuration default="false" name="RestApplication[DEV]" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="RestApi" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="de.filefighter.rest.RestApplication" />
+    <option name="ACTIVE_PROFILES" value="dev" />
     <option name="ALTERNATIVE_JRE_PATH" />
-    <envs>
-      <env name="DB_NAME" value="filefighter,DB_USERNAME=root,DB_PASSWORD=1234" />
-    </envs>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

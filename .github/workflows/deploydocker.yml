@@ -24,7 +24,7 @@ jobs:
           java-version: '11.0.8'
           architecture: x64
       - name: build image with docker
-        run: mvn spring-boot:build-image -f pom.xml
+        run: mvn spring-boot:build-image -f pom.xml -P prod
         
       - name: Log into DockerHub Registry
         # Secret with `read:packages` and `write:packages` scopes saved as `CR_PAT`
