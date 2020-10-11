@@ -1,4 +1,5 @@
 # RestApi
 Backend REST API for FileFighter </br>
-![Tests](https://github.com/FileFighter/RestApi/workflows/Tests/badge.svg) ![Deploy Docker Image](https://github.com/FileFighter/RestApi/workflows/Deploy%20Docker%20Image/badge.svg)
+![Latest Release](https://github.com/FileFighter/RestApi/workflows/Latest%20Release/badge.svg)  
+![Stable Release](https://github.com/FileFighter/RestApi/workflows/Stable%20Release/badge.svg)
 [![codecov](https://codecov.io/gh/FileFighter/RestApi/branch/master/graph/badge.svg)](https://codecov.io/gh/FileFighter/RestApi)
