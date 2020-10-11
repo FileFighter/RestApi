@@ -1,7 +1,6 @@
 package de.filefighter.rest.rest;
 
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -16,15 +15,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class RestErrorControllerUnitTest {
 
-    private MockMvc mockMvc;
-    private RestErrorController restErrorController;
+    private static MockMvc mockMvc;
+    private static RestErrorController restErrorController;
 
-    @BeforeEach
-    void setUp() {
-
-    }
-
-    restErrorController = new RestErrorController();
+    @BeforeAll
+    static void setUp() {
+        restErrorController = new RestErrorController();
         mockMvc = MockMvcBuilders.standaloneSetup(restErrorController).build();
     }
 

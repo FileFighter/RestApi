@@ -7,12 +7,12 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 
 @Service
-public class HealthRestService implements HealthRestInterface{
+public class SystemHealthRestService implements SystemHealthRestInterface {
 
     private final SystemHealthBusinessService systemHealthBusinessService;
     private final SystemHealthModelAssembler systemHealthModelAssembler;
 
-    public HealthRestService(SystemHealthBusinessService systemHealthBusinessService, SystemHealthModelAssembler systemHealthModelAssembler) {
+    public SystemHealthRestService(SystemHealthBusinessService systemHealthBusinessService, SystemHealthModelAssembler systemHealthModelAssembler) {
         this.systemHealthBusinessService = systemHealthBusinessService;
         this.systemHealthModelAssembler = systemHealthModelAssembler;
     }

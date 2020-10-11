@@ -1,12 +1,13 @@
 package de.filefighter.rest.rest;
 
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.hateoas.EntityModel;
 
-@Data
+@Getter
 public class ServerResponse {
-    private String message;
-    private String status;
+    private final String message;
+    private final String status;
 
     public ServerResponse(String status, String message) {
         this.status = status;

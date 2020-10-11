@@ -1,7 +1,6 @@
 package de.filefighter.rest.health.business;
 
 import de.filefighter.rest.health.data.SystemHealth;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.EntityModel;
@@ -10,10 +9,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SystemHealthModelAssemblerUnitTest {
 
-    private SystemHealthModelAssembler systemHealthModelAssembler;
+    private static SystemHealthModelAssembler systemHealthModelAssembler;
 
-    @Before
-    public void setUp(){
+    @BeforeAll
+    static void setUp(){
         systemHealthModelAssembler = new SystemHealthModelAssembler();
     }
 
@@ -24,6 +23,6 @@ class SystemHealthModelAssemblerUnitTest {
 
         assertEquals(systemHealth, systemHealthEntityModel.getContent());
         assertTrue(systemHealthEntityModel.getLink("self").isPresent());
-        assertTrue(systemHealthEntityModel.getLink("ugabuga").isEmpty());
+        assertTrue(systemHealthEntityModel.getLink("thislinkdoesnotexist").isEmpty());
     }
 }
