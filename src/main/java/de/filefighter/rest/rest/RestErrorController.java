@@ -10,15 +10,15 @@ import springfox.documentation.annotations.ApiIgnore;
 @RestController
 public class RestErrorController implements ErrorController {
 
-    private static final String DEFAULT_PATH = "/error";
+    public static final String DEFAULT_ERROR_PATH = "/error";
 
-    @RequestMapping(value = DEFAULT_PATH)
+    @RequestMapping(value = DEFAULT_ERROR_PATH)
     public EntityModel<ServerResponse> error() {
         return new ServerResponse("denied", "This endpoint does not exist.").toModel();
     }
 
     @Override
     public String getErrorPath() {
-        return DEFAULT_PATH;
+        return DEFAULT_ERROR_PATH;
     }
 }

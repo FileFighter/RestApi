@@ -1,10 +1,14 @@
 package de.filefighter.rest.health.data;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+/**
+ * This class is a representation of the json model.
+ */
+
+@Getter
 @Builder(buildMethodName = "create")
 public class SystemHealth {
-    private long uptimeInSeconds;
+    private final long uptimeInSeconds;
 }

@@ -30,7 +30,7 @@ public class SwaggerConfiguration {
                 "REST-API of the FileFighter application.",
                 "0.1",
                 "terms of service url",
-                new Contact("FileFighter Dev-Team", "https://github.com/filefighter/", "comming soon"),
+                new Contact("FileFighter Dev-Team", "https://github.com/filefighter/", "filefighter@t-online.de"),
                 "MIT License",
                 "https://github.com/filefighter/restapi/blob/master/LICENSE",
                 Collections.emptyList()

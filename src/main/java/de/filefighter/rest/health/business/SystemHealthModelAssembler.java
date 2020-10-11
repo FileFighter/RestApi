@@ -1,7 +1,7 @@
 package de.filefighter.rest.health.business;
 
 import de.filefighter.rest.health.data.SystemHealth;
-import de.filefighter.rest.health.rest.HealthRestController;
+import de.filefighter.rest.health.rest.SystemHealthRestController;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
@@ -16,6 +16,6 @@ public class SystemHealthModelAssembler implements RepresentationModelAssembler<
     @Override
     public @NotNull EntityModel<SystemHealth> toModel(@NotNull SystemHealth entity) {
         return EntityModel.of(entity,
-                linkTo(methodOn(HealthRestController.class).getSystemHealthInfo()).withSelfRel());
+                linkTo(methodOn(SystemHealthRestController.class).getSystemHealthInfo()).withSelfRel());
     }
 }
