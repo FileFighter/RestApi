@@ -4,16 +4,15 @@ import de.filefighter.rest.health.data.SystemHealth;
 import io.swagger.annotations.Api;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Api(value = "System Health", tags = { "SystemHealth" })
-public class HealthRestController {
+public class SystemHealthRestController {
 
-    private final HealthRestInterface healthRestService;
+    private final SystemHealthRestInterface healthRestService;
 
-    public HealthRestController(HealthRestInterface healthRestService) {
+    public SystemHealthRestController(SystemHealthRestInterface healthRestService) {
         this.healthRestService = healthRestService;
     }
 

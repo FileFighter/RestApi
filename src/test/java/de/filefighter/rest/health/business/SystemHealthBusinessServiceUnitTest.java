@@ -1,7 +1,6 @@
 package de.filefighter.rest.health.business;
 
 import de.filefighter.rest.health.data.SystemHealth;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -11,10 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SystemHealthBusinessServiceUnitTest {
 
-    private SystemHealthBusinessService systemHealthBusinessService;
+    private static SystemHealthBusinessService systemHealthBusinessService;
 
-    @Before
-    public void setUp(){
+    @BeforeAll
+    static void setUp() {
         systemHealthBusinessService = new SystemHealthBusinessService();
     }
 
