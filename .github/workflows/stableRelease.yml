@@ -17,20 +17,20 @@ jobs:
           java-version: '11.0.8'
           architecture: x64
       -
-         name: run all tests
+         name: Run all Tests
          run: mvn clean test -f pom.xml
       - 
-        name: build image with docker
+        name: Build Docker Image
         run: mvn spring-boot:build-image -f pom.xml -P prod
       - 
         name: Log into DockerHub Registry
         run: echo "${{ secrets.DOCKER_PW }}" | docker login -u filefighter --password-stdin
       - 
-        name: generate image tag
+        name: Generate Image Tag from Git Tag
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       -
-        name: Push image to DockerHub Registry
+        name: Push Image to DockerHub Registry
         run: |
           IMAGE_ID=$(docker images rest -q)
           VERSION=${{ steps.vars.outputs.tag }}
