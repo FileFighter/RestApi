@@ -24,8 +24,11 @@ jobs:
         name: Upload CodeCov.
         run: bash <(curl -s https://codecov.io/bash) -Z
       -
-        name: Log into DockerHub Registry
-        run: echo "${{ secrets.DOCKER_PW }}" | docker login -u filefighter --password-stdin
+        name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PW }}
       - 
         name: Push Image to DockerHub Registry
         run: |
