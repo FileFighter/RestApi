@@ -13,8 +13,4 @@ public class ServerResponse {
         this.status = status;
         this.message = message;
     }
-
-    public EntityModel<ServerResponse> toModel() {
-        return EntityModel.of(this);
-    }
 }
