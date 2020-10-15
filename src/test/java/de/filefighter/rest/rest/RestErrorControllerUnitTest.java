@@ -27,7 +27,7 @@ class RestErrorControllerUnitTest {
     @Test
     void errorHandleingDoesWork() throws Exception {
         mockMvc.perform(get(RestErrorController.DEFAULT_ERROR_PATH))
-                .andExpect(status().isOk())
+                .andExpect(status().is(404))
                 .andReturn();
     }
 
