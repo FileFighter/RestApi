@@ -1,0 +1,27 @@
+name: Run all Tests on Feature Branches
+
+on:
+  push:
+    branches: 
+      - '!master'
+      - 'feature/**' 
+
+jobs:
+  Run-All-Tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - 
+        uses: actions/checkout@v1          
+      - 
+        name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.0.8'
+          architecture: x64
+      -
+         name: Run all Tests
+         run: mvn clean test -f pom.xml
+      - 
+        name: Upload CodeCov.
+        run: bash <(curl -s https://codecov.io/bash) -Z
