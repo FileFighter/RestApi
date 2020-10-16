@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import static de.filefighter.rest.config.RestConfiguration.*;
 
 @RestController
-@Api(value = "User Endpoints", tags = { "Users", "User" })
+@Api(value = "User Rest Controller", tags = { "User" })
 @RequestMapping(BASE_API_URI)
 public class UserController {
 
