@@ -1,8 +1,8 @@
-package de.filefighter.rest.health.rest;
+package de.filefighter.rest.domain.health.rest;
 
-import de.filefighter.rest.health.business.SystemHealthBusinessService;
-import de.filefighter.rest.health.business.SystemHealthModelAssembler;
-import de.filefighter.rest.health.data.SystemHealth;
+import de.filefighter.rest.domain.health.business.SystemHealthBusinessService;
+import de.filefighter.rest.domain.health.business.SystemHealthModelAssembler;
+import de.filefighter.rest.domain.health.data.SystemHealth;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.EntityModel;

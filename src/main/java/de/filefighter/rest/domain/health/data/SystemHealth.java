@@ -1,4 +1,4 @@
-package de.filefighter.rest.health.data;
+package de.filefighter.rest.domain.health.data;
 
 import lombok.Builder;
 import lombok.Getter;

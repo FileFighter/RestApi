@@ -1,4 +1,4 @@
-package de.filefighter.rest.health.rest;
+package de.filefighter.rest.domain.health.rest;
 
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ public class HealthRequestIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    public void healthCheckShouldRetunUptime() throws Exception {
+    public void healthCheckShouldRetunUptime() {
         assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/health",
                 String.class)).contains("uptimeInSeconds");
     }

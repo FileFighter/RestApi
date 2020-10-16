@@ -1,6 +1,6 @@
 package de.filefighter.rest;
 
-import de.filefighter.rest.health.rest.SystemHealthRestController;
+import de.filefighter.rest.domain.health.rest.SystemHealthRestController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

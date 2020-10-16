@@ -1,6 +1,6 @@
-package de.filefighter.rest.health.business;
+package de.filefighter.rest.domain.health.business;
 
-import de.filefighter.rest.health.data.SystemHealth;
+import de.filefighter.rest.domain.health.data.SystemHealth;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

@@ -1,7 +1,7 @@
-package de.filefighter.rest.health.business;
+package de.filefighter.rest.domain.health.business;
 
-import de.filefighter.rest.health.data.SystemHealth;
-import de.filefighter.rest.health.rest.SystemHealthRestController;
+import de.filefighter.rest.domain.health.data.SystemHealth;
+import de.filefighter.rest.domain.health.rest.SystemHealthRestController;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;

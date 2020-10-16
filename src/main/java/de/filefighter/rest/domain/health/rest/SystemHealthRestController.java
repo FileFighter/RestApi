@@ -1,6 +1,6 @@
-package de.filefighter.rest.health.rest;
+package de.filefighter.rest.domain.health.rest;
 
-import de.filefighter.rest.health.data.SystemHealth;
+import de.filefighter.rest.domain.health.data.SystemHealth;
 import io.swagger.annotations.Api;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.GetMapping;
