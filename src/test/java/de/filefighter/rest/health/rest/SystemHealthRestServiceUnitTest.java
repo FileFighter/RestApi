@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class HealthRestServiceUnitTest {
+class SystemHealthRestServiceUnitTest {
 
     private static final SystemHealthBusinessService systemHealthBusinessServiceMock = mock(SystemHealthBusinessService.class);
     private static final SystemHealthModelAssembler systemHealthModelAssemblerMock = mock(SystemHealthModelAssembler.class);

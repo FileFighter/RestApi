@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SystemHealthBusinessServiceUnitTest {
 
@@ -20,7 +21,7 @@ class SystemHealthBusinessServiceUnitTest {
     @Test
     void getCurrentSystemHealthInfo() {
         SystemHealth systemHealth = systemHealthBusinessService.getCurrentSystemHealthInfo();
-        assertEquals(0, systemHealth.getUptimeInSeconds());
+        assertTrue(systemHealth.getUptimeInSeconds() >= 0);
     }
 
     @Test
