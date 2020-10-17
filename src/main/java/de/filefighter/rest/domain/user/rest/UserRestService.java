@@ -2,8 +2,8 @@ package de.filefighter.rest.domain.user.rest;
 
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
-import de.filefighter.rest.domain.user.data.dto.RegisterUserForm;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Service;
 
@@ -27,12 +27,12 @@ public class UserRestService implements UserRestServiceInterface {
     }
 
     @Override
-    public EntityModel<User> updateUserByAccessTokenAndUserId(String accessToken, long userId) {
+    public EntityModel<User> updateUserByAccessTokenAndUserId(UserRegisterForm updatedUser, String accessToken, long userId) {
         return null;
     }
 
     @Override
-    public EntityModel<User> registerNewUserWithAccessToken(RegisterUserForm newUser, String accessToken) {
+    public EntityModel<User> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessToken) {
         return null;
     }
 }

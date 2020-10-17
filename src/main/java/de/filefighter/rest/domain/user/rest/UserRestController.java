@@ -2,8 +2,8 @@ package de.filefighter.rest.domain.user.rest;
 
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
-import de.filefighter.rest.domain.user.data.dto.RegisterUserForm;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,22 +16,22 @@ import static de.filefighter.rest.config.RestConfiguration.*;
 @RestController
 @Api(value = "User Rest Controller", tags = { "User" })
 @RequestMapping(BASE_API_URI)
-public class UserController {
+public class UserRestController {
 
-    private final static Logger LOG = LoggerFactory.getLogger(UserController.class);
+    private final static Logger LOG = LoggerFactory.getLogger(UserRestController.class);
     public final static String USER_BASE_URI = "/users/";
     
     private final UserRestServiceInterface userRestService;
 
     @Autowired
-    public UserController(UserRestServiceInterface userRestService ) {
+    public UserRestController(UserRestServiceInterface userRestService ) {
         this.userRestService = userRestService;
     }
 
     @PostMapping(USER_BASE_URI+"register")
     public EntityModel<User> registerNewUser(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX+"admin-token") String accessToken,
-            @RequestBody RegisterUserForm newUser){
+            @RequestBody UserRegisterForm newUser){
 
         LOG.info("Registered new User {}.", newUser);
         return userRestService.registerNewUserWithAccessToken(newUser, accessToken);
@@ -67,9 +67,10 @@ public class UserController {
     @PutMapping(USER_BASE_URI+"{userId}/edit")
     public EntityModel<User> updateUserWithAccessToken(
             @PathVariable long userId,
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX+"token") String accessToken) {
+            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX+"token") String accessToken,
+            @RequestBody UserRegisterForm updatedUser) {
 
-        LOG.info("Updated User {} with Token {}.", userId, accessToken);
-        return userRestService.updateUserByAccessTokenAndUserId(accessToken, userId);
+        LOG.info("Updated User with the id {} and Token {}, with form {}.", userId, accessToken, updatedUser);
+        return userRestService.updateUserByAccessTokenAndUserId(updatedUser, accessToken, userId);
     }
 }
