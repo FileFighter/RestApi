@@ -1,12 +1,14 @@
 name: Latest Release
 
-on: 
+on:
+  workflow_dispatch:
   push:
-    branches: 
-    - 'master'
-    paths: 
+    branches: [ master ]
+    paths:
     - 'src/**'
     - 'pom.xml'
+  create:
+    tag: [ v*.*.* ]
 
 jobs:
   Build_Docker_Image_on_Push:
