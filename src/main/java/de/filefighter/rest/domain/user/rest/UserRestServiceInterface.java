@@ -12,4 +12,5 @@ public interface UserRestServiceInterface {
     EntityModel<AccessToken> getAccessTokenByRefreshTokenAndUserId(String refreshToken, long userId);
     EntityModel<User> updateUserByAccessTokenAndUserId(UserRegisterForm updatedUser, String accessToken, long userId);
     EntityModel<User> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessToken);
+    EntityModel<User> findUserByUsernameAndAccessToken(String username, String accessToken);
 }

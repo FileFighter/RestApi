@@ -81,4 +81,17 @@ class UserRestControllerUnitTest {
 
         assertEquals(expectedUser, actualUser);
     }
+
+    @Test
+    void findUserByUsername(){
+        User user = User.builder().id(420).roles(null).username("kevin").create();
+        EntityModel<User> expectedUser = EntityModel.of(user);
+
+        String username="kevin";
+        String accessToken="token";
+        when(userRestService.findUserByUsernameAndAccessToken(username, accessToken)).thenReturn(expectedUser);
+
+        EntityModel<User> actualUser = userRestController.findUserByUsername(accessToken, username);
+        assertEquals(expectedUser, actualUser);
+    }
 }

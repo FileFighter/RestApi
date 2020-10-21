@@ -35,4 +35,9 @@ public class UserRestService implements UserRestServiceInterface {
     public EntityModel<User> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessToken) {
         return null;
     }
+
+    @Override
+    public EntityModel<User> findUserByUsernameAndAccessToken(String username, String accessToken) {
+        return null;
+    }
 }
