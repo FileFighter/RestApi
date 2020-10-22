@@ -19,7 +19,6 @@ import static de.filefighter.rest.config.RestConfiguration.*;
 public class UserRestController {
 
     private final static Logger LOG = LoggerFactory.getLogger(UserRestController.class);
-    public final static String USER_BASE_URI = "/users/";
 
     private final UserRestServiceInterface userRestService;
 
