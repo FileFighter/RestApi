@@ -1,8 +1,7 @@
 package de.filefighter.rest.domain.filesystem.data.dto;
 
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
-import de.filefighter.rest.domain.user.data.dto.User;
-import de.filefighter.rest.domain.user.role.Role;
+import de.filefighter.rest.domain.permission.data.dto.PermissionSet;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,8 +15,5 @@ public class File {
     private long createdByUserId; //uploadedBy
     private boolean isPublic;
     private long lastUpdated;
-    private Role[] visibleForRoles;
-    private Role[] editableForRoles;
-    private User[] visibleForUsers;
-    private User[] editableForUsers;
+    private PermissionSet permissionSet;
 }
