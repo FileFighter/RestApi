@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.rest;
 
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
 import de.filefighter.rest.rest.ServerResponse;
@@ -35,7 +36,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "{fsItemId}/info")
-    public EntityModel<?> getFileOrFolderInfo(
+    public EntityModel<FileSystemItem> getFileOrFolderInfo(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
@@ -45,7 +46,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI+"search")
-    public EntityModel<?> searchFileOrFolderByName(
+    public EntityModel<FileSystemItem> searchFileOrFolderByName(
             @RequestParam(name = "name", defaultValue = "name") String name,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
@@ -55,7 +56,7 @@ public class FileSystemRestController {
     }
 
     @PostMapping(FS_BASE_URI+"upload")
-    public EntityModel<?> uploadFileOrFolder(
+    public EntityModel<FileSystemItem> uploadFileOrFolder(
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
@@ -65,14 +66,14 @@ public class FileSystemRestController {
     }
 
     @PutMapping(FS_BASE_URI+"{fsItemId}/update")
-    public EntityModel<?> updateExistingFileOrFolder(
+    public EntityModel<FileSystemItem> updateExistingFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
         LOG.info("Tried updating FileSystemItem {} with {}.", fsItemId, fileSystemItemUpdate);
-        return fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(fileSystemItemUpdate, accessToken);
+        return fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
     }
 
     @DeleteMapping(FS_BASE_URI+"{fsItemId}/delete")

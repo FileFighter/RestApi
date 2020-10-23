@@ -2,19 +2,23 @@ package de.filefighter.rest.domain.filesystem.data.dto;
 
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.permission.data.dto.PermissionSet;
-import lombok.Builder;
-import lombok.Data;
 
-@Data
-@Builder(buildMethodName = "create")
-public class Folder {
-    private long id;
-    private String name;
+public class Folder extends FileSystemItem {
     private String path;
-    private double size;
-    private long createdByUserId; //uploadedBy
-    private boolean isPublic;
-    private long lastUpdated;
-    private FileSystemType type;
-    private PermissionSet permissionSet;
+
+    public Folder() {
+    }
+
+    public Folder(long id, String name, double size, long createdByUserId, boolean isPublic, long lastUpdated, FileSystemType type, PermissionSet permissionSet, String path) {
+        super(id, name, size, createdByUserId, isPublic, lastUpdated, type, permissionSet);
+        this.path = path;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 }

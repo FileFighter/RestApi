@@ -2,12 +2,11 @@ package de.filefighter.rest.domain.user.role;
 
 import org.springframework.stereotype.Service;
 
-import static de.filefighter.rest.domain.user.role.Role.*;
-
 @Service
 public class RoleRepository {
-    private final Role[] roles = new Role[]{ADMIN, FAMILY};
+    private final Role[] roles = Role.values();
 
+    //TODO: test this.
     public Role getRoleById(long id) {
         for (Role role : roles) {
             if (role.getRoleId() == id) {
