@@ -28,7 +28,7 @@ public class PermissionRestController {
     ){
 
         LOG.info("Requested PermissionSet for FileSystemItem {}", fsItemId);
-        return permissionsRestService.updatePermissionSetByIdAndToken(fsItemId, accessToken);
+        return permissionsRestService.getPermissionSetByIdAndToken(fsItemId, accessToken);
     }
 
     @PostMapping(FS_BASE_URI+"{fsItemId}/permission")

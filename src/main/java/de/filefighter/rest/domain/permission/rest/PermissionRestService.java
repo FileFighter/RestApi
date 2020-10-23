@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PermissionRestService implements PermissionRestServiceInterface{
     @Override
-    public EntityModel<PermissionSet> updatePermissionSetByIdAndToken(long fsItemId, String accessToken) {
+    public EntityModel<PermissionSet> getPermissionSetByIdAndToken(long fsItemId, String accessToken) {
         return null;
     }
 

@@ -13,7 +13,7 @@ public class UserEntitiy {
     private long userId;
     private String username;
     private String password;
-    private String refreshToken;
+    private String refreshToken; //TODO: add valid_until for refreshToken
     private long[] roleIds;
 
     public UserEntitiy(long userId, String username, String password, String refreshToken, long... roleIds) {

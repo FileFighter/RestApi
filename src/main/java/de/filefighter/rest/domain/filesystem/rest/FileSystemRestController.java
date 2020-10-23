@@ -41,7 +41,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
 
-        LOG.info("Requested Folder contents of id {}.", fsItemId);
+        LOG.info("Requested information about FileSystemItem with id {}.", fsItemId);
         return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, accessToken);
     }
 

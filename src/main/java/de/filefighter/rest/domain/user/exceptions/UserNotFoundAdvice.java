@@ -15,7 +15,7 @@ class UserNotFoundAdvice {
 	@ResponseBody
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	ResponseEntity<ServerResponse> employeeNotFoundHandler(UserNotFoundException ex) {
+	ResponseEntity<ServerResponse> userNotFoundHandler(UserNotFoundException ex) {
 		LoggerFactory.getLogger(UserAlreadyExistsAdvise.class).warn(ex.getMessage());
 		return new ResponseEntity<>(new ServerResponse("Denied", ex.getMessage()), HttpStatus.NOT_FOUND);
 	}
