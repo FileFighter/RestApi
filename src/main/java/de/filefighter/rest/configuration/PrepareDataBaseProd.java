@@ -1,4 +1,4 @@
-package de.filefighter.rest.config;
+package de.filefighter.rest.configuration;
 
 import de.filefighter.rest.domain.user.data.persistance.UserEntitiy;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("prod")
+@Profile("dev")
 public class PrepareDataBaseProd {
 
     private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBaseProd.class);
