@@ -11,4 +11,5 @@ import lombok.Getter;
 @Builder(buildMethodName = "create")
 public class SystemHealth {
     private final long uptimeInSeconds;
+    private final long userCount;
 }
