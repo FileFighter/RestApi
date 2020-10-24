@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
-import static de.filefighter.rest.config.RestConfiguration.*;
+import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 @RestController
 @Api(value = "Permissions Controller", tags = {"Permissions"})

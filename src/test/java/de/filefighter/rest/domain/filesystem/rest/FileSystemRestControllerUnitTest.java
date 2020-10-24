@@ -2,7 +2,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.*;
 import de.filefighter.rest.rest.ServerResponse;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.EntityModel;
 
@@ -12,12 +12,12 @@ import static org.mockito.Mockito.when;
 
 class FileSystemRestControllerUnitTest {
 
-    private static final FileSystemRestServiceInterface fileSystemRestService = mock(FileSystemRestService.class);
-    private static FileSystemRestController fileSystemRestController;
+    private final FileSystemRestServiceInterface fileSystemRestServiceMock = mock(FileSystemRestService.class);
+    private FileSystemRestController fileSystemRestController;
 
-    @BeforeAll
-    static void setUp() {
-        fileSystemRestController = new FileSystemRestController(fileSystemRestService);
+    @BeforeEach
+    void setUp() {
+        fileSystemRestController = new FileSystemRestController(fileSystemRestServiceMock);
     }
 
     @Test
@@ -31,7 +31,7 @@ class FileSystemRestControllerUnitTest {
         long id = 420;
         String token = "token";
 
-        when(fileSystemRestService.getContentsOfFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.getContentsOfFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
 
         EntityModel<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(id, token);
         assertEquals(expectedModel, actualModel);
@@ -45,7 +45,7 @@ class FileSystemRestControllerUnitTest {
         long id = 420;
         String token = "token";
 
-        when(fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.getInfoAboutFileOrFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
 
         EntityModel<FileSystemItem> actualModel = fileSystemRestController.getFileOrFolderInfo(id, token);
         assertEquals(expectedModel, actualModel);
@@ -59,7 +59,7 @@ class FileSystemRestControllerUnitTest {
         String name = "randomFile.exe";
         String token = "token";
 
-        when(fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.findFileOrFolderByNameAndAccessToken(name, token)).thenReturn(expectedModel);
 
         EntityModel<FileSystemItem> actualModel = fileSystemRestController.searchFileOrFolderByName(name, token);
         assertEquals(expectedModel, actualModel);
@@ -73,7 +73,7 @@ class FileSystemRestControllerUnitTest {
         FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.create().name("ugabuga").build();
         String token = "token";
 
-        when(fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, token)).thenReturn(expectedModel);
 
         EntityModel<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(fileSystemItemUpdate, token);
         assertEquals(expectedModel, actualModel);
@@ -88,7 +88,7 @@ class FileSystemRestControllerUnitTest {
         FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.create().name("ugabuga").build();
         String token = "token";
 
-        when(fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(id, fileSystemItemUpdate, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.updatedFileSystemItemWithIdAndAccessToken(id, fileSystemItemUpdate, token)).thenReturn(expectedModel);
 
         EntityModel<FileSystemItem> actualModel = fileSystemRestController.updateExistingFileOrFolder(id, fileSystemItemUpdate, token);
         assertEquals(expectedModel, actualModel);
@@ -102,7 +102,7 @@ class FileSystemRestControllerUnitTest {
         long id = 420;
         String token = "token";
 
-        when(fileSystemRestService.deleteFileSystemItemWithIdAndAccessToken(id, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.deleteFileSystemItemWithIdAndAccessToken(id, token)).thenReturn(expectedModel);
 
         EntityModel<ServerResponse> actualModel = fileSystemRestController.deleteFileOrFolder(id, token);
         assertEquals(expectedModel, actualModel);

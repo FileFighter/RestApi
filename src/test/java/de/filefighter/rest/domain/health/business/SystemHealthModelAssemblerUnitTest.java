@@ -1,18 +1,19 @@
 package de.filefighter.rest.domain.health.business;
 
 import de.filefighter.rest.domain.health.data.SystemHealth;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.EntityModel;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SystemHealthModelAssemblerUnitTest {
 
-    private static SystemHealthModelAssembler systemHealthModelAssembler;
+    private SystemHealthModelAssembler systemHealthModelAssembler;
 
-    @BeforeAll
-    static void setUp(){
+    @BeforeEach
+    void setUp(){
         systemHealthModelAssembler = new SystemHealthModelAssembler();
     }
 

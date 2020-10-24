@@ -4,7 +4,7 @@ import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.hateoas.EntityModel;
 
@@ -15,12 +15,12 @@ import static org.mockito.Mockito.when;
 
 class UserRestControllerUnitTest {
 
-    private static final UserRestServiceInterface userRestService = mock(UserRestService.class);
-    private static UserRestController userRestController;
+    private final UserRestServiceInterface userRestServiceMock = mock(UserRestService.class);
+    private UserRestController userRestController;
 
-    @BeforeAll
-    static void setUp() {
-        userRestController = new UserRestController(userRestService);
+    @BeforeEach
+    void setUp() {
+        userRestController = new UserRestController(userRestServiceMock);
     }
 
     @Test
@@ -28,7 +28,7 @@ class UserRestControllerUnitTest {
         User user = User.builder().id(420).roles(null).username("kevin").create();
         EntityModel<User> expectedUser = EntityModel.of(user);
 
-        when(userRestService.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedUser);
+        when(userRestServiceMock.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedUser);
 
         EntityModel<User> actualUser = userRestController.registerNewUser("", null);
 
@@ -41,7 +41,7 @@ class UserRestControllerUnitTest {
         RefreshToken refreshToken = RefreshToken.builder().refreshToken("token").user(user).build();
         EntityModel<RefreshToken> expectedRefreshToken = EntityModel.of(refreshToken);
 
-        when(userRestService.getRefreshTokenWithUsernameAndPassword(any())).thenReturn(expectedRefreshToken);
+        when(userRestServiceMock.getRefreshTokenWithUsernameAndPassword(any())).thenReturn(expectedRefreshToken);
 
         EntityModel<RefreshToken> actualRefreshToken = userRestController.loginUserWithUsernameAndPassword("");
 
@@ -53,7 +53,7 @@ class UserRestControllerUnitTest {
         AccessToken accessToken = AccessToken.builder().build();
         EntityModel<AccessToken> accessTokenEntityModel = EntityModel.of(accessToken);
 
-        when(userRestService.getAccessTokenByRefreshTokenAndUserId("token", 420)).thenReturn(accessTokenEntityModel);
+        when(userRestServiceMock.getAccessTokenByRefreshTokenAndUserId("token", 420)).thenReturn(accessTokenEntityModel);
 
         EntityModel<AccessToken> actualAccessTokenEntity = userRestController.getAccessTokenAndUserInfoByRefreshTokenAndUserId(420, "token");
         assertEquals(accessTokenEntityModel, actualAccessTokenEntity);
@@ -64,7 +64,7 @@ class UserRestControllerUnitTest {
         User user = User.builder().id(420).roles(null).username("kevin").create();
         EntityModel<User> expectedUser = EntityModel.of(user);
 
-        when(userRestService.getUserByAccessTokenAndUserId("token", 420)).thenReturn(expectedUser);
+        when(userRestServiceMock.getUserByAccessTokenAndUserId("token", 420)).thenReturn(expectedUser);
         EntityModel<User> actualUser = userRestController.getUserInfoWithAccessToken(420,"token");
 
         assertEquals(expectedUser, actualUser);
@@ -76,7 +76,7 @@ class UserRestControllerUnitTest {
         EntityModel<User> expectedUser = EntityModel.of(user);
         UserRegisterForm userRegisterForm = UserRegisterForm.builder().create();
 
-        when(userRestService.updateUserByAccessTokenAndUserId(userRegisterForm, "token", 420)).thenReturn(expectedUser);
+        when(userRestServiceMock.updateUserByAccessTokenAndUserId(userRegisterForm, "token", 420)).thenReturn(expectedUser);
         EntityModel<User> actualUser = userRestController.updateUserWithAccessToken(420,"token", userRegisterForm);
 
         assertEquals(expectedUser, actualUser);
@@ -89,7 +89,7 @@ class UserRestControllerUnitTest {
 
         String username="kevin";
         String accessToken="token";
-        when(userRestService.findUserByUsernameAndAccessToken(username, accessToken)).thenReturn(expectedUser);
+        when(userRestServiceMock.findUserByUsernameAndAccessToken(username, accessToken)).thenReturn(expectedUser);
 
         EntityModel<User> actualUser = userRestController.findUserByUsername(accessToken, username);
         assertEquals(expectedUser, actualUser);

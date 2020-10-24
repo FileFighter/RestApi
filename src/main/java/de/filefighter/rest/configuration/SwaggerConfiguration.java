@@ -1,4 +1,4 @@
-package de.filefighter.rest.config;
+package de.filefighter.rest.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
