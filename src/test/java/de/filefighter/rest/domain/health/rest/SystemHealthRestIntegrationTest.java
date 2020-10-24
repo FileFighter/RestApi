@@ -19,7 +19,7 @@ public class SystemHealthRestIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    public void healthCheckShouldRetunUptime() {
+    public void healthCheckShouldReturnUptime() {
         assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/health",
                 String.class)).contains("uptimeInSeconds");
     }

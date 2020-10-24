@@ -1,23 +1,22 @@
 package de.filefighter.rest.domain.health.rest;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class SystemHealthRestControllerUnitTest {
 
-    private static MockMvc mockMvc;
-    private static SystemHealthRestService systemHealthRestServiceMock = mock(SystemHealthRestService.class);
-    private static SystemHealthRestController systemHealthRestController;
+    private final SystemHealthRestService systemHealthRestServiceMock = mock(SystemHealthRestService.class);
+    private MockMvc mockMvc;
+    private SystemHealthRestController systemHealthRestController;
 
-    @BeforeAll
-    public static void setUp() {
+    @BeforeEach
+    public void setUp() {
         systemHealthRestController = new SystemHealthRestController(systemHealthRestServiceMock);
         mockMvc = MockMvcBuilders.standaloneSetup(systemHealthRestController).build();
     }
