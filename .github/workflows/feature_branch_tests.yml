@@ -1,6 +1,7 @@
 name: Feature Branch Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'feature/**'
@@ -44,5 +45,7 @@ jobs:
         run: |
           IMAGE_ID=$(docker images rest -q)
           VERSION=${{ steps.vars.outputs.branch }}
+          IFS=';' read -ra ADDR <<< "$VERSION"
+          VERSION=ADDR[1]
           docker tag $IMAGE_ID filefighter/rest:$VERSION
           docker push filefighter/rest:$VERSION
