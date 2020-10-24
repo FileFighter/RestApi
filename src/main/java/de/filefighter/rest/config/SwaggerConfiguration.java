@@ -28,8 +28,8 @@ public class SwaggerConfiguration {
         return new ApiInfo(
                 "FileFighter REST",
                 "REST-API of the FileFighter application.",
-                "0.1",
-                "terms of service url",
+                "0.2",
+                null,
                 new Contact("FileFighter Dev-Team", "https://github.com/filefighter/", "filefighter@t-online.de"),
                 "MIT License",
                 "https://github.com/filefighter/restapi/blob/master/LICENSE",
