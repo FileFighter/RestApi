@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.user.role;
 
 public enum Role {
+    UNDEFINED(-1, "No group"),
     FAMILY(0, "Family"),
     ADMIN(1, "Admin");
 

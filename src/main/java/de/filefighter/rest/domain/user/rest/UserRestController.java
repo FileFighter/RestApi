@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
-import static de.filefighter.rest.config.RestConfiguration.*;
+import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 @RestController
 @Api(value = "User Rest Controller", tags = {"User"})
