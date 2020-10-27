@@ -1,5 +1,6 @@
 Feature: View Folder
-  All users want to see the content of folders and navigate in them, so they can see and interact with their uploaded and shared files.
+  As a user
+  I want to see the content of folders and navigate in them, so they can see and interact with their uploaded and shared files.
 
 Scenario: Successful interaction
   Given credential are valid
