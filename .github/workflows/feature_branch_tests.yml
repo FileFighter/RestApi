@@ -24,7 +24,7 @@ jobs:
       -
         name: Setup database for tests.
         run: |
-          docker create -p 27017 --name FileFighterDB mongo:latest
+          docker create -p 27017:27017 --name FileFighterDB mongo:latest
           docker run FileFighterDB
       -
         name: Run all Tests
