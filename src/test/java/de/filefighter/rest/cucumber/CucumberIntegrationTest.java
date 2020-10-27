@@ -5,6 +5,6 @@ import io.cucumber.junit.CucumberOptions;
 import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
-@CucumberOptions(features = "src/tests/resources/")
+@CucumberOptions(features = "src/test/cucumber/de/filefighter/rest/")
 public class CucumberIntegrationTest {
 }
