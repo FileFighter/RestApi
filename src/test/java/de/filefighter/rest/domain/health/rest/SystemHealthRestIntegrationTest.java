@@ -1,5 +1,9 @@
 package de.filefighter.rest.domain.health.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.internal.filter.ValueNode;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.persistance.UserEntitiy;
@@ -16,31 +20,33 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class SystemHealthRestIntegrationTest {
 
-    private final Logger LOG = LoggerFactory.getLogger(SystemHealthRestIntegrationTest.class);
-
     @LocalServerPort
     private int port;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    private final Logger LOG = LoggerFactory.getLogger(SystemHealthRestIntegrationTest.class);
+    private final ObjectMapper objectMapper;
+    private final TestRestTemplate restTemplate;
+    private final UserRepository userRepository;
+    private final FileSystemRepository fileSystemRepository;
+    private final AccessTokenRepository accessTokenRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private FileSystemRepository fileSystemRepository;
-
-    @Autowired
-    private AccessTokenRepository accessTokenRepository;
-
+    public SystemHealthRestIntegrationTest(TestRestTemplate restTemplate, UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
+        this.objectMapper = new ObjectMapper();
+        this.restTemplate = restTemplate;
+        this.userRepository = userRepository;
+        this.fileSystemRepository = fileSystemRepository;
+        this.accessTokenRepository = accessTokenRepository;
+    }
 
     @BeforeEach
-    public void cleanDbs(){
+    public void cleanDbs() {
         LOG.info("Cleaning Databases.");
         userRepository.deleteAll();
         fileSystemRepository.deleteAll();
@@ -48,24 +54,17 @@ public class SystemHealthRestIntegrationTest {
     }
 
     @Test
-    public void healthCheckShouldReturnUptime() {
-        LOG.info("Running: healthCheckShouldReturnUptime");
-        String jsonString = this.restTemplate.getForObject("http://localhost:" + port + "/health", String.class);
-        assertTrue(jsonString.contains("uptimeInSeconds"));
-    }
-
-    @Test
-    public void healthCheckShouldReturnUserCount() {
-        LOG.info("Running: healthCheckShouldReturnUserCount");
-        String jsonString = this.restTemplate.getForObject("http://localhost:" + port + "/health", String.class);
-        assertTrue(jsonString.contains("userCount"));
-    }
-
-    /*@Test
-    public void healthCheckShouldReturnCorrectUserCount() {
-        LOG.info("Running: healthCheckShouldReturnCorrectUserCount");
+    public void healthCheckShouldContainVariablesAndCorrectValues() throws JsonProcessingException {
         LOG.info("Preloading default admin user: " + userRepository.save(new UserEntitiy(0L, "admin", "admin", "refreshToken1234", 0, 1)));
+
         String jsonString = this.restTemplate.getForObject("http://localhost:" + port + "/health", String.class);
-        assertTrue(jsonString.contains("userCount") && jsonString.contains(":1"));
-    }*/
+
+        // Note when a key does not exist, a NullPointerException will be thrown.
+        JsonNode root = objectMapper.readTree(jsonString);
+        String uptime = root.get("uptimeInSeconds").asText();
+        String userCount = root.get("userCount").asText();
+
+        assertTrue(Integer.parseInt(uptime) > 0);
+        assertEquals(1, Integer.parseInt(userCount));
+    }
 }
