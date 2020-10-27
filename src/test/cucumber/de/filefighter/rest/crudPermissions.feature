@@ -7,9 +7,11 @@ Feature: CRUD Permissions
     And <path> exists
     # can you use <var> in background?
 
+  #TODO: fix scenarios, in a way that is implementable. -> https://cucumber.io/docs/cucumber/cucumber-expressions/
+
 Scenario Outline: Successful interaction for changing existing permission
   Given user 1234 is owner of <type> <path>
-  And user 9877 was given permisssion of <old_permission> for <type> <path>
+  And user 9877 was given permission of <old_permission> for <type> <path>
   When user 1234 wants to change permissions of <type> <path>
   Then list all users that have permissions for <type> <path>
   When user 1234 changes permissions of user 9877 to <new_permission>
@@ -22,13 +24,16 @@ Scenario Outline: Successful interaction for changing existing permission
 
 
 Scenario Outline: Successful interaction adding new permission
-    And user 1234 is owner of <type> <path>
-    And user 9877 was given permisssion of none for  <type> <path>
-    When user 1234 wants to give permissions of <new_permission> for <type> <path> to user 9877
-    And user 9877 exists
-    And user 9877 is not owner of <type> <path>
-    And user 9877 was given permisssion of none for  <type> <path>
-    Then user 9877 has the following permissions for <type> <path> : <new_permission>
+  Given user 1234 is owner of <type> <path>
+  And user 9877 exists
+  # what does "was given" mean, -> does he have it?
+  And user 9877 was given permission of none for  <type> <path>
+  And user 9877 is not owner of <type> <path>
+  # has no permissions
+  And user 9877 was given permission of none for  <type> <path>
+  When user 1234 wants to give permissions of <new_permission> for <type> <path> to user 9877
+  # Difference between "has the following permissions" and "was given permission" ??
+  Then user 9877 has the following permissions for <type> <path> : <new_permission>
   Examples:
     | type    | path     | new_permission |
     | file    | fasel.ts | edit           |
