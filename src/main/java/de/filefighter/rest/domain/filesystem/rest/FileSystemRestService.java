@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class FileSystemRestService implements FileSystemRestServiceInterface {
 
     @Override
-    public EntityModel<FolderContents> getContentsOfFolderByIdAndAccessToken(long fsItemId, String accessToken) {
+    public EntityModel<FolderContents> getContentsOfFolderByIdAndAccessToken(String path, String accessToken) {
         return null;
     }
 

@@ -7,7 +7,7 @@ import de.filefighter.rest.rest.ServerResponse;
 import org.springframework.hateoas.EntityModel;
 
 public interface FileSystemRestServiceInterface {
-    EntityModel<FolderContents> getContentsOfFolderByIdAndAccessToken(long fsItemId, String accessToken);
+    EntityModel<FolderContents> getContentsOfFolderByIdAndAccessToken(String path, String accessToken);
     EntityModel<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, String accessToken);
     EntityModel<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken);
     EntityModel<FileSystemItem> uploadFileSystemItemWithAccessToken(FileSystemItemUpdate fileSystemItemUpdate, String accessToken);
