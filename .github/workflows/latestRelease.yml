@@ -32,7 +32,7 @@ jobs:
          run: mvn clean test -f pom.xml
       - 
         name: Build Docker Image
-        run: mvn spring-boot:build-image -f pom.xml -P prod
+        run: mvn spring-boot:build-image -f pom.xml
       -
         name: Upload CodeCov.
         run: bash <(curl -s https://codecov.io/bash) -Z
