@@ -1,6 +1,8 @@
 package de.filefighter.rest.domain.permission.rest;
 
+import de.filefighter.rest.domain.permission.data.dto.request.PermissionRequest;
 import de.filefighter.rest.domain.permission.data.dto.PermissionSet;
+import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +23,9 @@ public class PermissionRestController {
         this.permissionsRestService = permissionsRestService;
     }
 
+    //R
     @GetMapping(FS_BASE_URI+"{fsItemId}/permission")
-    public EntityModel<PermissionSet> getPermissionsOfFileOrFolder(
+    public EntityModel<PermissionSet> getPermissionSetForFileOrFolder(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
@@ -31,25 +34,27 @@ public class PermissionRestController {
         return permissionsRestService.getPermissionSetByIdAndToken(fsItemId, accessToken);
     }
 
-    @PostMapping(FS_BASE_URI+"{fsItemId}/permission")
-    public EntityModel<PermissionSet> setPermissionSetForId(
+    //C U
+    @PutMapping(FS_BASE_URI+"{fsItemId}/permission")
+    public EntityModel<ServerResponse> addUsersOrGroupsToPermissionSetForFileOrFolder(
             @PathVariable long fsItemId,
-            @RequestBody PermissionSet newPermissionSet,
+            @RequestBody PermissionRequest permissionRequest,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
-        LOG.info("Requested PermissionSet for FileSystemItem {}", fsItemId);
-        return permissionsRestService.setPermissionSetByIdAndToken(newPermissionSet, fsItemId, accessToken);
+        LOG.info("Requested new User or Group permissions {} for Id {}.",permissionRequest, fsItemId);
+        return permissionsRestService.addUsersOrGroupsToPermissionSetForFileOrFolderWithAccessToken(permissionRequest,fsItemId, accessToken);
     }
 
-    @PutMapping(FS_BASE_URI+"{fsItemId}/permission")
-    public EntityModel<PermissionSet> updatePermissionSetForId(
+    //D
+    @DeleteMapping(FS_BASE_URI+"{fsItemId}/permission")
+    public EntityModel<ServerResponse> removeUsersOrGroupsFromPermissionSetForFileOrFolder(
             @PathVariable long fsItemId,
-            @RequestBody PermissionSet updatedPermissionSet,
+            @RequestBody PermissionRequest permissionRequest,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
-        LOG.info("Requested PermissionSet for FileSystemItem {}", fsItemId);
-        return permissionsRestService.updatePermissionSetByIdAndToken(updatedPermissionSet,fsItemId, accessToken);
+        LOG.info("Requested removal of User or Group permissions {} for Id {}.",permissionRequest, fsItemId);
+        return permissionsRestService.removeUsersOrGroupsFromPermissionSetForFileOrFolderWithAccessToken(permissionRequest,fsItemId, accessToken);
     }
 }
