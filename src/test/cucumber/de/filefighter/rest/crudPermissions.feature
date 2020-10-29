@@ -47,8 +47,8 @@ Scenario: removing not existing permission
   And user 1234 is owner of "111"
   And user 9877 has no permission for "file" with id "111"
   When user with token "900000" wants to remove permissions of "file" with id "111" for user "9877"
-  Then response status code is "404"
-  #change statuscode? @open-schnick
+  Then response status code is "400"
+  Then response message contains "Couldn't remove permission that does not exit."
 
 
 Scenario Outline: Successful interaction adding new permission
@@ -66,34 +66,33 @@ Scenario Outline: Successful interaction adding new permission
     | folder  | 22 | fd   | view            |
 
 
-Scenario: not owner of file
+Scenario: User is not owner of file
   Given "file" exists with id "111" and path "bla.txt"
   And user 3131 exists
   And user 9877 is owner of "111"
   When user with token "900000" wants to add permissions of "file" with id "111" for user "3131" for "edit"
   Then response status code is "403"
-  And response message cotains "user 1234 is not owner of file with id 111"
+  And response message contains "User with id 1234 is not owner of file with id 111."
 
 
-Scenario: user does not exist
+Scenario: User does not exist
   Given "file" exists with id "111" and path "bla.txt"
   And user 1234 is owner of "111"
   When user with token "900000" wants to add permissions of "file" with id "111" for user "3131" for "edit"
   Then response status code is "404"
-  And response message cotains "user 3131 does not exist"
+  And response message contains "User 3131 does not exist."
 
 
-
-Scenario: file does not exist
+Scenario: File does not exist
   And user 1234 is owner of "111"
   When user with token "900000" wants to add permissions of "file" with id "111" for user "9877" for "edit"
   Then response status code is "404"
-  And response message cotains "file with id 111 does not exist"
+  And response message contains "No File with id 111 found."
 
 
-Scenario: is already owner
+Scenario: User is already owner
   Given "file" exists with id "111" and path "bla.txt"
   And user 1234 is owner of "111"
   When user with token "900000" wants to add permissions of "file" with id "111" for user "1234" for "edit"
   Then response status code is "405"
-  And response message cotains "user with id 1234 is already owner of file with id 111"
+  And response message contains "User with id 1234 is already owner of file with id 111."

@@ -1,47 +1,45 @@
 package de.filefighter.rest.cucumber;
 
 import io.cucumber.java.en.And;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 public class ViewFolderContentsSteps {
-    @When("the user {int} requests to see the content of folder {string}")
-    public void theUserRequestsToSeeTheContentOfFolderFooBar(int arg0, String path) {
+    @And("the folder with id {string} and path {string} exists")
+    public void theFolderWithIdAndPathExists(String arg0, String arg1) {
     }
 
-    @And("the folder foo\\/bar exists")
-    public void theFolderFooBarExists() {
+    @And("the file with id {string} and path {string} exists")
+    public void theFileWithIdAndPathExists(String arg0, String arg1) {
     }
 
-    @And("the user {int} has the permission to view folder foo\\/bar")
-    public void theUserHasThePermissionToViewFolderFooBar(int arg0) {
+    @Given("user {int} has permission to view the folder with id {int}")
+    public void userHasPermissionToViewTheFolderWithId(int arg0, int arg1) {
     }
 
-    @Then("the user {int} sees a list of files and folder that are in folder foo\\/bar")
-    public void theUserSeesAListOfFilesAndFolderThatAreInFolderFooBar(int arg0) {
+    @And("user {int} has permission to view the file with id {int}")
+    public void userHasPermissionToViewTheFileWithId(int arg0, int arg1) {
     }
 
-    @When("the user {int} requests to see the content of of folder foo\\/bar\\/{int}")
-    public void theUserRequestsToSeeTheContentOfOfFolderFooBar(int arg0, int arg1) {
+    @When("user with token {string} wants to see the content of folder with path {string}")
+    public void userWithTokenWantsToSeeTheContentOfFolderWithPath(String arg0, String arg1) {
     }
 
-    @And("the folder foo\\/bar\\/{int} does not exist")
-    public void theFolderFooBarDoesNotExist(int arg0) {
+    @Then("response status code is {int}")
+    public void responseStatusCodeIs(int arg0) {
     }
 
-    @Then("the user {int} sees a notifaction that the folder foo\\/bar\\/{int} does not exist")
-    public void theUserSeesANotifactionThatTheFolderFooBarDoesNotExist(int arg0, int arg1) {
+    @Given("user {int} has permission to view the folder with id {string}")
+    public void userHasPermissionToViewTheFolderWithId(int arg0, String arg1) {
     }
 
-    @When("the user {int} requests to see the content of the folder foo\\/bar")
-    public void theUserRequestsToSeeTheContentOfTheFolderFooBar(int arg0) {
+    @And("response message contains {string}")
+    public void responseMessageContains(String arg0) {
     }
 
-    @And("the user {int} does not have the permission to view the folder foo\\/bar")
-    public void theUserDoesNotHaveThePermissionToViewTheFolderFooBar(int arg0) {
-    }
+    @And("the response contains the file with id {int} and name {string}")
+    public void theResponseContainsTheFileWithIdAndName(int arg0, String arg1) {
 
-    @Then("the user {int} sees a notifaction that the folder foo\\/bar does not exists")
-    public void theUserSeesANotifactionThatTheFolderFooBarDoesNotExists(int arg0) {
     }
 }
