@@ -2,13 +2,13 @@ Feature: CRUD Permissions
   As a user and owner a file
   I want want to be able to give or revoke other users permissions to either see or see and edit certain files or folders, so they can work together on the same files
 
+
   Background:
     Given database is empty
     And user 1234 exists
     And user 9877 exists
     And user 1234 has access token "900000"
     And user 9877 has access token "2345678"
-
 
 
 Scenario Outline: Successful interaction for changing existing permission
@@ -41,6 +41,7 @@ Scenario Outline: Successful interaction for removing existing permission
     | file    | 10 | f.c  | edit            |         200 |
     | folder  | 10 | fc   | edit            |         200 |
 
+
 Scenario: removing not existing permission
   Given "file" exists with id "111" and path "bla.txt"
   And user 1234 is owner of "111"
@@ -48,7 +49,6 @@ Scenario: removing not existing permission
   When user with token "900000" wants to remove permissions of "file" with id "111" for user "9877"
   Then response status code is "404"
   #change statuscode? @open-schnick
-
 
 
 Scenario Outline: Successful interaction adding new permission
@@ -81,7 +81,7 @@ Scenario: user does not exist
   When user with token "900000" wants to add permissions of "file" with id "111" for user "3131" for "edit"
   Then response status code is "404"
   And response message cotains "user 3131 does not exist"
-  # good idea?
+
 
 
 Scenario: file does not exist
@@ -89,10 +89,11 @@ Scenario: file does not exist
   When user with token "900000" wants to add permissions of "file" with id "111" for user "9877" for "edit"
   Then response status code is "404"
   And response message cotains "file with id 111 does not exist"
-# good idea?
+
 
 Scenario: is already owner
   Given "file" exists with id "111" and path "bla.txt"
   And user 1234 is owner of "111"
   When user with token "900000" wants to add permissions of "file" with id "111" for user "1234" for "edit"
   Then response status code is "405"
+  And response message cotains "user with id 1234 is already owner of file with id 111"
