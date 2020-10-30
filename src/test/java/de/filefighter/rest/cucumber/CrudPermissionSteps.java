@@ -18,12 +18,12 @@ public class CrudPermissionSteps extends SpringIntegrationTest{
     public void userHasAccessToken(int arg0, String arg1) {
     }
 
-    @Given("{string} exists with id {string} and {string}")
+    @Given("{string} exists with id {int} and {string}")
     public void existsWithIdAnd(String arg0, String arg1, String arg2) {
     }
 
-    @And("user {int} is owner of {string}")
-    public void userIsOwnerOf(int arg0, String arg1) {
+    @And("user {int} is owner of file/folder with id {int}")
+    public void userIsOwnerOf(int arg0, int arg1) {
     }
 
     @And("user {int} has permission of {string} for {string} with {string}")
@@ -42,24 +42,24 @@ public class CrudPermissionSteps extends SpringIntegrationTest{
     public void userWithIdHasPermissionWithId(int arg0, String arg1, String arg2, String arg3) {
     }
 
-    @Given("{string} exists with id {string} and path {string}")
-    public void existsWithIdAndPath(String arg0, String arg1, String arg2) {
+    @Given("{string} exists with id {int} and path {string}")
+    public void existsWithIdAndPath(String arg0, int arg1, String arg2) {
     }
 
     @And("user {int} has permission of {string} for {string} with id {string}")
     public void userHasPermissionOfForWithId(int arg0, String arg1, String arg2, String arg3) {
     }
 
-    @When("user with token {string} wants to remove permissions of {string} with id {string} for user {string}")
-    public void userWithTokenWantsToRemovePermissionsOfWithIdForUser(String arg0, String arg1, String arg2, String arg3) {
+    @When("user with token {string} wants to remove permissions of {string} with id {int} for user with id {int}")
+    public void userWithTokenWantsToRemovePermissionsOfWithIdForUser(String arg0, String arg1, int fileID, int arg3) {
     }
 
     @And("user with id {int} has no permission for {string} with id {string}")
     public void userWithIdHasNoPermissionForWithId(int arg0, String arg1, String arg2) {
     }
 
-    @And("user {int} has no permission for {string} with id {string}")
-    public void userHasNoPermissionForWithId(int arg0, String arg1, String arg2) {
+    @And("user {int} has no permission for {string} with id {int}")
+    public void userHasNoPermissionForWithId(int arg0, String arg1, int arg2) {
     }
 
     @When("user with token {string} wants to add permissions of {string} with id {string} for user {string} for {string}")
@@ -72,5 +72,15 @@ public class CrudPermissionSteps extends SpringIntegrationTest{
 
     @And("response message cotains {string}")
     public void responseMessageCotains(String arg0) {
+    }
+
+    @And("user {int} has permission of {string} for {string} with id {int}")
+    public void userHasPermissionOfForWithIdId(int arg0, String arg1, String arg2, int arg3) {
+    }
+
+
+
+    @And("user {int} is owner of file or folder with id {int}")
+    public void userIsOwnerOfFileOrFolderWithId(int arg0, int arg1) {
     }
 }
