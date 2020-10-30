@@ -26,9 +26,7 @@ public class CrudPermissionSteps extends SpringIntegrationTest{
     public void userWithTokenWantsToChangePermissionsOfWithIdIdForUserWithIdTo(String arg0, String arg1, int fileID,int arg2, String arg3) {
     }
 
-    @Then("response status code is {int}")
-    public void responseStatusCodeIsStatus_code(int status_code) {
-    }
+
 
     @When("user with token {string} wants to remove permissions of {string} with id {int} for user {int}")
     public void userWithTokenWantsToRemovePermissionsOfWithIdIdForUser(String arg0, String arg1,int fileID, int arg2) {
