@@ -5,7 +5,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-public class ViewFolderContentsSteps {
+public class ViewFolderContentsSteps extends SpringIntegrationTest{
     @And("the folder with id {string} and path {string} exists")
     public void theFolderWithIdAndPathExists(String arg0, String arg1) {
     }
