@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run all Cucumber Tests" type="CucumberJavaRunConfigurationType" factoryName="Cucumber java">
+    <envs>
+      <env name="SPRING_PROFILES_ACTIVE" value="&quot;dev&quot;" />
+    </envs>
+    <option name="FILE_PATH" value="$PROJECT_DIR$/src/test/cucumber/de/filefighter/rest" />
+    <option name="GLUE" value="de.filefighter.rest.cucumber" />
+    <option name="MAIN_CLASS_NAME" value="io.cucumber.core.cli.Main" />
+    <module name="rest" />
+    <option name="PROGRAM_PARAMETERS" value=" --plugin org.jetbrains.plugins.cucumber.java.run.CucumberJvm5SMFormatter" />
+    <option name="WORKING_DIRECTORY" value="$MODULE_WORKING_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
