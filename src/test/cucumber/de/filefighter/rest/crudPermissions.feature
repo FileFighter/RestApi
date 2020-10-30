@@ -12,12 +12,12 @@ Feature: CRUD Permissions
 
 
 Scenario Outline: Successful interaction for changing existing permission
-  Given "<type>" exists with id <id> and "<path>"
-  And user 1234 is owner of <id>
+  Given "<type>" exists with id <id> and path "<path>"
+  And user 1234 is owner of file or folder with id <id>
   And user 9877 has permission of "<old_permission>" for "<type>" with id <id>
   When user with token "900000" wants to change permissions of "<type>" with id <id> for user with id 9877 to "<new_permission>"
   Then response status code is <status_code>
-  And user with id 9877 has permission "<new_permission>" for "<type>" with id <id>
+  And user 9877 has permission of "<new_permission>" for "<type>" with id <id>
   Examples:
     | type    | id | path      | old_permission | new_permission | status_code  |
     | file    | 12 | bar.txt   | edit           | view           |     200      |
@@ -29,7 +29,7 @@ Scenario Outline: Successful interaction for changing existing permission
 
 Scenario Outline: Successful interaction for removing existing permission
   Given "<type>" exists with id <id> and path "<path>"
-  And user 1234 is owner of <id>
+  And user 1234 is owner of file or folder with id <id>
   And user 9877 has permission of "<old_permission>" for "<type>" with id <id>
   When user with token "900000" wants to remove permissions of "<type>" with id <id> for user 9877
   Then response status code is <status_code>
@@ -46,7 +46,7 @@ Scenario: removing not existing permission
   Given "file" exists with id 111 and path "bla.txt"
   And user 1234 is owner of file or folder with id 111
   And user 9877 has no permission for "file" with id 111
-  When user with token "900000" wants to remove permissions of "file" with id 111 for user with id 9877
+  When user with token "900000" wants to remove permissions of "file" with id 111 for user 9877
   Then response status code is 400
   Then response message contains "Couldn't remove permission that does not exit."
 
@@ -57,7 +57,7 @@ Scenario Outline: Successful interaction adding new permission
   And user 9877 has no permission for "<type>" with id <id>
   When user with token "900000" wants to add permissions of "<type>" with id <id> for user 9877 for "<new_permission>"
   Then response status code is 200
-  And user with id 9877 has permission "<new_permission>" for "<type>" with id <id>
+  And user 9877 has permission of "<new_permission>" for "<type>" with id <id>
   Examples:
     | type    | id | path | new_permission  |
     | file    | 12 | f.c  | edit            |
@@ -84,7 +84,7 @@ Scenario: User does not exist
 
 
 Scenario: File does not exist
-  And user with id 1234 is owner of file or folder with id 111
+  And user 1234 is owner of file or folder with id 111
   When user with token "900000" wants to add permissions of "file" with id 111 for user 9877 for "edit"
   Then response status code is 404
   And response message contains "No File with id 111 found."
