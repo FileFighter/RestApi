@@ -6,6 +6,9 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 public class CrudPermissionSteps extends SpringIntegrationTest{
+
+    // TODO: Rearrange the steps, create Shared State Handler.
+
     @Given("database is empty")
     public void databaseIsEmpty() {
     }
@@ -25,8 +28,6 @@ public class CrudPermissionSteps extends SpringIntegrationTest{
     @When("user with token {string} wants to change permissions of {string} with id {int} for user with id {int} to {string}")
     public void userWithTokenWantsToChangePermissionsOfWithIdIdForUserWithIdTo(String arg0, String arg1, int fileID,int arg2, String arg3) {
     }
-
-
 
     @When("user with token {string} wants to remove permissions of {string} with id {int} for user {int}")
     public void userWithTokenWantsToRemovePermissionsOfWithIdIdForUser(String arg0, String arg1,int fileID, int arg2) {
