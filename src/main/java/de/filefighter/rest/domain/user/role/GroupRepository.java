@@ -3,12 +3,12 @@ package de.filefighter.rest.domain.user.role;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RoleRepository {
-    private final Role[] roles = Role.values();
+public class GroupRepository {
+    private final Groups[] roles = Groups.values();
 
     //TODO: test this.
-    public Role getRoleById(long id) {
-        for (Role role : roles) {
+    public Groups getRoleById(long id) {
+        for (Groups role : roles) {
             if (role.getRoleId() == id) {
                 return role;
             }
@@ -16,8 +16,8 @@ public class RoleRepository {
         throw new IllegalArgumentException("id doesnt belong to a role");
     }
 
-    public Role[] getRolesByIds(long... ids){
-        Role[] roles = new Role[ids.length]; //TODO: check this again.
+    public Groups[] getRolesByIds(long... ids){
+        Groups[] roles = new Groups[ids.length]; //TODO: check this again.
 
         for (int i = 0; i < ids.length; i++) {
             roles[i] = this.getRoleById(ids[i]);

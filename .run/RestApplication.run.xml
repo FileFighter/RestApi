@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="RestApplication[DEV]" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+  <configuration name="RestApplication[DEV]" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="rest" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="de.filefighter.rest.RestApplication" />
     <option name="ACTIVE_PROFILES" value="dev" />
