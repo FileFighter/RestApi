@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.user.role;
 
-public enum Role {
+public enum Groups {
     UNDEFINED(-1, "No group"),
     FAMILY(0, "Family"),
     ADMIN(1, "Admin");
@@ -8,7 +8,7 @@ public enum Role {
     private final long roleId;
     private final String displayName;
 
-    Role(long roleId, String displayName) {
+    Groups(long roleId, String displayName) {
         this.roleId = roleId;
         this.displayName = displayName;
     }
