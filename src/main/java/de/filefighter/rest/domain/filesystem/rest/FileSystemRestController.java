@@ -25,14 +25,14 @@ public class FileSystemRestController {
         this.fileSystemRestService = fileSystemRestService;
     }
 
-    @GetMapping(FS_BASE_URI + "{fsItemId}/contents")
+    @GetMapping(FS_BASE_URI + "contents")
     public EntityModel<FolderContents> getContentsOfFolder(
-            @PathVariable long fsItemId,
+            @RequestHeader(value = "X-FF-PATH", defaultValue = "/") String path,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
 
-        LOG.info("Requested Folder contents of id {}.", fsItemId);
-        return fileSystemRestService.getContentsOfFolderByIdAndAccessToken(fsItemId, accessToken);
+        LOG.info("Requested Folder contents of folder with path {}.", path);
+        return fileSystemRestService.getContentsOfFolderByIdAndAccessToken(path, accessToken);
     }
 
     @GetMapping(FS_BASE_URI + "{fsItemId}/info")

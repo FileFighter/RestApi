@@ -28,12 +28,12 @@ class FileSystemRestControllerUnitTest {
                 .files(new File[]{dummyFile})
                 .folders(new Folder[]{dummyFolder}).create());
 
-        long id = 420;
+        String path= "/root/data.txt";
         String token = "token";
 
-        when(fileSystemRestServiceMock.getContentsOfFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.getContentsOfFolderByIdAndAccessToken(path, token)).thenReturn(expectedModel);
 
-        EntityModel<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(id, token);
+        EntityModel<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
         assertEquals(expectedModel, actualModel);
     }
 

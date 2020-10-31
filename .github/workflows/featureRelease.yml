@@ -34,7 +34,7 @@ jobs:
         run: bash <(curl -s https://codecov.io/bash) -Z
       -
         name: Build Docker Image
-        run: mvn spring-boot:build-image -f pom.xml -P prod
+        run: mvn spring-boot:build-image -f pom.xml
       -
         name: Login to DockerHub
         uses: docker/login-action@v1
@@ -42,15 +42,9 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PW }}
       -
-        name: Generate Image Tag from Git Branch
-        id: vars
-        run: echo ::set-output name=branch::${GITHUB_REF#refs/*/}
-      -
         name: Push Image to DockerHub Registry
         run: |
           IMAGE_ID=$(docker images rest -q)
-          VERSION=${{ steps.vars.outputs.branch }}
-          IFS=';' read -ra ADDR <<< "$VERSION"
-          VERSION=$ADDR[1]
+          VERSION=feature
           docker tag $IMAGE_ID filefighter/rest:$VERSION
           docker push filefighter/rest:$VERSION
