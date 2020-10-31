@@ -42,6 +42,7 @@ Scenario: shared file
   When user with token "900000" wants to see the content of folder with path "bla"
   Then response status code is 200
   And the response contains the file with id 72 and name "wow.txt"
+  And the response contains the file with id 73 and name "wow.txt"
 
 Scenario: empty directory
   Given "folder" exists with id 44 and path "empty"
