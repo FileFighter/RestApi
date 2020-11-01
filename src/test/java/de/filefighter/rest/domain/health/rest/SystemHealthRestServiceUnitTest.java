@@ -1,11 +1,11 @@
 package de.filefighter.rest.domain.health.rest;
 
 import de.filefighter.rest.domain.health.business.SystemHealthBusinessService;
-import de.filefighter.rest.domain.health.business.SystemHealthModelAssembler;
 import de.filefighter.rest.domain.health.data.SystemHealth;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -14,23 +14,21 @@ import static org.mockito.Mockito.when;
 class SystemHealthRestServiceUnitTest {
 
     private final SystemHealthBusinessService systemHealthBusinessServiceMock = mock(SystemHealthBusinessService.class);
-    private final SystemHealthModelAssembler systemHealthModelAssemblerMock = mock(SystemHealthModelAssembler.class);
     private SystemHealthRestService systemHealthRestService;
 
     @BeforeEach
     public void setUp() {
-        systemHealthRestService = new SystemHealthRestService(systemHealthBusinessServiceMock, systemHealthModelAssemblerMock);
+        systemHealthRestService = new SystemHealthRestService(systemHealthBusinessServiceMock);
     }
 
     @Test
     void getSystemHealth() {
         SystemHealth dummyHealth = SystemHealth.builder().uptimeInSeconds(420).create();
-        EntityModel<SystemHealth> actualModel = EntityModel.of(dummyHealth);
+        ResponseEntity<SystemHealth> expectedModel = new ResponseEntity<>(dummyHealth, HttpStatus.OK);
 
         when(systemHealthBusinessServiceMock.getCurrentSystemHealthInfo()).thenReturn(dummyHealth);
-        when(systemHealthModelAssemblerMock.toModel(dummyHealth)).thenReturn(actualModel);
 
-        EntityModel<SystemHealth> expectedModel = systemHealthRestService.getSystemHealth();
+        ResponseEntity<SystemHealth> actualModel = systemHealthRestService.getSystemHealth();
 
         assertEquals(expectedModel, actualModel);
     }

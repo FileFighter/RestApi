@@ -2,7 +2,7 @@ package de.filefighter.rest.domain.health.rest;
 
 import de.filefighter.rest.domain.health.data.SystemHealth;
 import io.swagger.annotations.Api;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,7 +17,7 @@ public class SystemHealthRestController {
     }
 
     @GetMapping("/health")
-    public EntityModel<SystemHealth> getSystemHealthInfo(){
+    public ResponseEntity<SystemHealth> getSystemHealthInfo(){
         return healthRestService.getSystemHealth();
     }
 }

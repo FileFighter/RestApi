@@ -7,8 +7,8 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Document(collection = "user")
 @Data
-@Builder(builderMethodName = "builder", builderClassName = "UserEntityBuilder")
-public class UserEntitiy {
+@Builder(builderClassName = "UserEntityBuilder")
+public class UserEntity {
 
     @MongoId
     private String id;
@@ -18,7 +18,7 @@ public class UserEntitiy {
     private String refreshToken; //TODO: add valid_until for refreshToken
     private long[] roleIds;
 
-    public UserEntitiy(long userId, String username, String password, String refreshToken, long... roleIds) {
+    public UserEntity(long userId, String username, String password, String refreshToken, long... roleIds) {
         this.userId = userId;
         this.username = username;
         this.password = password;

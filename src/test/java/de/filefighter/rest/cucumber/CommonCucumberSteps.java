@@ -4,7 +4,7 @@ import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
-import de.filefighter.rest.domain.user.data.persistance.UserEntitiy;
+import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -37,7 +37,7 @@ public class CommonCucumberSteps extends CucumberIntegrationTest {
 
     @And("user {long} exists")
     public void userExists(long userId) {
-        userRepository.save(UserEntitiy
+        userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .build());
@@ -55,7 +55,7 @@ public class CommonCucumberSteps extends CucumberIntegrationTest {
 
     @And("user with id {long} exists and has username {string}, password {string} and refreshToken {string}")
     public void userWithIdExistsAndHasUsernamePasswordAndRefreshToken(long userId, String username, String password, String refreshTokenValue) {
-        userRepository.save(UserEntitiy
+        userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .username(username)

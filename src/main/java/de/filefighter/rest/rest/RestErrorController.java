@@ -1,7 +1,6 @@
 package de.filefighter.rest.rest;
 
 import org.springframework.boot.web.servlet.error.ErrorController;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;

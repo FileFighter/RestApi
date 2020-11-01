@@ -43,13 +43,6 @@
             <version>1.18.12</version>
         </dependency>
 
-        <!-- tag::spring-hateoas[] -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas</artifactId>
-        </dependency>
-        <!-- end::spring-hateoas[] -->
-
         <!-- TESTING -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -76,6 +69,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- TESTING -->
 
         <dependency>
             <groupId>io.cucumber</groupId>
