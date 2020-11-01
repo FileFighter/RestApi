@@ -15,20 +15,20 @@ Scenario: Successful login with username and password.
 
 Scenario: Failed login with username and password.
   When user requests login with username "user" and password "wrong_password"
-  Then response message contains "User not authenticated."
-  And response status contains "denied"
+  Then response contains key "message" and value "User not authenticated."
+  And response contains key "status" and value "denied"
   And response status code is 401
 
 Scenario: Successful retrieval of accessToken with refreshToken.
   When user requests accessToken with refreshToken "token" and userId 1234
-  Then response contains key "userId" and value 1234
+  Then response contains key "userId" and value "1234"
   And response contains valid accessToken
   And response status code is 200
 
 Scenario: Failed retrieval of accessToken with wrong refreshToken.
   When user requests accessToken with refreshToken "not_the_token" and userId 1234
-  Then response message contains "User not authenticated."
-  And response status contains "denied"
+  Then response contains key "message" and value "User not authenticated."
+  And response contains key "status" and value "denied"
   And response status code is 401
 
 Scenario: Successful UserInfo request with valid accessToken.
@@ -39,6 +39,6 @@ Scenario: Successful UserInfo request with valid accessToken.
 
 Scenario: Failed UserInfo request with invalid accessToken.
   When user requests userInfo with accessToken "notTheAccessToken" and userId 1234
-  Then response message contains "User not authenticated."
-  And response status contains "denied"
+  Then response contains key "message" and value "User not authenticated."
+  And response contains key "status" and value "denied"
   And response status code is 401
