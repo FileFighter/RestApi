@@ -48,14 +48,14 @@ Scenario: removing not existing permission
   And user 9877 has no permission for "file" with id 111
   When user with token "900000" wants to remove permissions of "file" with id 111 for user 9877
   Then response status code is 400
-  Then response message contains "Couldn't remove permission that does not exit."
+  And response contains key "message" and value "Couldn't remove permission that does not exit."
 
 
 Scenario Outline: Successful interaction adding new permission
   Given "<type>" exists with id <id> and path "<path>"
   And user 1234 is owner of file or folder with id <id>
   And user 9877 has no permission for "<type>" with id <id>
-  When user with token "900000" wants to add permissions of "<type>" with id <id> for user 9877 for "<new_permission>"
+  When user with token "900000" wants to give "<new_permission>" permission for "<type>" with id <id> to user 9877
   Then response status code is 200
   And user 9877 has permission of "<new_permission>" for "<type>" with id <id>
   Examples:
@@ -70,29 +70,29 @@ Scenario: User is not owner of file
   Given "file" exists with id 111 and path "bla.txt"
   And user 3131 exists
   And user 9877 is owner of file or folder with id 111
-  When user with token "900000" wants to add permissions of "file" with id 111 for user 3131 for "edit"
+  When user with token "900000" wants to give "edit" permission for "file" with id 111 to user 3131
   Then response status code is 403
-  And response message contains "User with id 1234 is not owner of file with id 111."
+  And response contains key "message" and value "User with id 1234 is not owner of file with id 111."
 
 
 Scenario: User does not exist
   Given "file" exists with id 111 and path "bla.txt"
   And user 1234 is owner of file or folder with id 111
-  When user with token "900000" wants to add permissions of "file" with id 111 for user 3131 for "edit"
+  When user with token "900000" wants to give "edit" permission for "file" with id 111 to user 3131
   Then response status code is 404
-  And response message contains "User 3131 does not exist."
+  And response contains key "message" and value "User 3131 does not exist."
 
 
 Scenario: File does not exist
   And user 1234 is owner of file or folder with id 111
-  When user with token "900000" wants to add permissions of "file" with id 111 for user 9877 for "edit"
+  When user with token "900000" wants to give "edit" permission for "file" with id 111 to user 9877
   Then response status code is 404
-  And response message contains "No File with id 111 found."
+  And response contains key "message" and value "No File with id 111 found."
 
 
 Scenario: User is already owner
   Given "file" exists with id 111 and path "bla.txt"
   And user 1234 is owner of file or folder with id 111
-  When user with token "900000" wants to add permissions of "file" with id 111 for user 1234 for "edit"
+  When user with token "900000" wants to give "edit" permission for "file" with id 111 to user 1234
   Then response status code is 405
-  And response message contains "User with id 1234 is already owner of file with id 111."
+  And response contains key "message" and value "User with id 1234 is already owner of file with id 111."
