@@ -1,64 +1,32 @@
 package de.filefighter.rest.cucumber;
 
 import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-public class CrudPermissionSteps extends SpringIntegrationTest{
+public class CrudPermissionSteps extends CucumberIntegrationTest {
 
-    // TODO: Rearrange the steps, create Shared State Handler.
-
-    @Given("database is empty")
-    public void databaseIsEmpty() {
+    @And("user {long} has permission of {string} for {string} with id {long}")
+    public void userHasPermissionOfForWithIdId(long userId, String readOrWrite, String fileOrFolder, long fsItemId) {
     }
 
-    @And("user {int} exists")
-    public void userExists(int arg0) {
+    @When("user with token {string} wants to change permissions of {string} with id {long} for user with id {long} to {string}")
+    public void userWithTokenWantsToChangePermissionsOfWithIdIdForUserWithIdTo(String accessTokenValue, String fileOrFolder, long fsItemId, long userId, String newPermission) {
     }
 
-    @And("user {int} has access token {string}")
-    public void userHasAccessToken(int arg0, String arg1) {
+    @When("user with token {string} wants to remove permissions of {string} with id {long} for user {long}")
+    public void userWithTokenWantsToRemovePermissionsOfWithIdIdForUser(String accessTokenValue, String fileOrFolder, long fsItemId, long userId) {
     }
 
-    @And("user {int} has permission of {string} for {string} with id {int}")
-    public void userHasPermissionOfForWithIdId(int arg0, String arg1, String arg2,int arg3) {
+    @And("user with id {long} has no permission for {string} with id {long}")
+    public void userWithIdHasNoPermissionForWithIdId(long userId, String fileOrFolder, long fsItemId) {
     }
 
-    @When("user with token {string} wants to change permissions of {string} with id {int} for user with id {int} to {string}")
-    public void userWithTokenWantsToChangePermissionsOfWithIdIdForUserWithIdTo(String arg0, String arg1, int fileID,int arg2, String arg3) {
+    @And("user {long} has no permission for {string} with id {long}")
+    public void userHasNoPermissionForWithId(long userId, String fileOrFolder, long fsItemId) {
     }
 
-    @When("user with token {string} wants to remove permissions of {string} with id {int} for user {int}")
-    public void userWithTokenWantsToRemovePermissionsOfWithIdIdForUser(String arg0, String arg1,int fileID, int arg2) {
-    }
-
-    @And("user with id {int} has no permission for {string} with id {int}")
-    public void userWithIdHasNoPermissionForWithIdId(int arg0, String arg1, int fileID) {
-    }
-
-    @Given("{string} exists with id {int} and path {string}")
-    public void existsWithIdAndPath(String arg0, int arg1, String arg2) {
-    }
-
-    @And("user {int} is owner of file or folder with id {int}")
-    public void userIsOwnerOfFileOrFolderWithId(int arg0, int arg1) {
-    }
-
-    @And("user {int} has no permission for {string} with id {int}")
-    public void userHasNoPermissionForWithId(int arg0, String arg1, int arg2) {
-    }
-
-    @Then("response status code is {int}")
-    public void responseStatusCodeIs(int arg0) {
-    }
-
-    @Then("response message contains {string}")
-    public void responseMessageContains(String arg0) {
-    }
-
-    @When("user with token {string} wants to add permissions of {string} with id {int} for user {int} for {string}")
-    public void userWithTokenWantsToAddPermissionsOfWithIdForUserFor(String arg0, String arg1, int arg2, int arg3, String arg4) {
+    @When("user with token {string} wants to give {string} permission for {string} with id {long} to user {long}")
+    public void userWithTokenWantsToAddPermissionsOfWithIdForUserFor(String accessTokenValue, String permission, String fileOrFolder, long fsItemId, long userId) {
     }
 
 }

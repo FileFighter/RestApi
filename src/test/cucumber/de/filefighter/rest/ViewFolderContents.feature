@@ -22,7 +22,7 @@ Scenario: Folder does not exist
   Given user 1234 has permission of "view" for "folder" with id 42
   When user with token "900000" wants to see the content of folder with path "bla/fasel"
   Then response status code is 400
-  And response message contains "Folder does not exist, or you are not allowed to see the folder."
+  And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
 
 
 Scenario: insufficient authorization
@@ -30,7 +30,8 @@ Scenario: insufficient authorization
   And user 9877 has access token "2345678"
   When user with token "2345678" wants to see the content of folder with path "bla"
   Then response status code is 400
-  And response message contains "Folder does not exist, or you are not allowed to see the folder."
+  And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+
 
 Scenario: shared file
   Given "folder" exists with id 43 and path "bla"
