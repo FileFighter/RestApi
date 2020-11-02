@@ -1,5 +1,7 @@
 package de.filefighter.rest.configuration;
 
+import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
+import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import org.slf4j.Logger;
@@ -10,18 +12,30 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("prod")
-public class PrepareDataBaseProd {
+public class PrepareDataBase {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBaseProd.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBase.class);
 
     @Bean
-    CommandLineRunner initUserDataBase(UserRepository repository) {
+    CommandLineRunner cleanDataBase(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
 
         //Note: when the admin user changes his/her password, a new refreshToken will be created.
         return args -> {
             LOG.info("Starting with clean user collection.");
-            repository.deleteAll();
+            userRepository.deleteAll();
+            LOG.info("Starting with clean fileSystem collection.");
+            fileSystemRepository.deleteAll();
+            LOG.info("Starting with clean accessToken collection.");
+            accessTokenRepository.deleteAll();
+        };
+    }
+
+    @Bean
+    @Profile("prod")
+    CommandLineRunner initUserDataBase(UserRepository repository) {
+
+        //Note: when the admin user changes his/her password, a new refreshToken will be created.
+        return args -> {
             LOG.info("Preloading default admin user: " + repository.save(UserEntity
                     .builder()
                     .userId(0L)
