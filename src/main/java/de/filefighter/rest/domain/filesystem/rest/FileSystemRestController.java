@@ -27,7 +27,7 @@ public class FileSystemRestController {
 
     @GetMapping(FS_BASE_URI + "contents")
     public ResponseEntity<FolderContents> getContentsOfFolder(
-            @RequestHeader(value = "X-FF-PATH", defaultValue = "/") String path,
+            @RequestHeader(value = FS_PATH_HEADER, defaultValue = "/") String path,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
 

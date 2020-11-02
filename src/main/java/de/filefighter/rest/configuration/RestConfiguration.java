@@ -14,6 +14,7 @@ public class RestConfiguration {
     public static final String AUTHORIZATION_BASIC_PREFIX = "Basic: ";
     public static final String AUTHORIZATION_BEARER_PREFIX = "Bearer: ";
     public static final String FS_BASE_URI = "/filesystem/";
+    public static final String FS_PATH_HEADER = "X-FF-PATH";
     public static final String USER_BASE_URI = "/users/";
 
     @Bean
