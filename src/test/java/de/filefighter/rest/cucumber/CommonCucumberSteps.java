@@ -1,6 +1,7 @@
 package de.filefighter.rest.cucumber;
 
 import de.filefighter.rest.RestApplicationIntegrationTest;
+import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
@@ -11,6 +12,7 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 
 import java.time.Instant;
 import java.util.Arrays;
