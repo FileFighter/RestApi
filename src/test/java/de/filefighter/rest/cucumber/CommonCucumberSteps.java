@@ -1,7 +1,9 @@
 package de.filefighter.rest.cucumber;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.filefighter.rest.RestApplicationIntegrationTest;
-import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
@@ -12,24 +14,27 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 
 import java.time.Instant;
 import java.util.Arrays;
 
 import static de.filefighter.rest.domain.token.business.AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     private final UserRepository userRepository;
     private final AccessTokenRepository accessTokenRepository;
     private final FileSystemRepository fileSystemRepository;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         this.userRepository = userRepository;
         this.accessTokenRepository = accessTokenRepository;
         this.fileSystemRepository = fileSystemRepository;
+        this.objectMapper = new ObjectMapper();
     }
 
     @Given("database is empty")
@@ -106,7 +111,15 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     //key: value for json type response.
     @Then("response contains key {string} and value {string}")
-    public void responseContainsKeyAndValue(String key, String value) {
+    public void responseContainsKeyAndValue(String key, String value) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        String actualValue = rootNode.get(key).asText();
+
+        if(null == actualValue){
+            throw new IllegalArgumentException("key not found or value was null");
+        }
+
+        assertEquals(value, actualValue);
     }
 
     @And("response contains the user with id {long}")
@@ -117,4 +130,11 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void responseStatusCodeIs(int httpStatusCode) {
     }
 
+    @And("response contains key {string} and value of at least {int}")
+    public void responseContainsKeyAndValueOfAtLeast(String key, int value) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        int actualValue = rootNode.get(key).asInt();
+
+        assertTrue(actualValue >= value);
+    }
 }
