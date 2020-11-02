@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Document(collection = "token")
 @Data
-@Builder()
+@Builder
 public class AccessTokenEntity {
 
     @MongoId
@@ -15,10 +15,5 @@ public class AccessTokenEntity {
     private String value;
     private long userId;
     private long validUntil;
-
-    public AccessTokenEntity(String value, long userId, long validUntil) {
-        this.value = value;
-        this.userId = userId;
-        this.validUntil = validUntil;
-    }
+    
 }

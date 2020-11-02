@@ -6,7 +6,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 
 import java.security.Permission;
 
@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.OK;
 
 class PermissionRestControllerUnitTest {
 
@@ -30,11 +31,11 @@ class PermissionRestControllerUnitTest {
         String token = "token";
         long id = 420;
         User dummyUser = User.builder().create();
-        EntityModel<PermissionSet> expected = EntityModel.of(new PermissionSet(null, null, new User[]{dummyUser}, null));
+        ResponseEntity<PermissionSet> expected = new ResponseEntity<>(new PermissionSet(null, null, new User[]{dummyUser}, null), OK);
 
         when(permissionRestService.getPermissionSetByIdAndToken(id, token)).thenReturn(expected);
 
-        EntityModel<PermissionSet> actual = permissionRestController.getPermissionSetForFileOrFolder(420, token);
+        ResponseEntity<PermissionSet> actual = permissionRestController.getPermissionSetForFileOrFolder(420, token);
 
         assertEquals(expected, actual);
     }
@@ -46,12 +47,12 @@ class PermissionRestControllerUnitTest {
         ServerResponse dummyResponse = new ServerResponse("ok", "baum");
         PermissionRequest dummyRequest = new PermissionRequest();
 
-        EntityModel<ServerResponse> expected = EntityModel.of(dummyResponse);
+        ResponseEntity<ServerResponse> expected = new ResponseEntity<>(dummyResponse, OK);
 
 
         when(permissionRestService.addUsersOrGroupsToPermissionSetForFileOrFolderWithAccessToken(dummyRequest, id, token)).thenReturn(expected);
 
-        EntityModel<ServerResponse> actual = permissionRestController.addUsersOrGroupsToPermissionSetForFileOrFolder(420, dummyRequest, token);
+        ResponseEntity<ServerResponse> actual = permissionRestController.addUsersOrGroupsToPermissionSetForFileOrFolder(420, dummyRequest, token);
 
         assertEquals(expected, actual);
     }
@@ -63,12 +64,12 @@ class PermissionRestControllerUnitTest {
         ServerResponse dummyResponse = new ServerResponse("ok", "baum");
         PermissionRequest dummyRequest = new PermissionRequest();
 
-        EntityModel<ServerResponse> expected = EntityModel.of(dummyResponse);
+        ResponseEntity<ServerResponse> expected = new ResponseEntity<>(dummyResponse, OK);
 
 
         when(permissionRestService.removeUsersOrGroupsFromPermissionSetForFileOrFolderWithAccessToken(dummyRequest, id, token)).thenReturn(expected);
 
-        EntityModel<ServerResponse> actual = permissionRestController.removeUsersOrGroupsFromPermissionSetForFileOrFolder(420, dummyRequest, token);
+        ResponseEntity<ServerResponse> actual = permissionRestController.removeUsersOrGroupsFromPermissionSetForFileOrFolder(420, dummyRequest, token);
 
         assertEquals(expected, actual);
     }

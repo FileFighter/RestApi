@@ -52,8 +52,14 @@ public class SystemHealthRestIntegrationTest {
 
     @Test
     public void healthCheckShouldContainVariablesAndCorrectValues() throws JsonProcessingException {
-        LOG.info("Preloading default admin user: " + userRepository.save(new UserEntity(0L, "admin", "admin", "refreshToken1234", 0, 1)));
-
+        LOG.info("Preloading default admin user: " + userRepository.save(UserEntity
+                .builder()
+                .userId(0L)
+                .username("admin")
+                .password("admin")
+                .refreshToken("refreshToken1234")
+                .roleIds(new long[]{0, 1})
+                .build()));
         String jsonString = this.restTemplate.getForObject("http://localhost:" + port + "/health", String.class);
 
         // Note when a key does not exist, a NullPointerException will be thrown.

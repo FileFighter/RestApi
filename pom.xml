@@ -10,9 +10,9 @@
     </parent>
     <groupId>de.filefighter</groupId>
     <artifactId>rest</artifactId>
-    <version>0.0.2</version>
-    <name>rest</name>
-    <description>RestApi</description>
+    <version>0.0.3-Snapshot</version>
+    <name>RestApi</name>
+    <description>RestApi for FileFighter</description>
 
     <properties>
         <java.version>11</java.version>
