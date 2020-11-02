@@ -1,5 +1,6 @@
 package de.filefighter.rest.cucumber;
 
+import de.filefighter.rest.RestApplicationIntegrationTest;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
@@ -12,10 +13,11 @@ import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
+import java.util.Arrays;
 
 import static de.filefighter.rest.domain.token.business.AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS;
 
-public class CommonCucumberSteps extends CucumberIntegrationTest {
+public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     private final UserRepository userRepository;
     private final AccessTokenRepository accessTokenRepository;
@@ -66,8 +68,12 @@ public class CommonCucumberSteps extends CucumberIntegrationTest {
 
     // file / folder
     @Given("{string} exists with id {long} and path {string}")
-    public void existsWithIdAndPath(String fileOrFolder, long fsItemId) {
+    public void existsWithIdAndPath(String fileOrFolder, long fsItemId, String path) {
         if(fileOrFolder.equals("file")){
+            //TODO: split into folders and files.
+            String[] names = path.split("/");
+            System.out.println(Arrays.toString(names));
+
             fileSystemRepository.save(FileSystemEntity
                     .builder()
                     .isFile(true)
@@ -78,6 +84,7 @@ public class CommonCucumberSteps extends CucumberIntegrationTest {
                     .builder()
                     .isFile(false)
                     .id(fsItemId)
+                    .path(path)
                     .create());
         }else{
             throw new IllegalArgumentException("Found not valid string for FileOrFolder in Steps file.");

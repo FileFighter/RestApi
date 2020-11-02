@@ -1,12 +1,13 @@
 package de.filefighter.rest.cucumber;
 
+import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class UserAuthorizationSteps extends CucumberIntegrationTest {
+public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
 
     @When("user requests login with username {string} and password {string}")
     public void userRequestsLoginWithUsernameAndPassword(String username, String password) {

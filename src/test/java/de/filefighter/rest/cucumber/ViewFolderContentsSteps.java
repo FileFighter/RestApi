@@ -1,9 +1,10 @@
 package de.filefighter.rest.cucumber;
 
+import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 
-public class ViewFolderContentsSteps extends CucumberIntegrationTest {
+public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
     @When("user with token {string} wants to see the content of folder with path {string}")
     public void userWithTokenWantsToSeeTheContentOfFolderWithPath(String accessTokenValue, String path) {
     }
