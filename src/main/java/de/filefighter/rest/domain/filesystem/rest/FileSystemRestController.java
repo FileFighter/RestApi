@@ -7,7 +7,7 @@ import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -26,8 +26,8 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "contents")
-    public EntityModel<FolderContents> getContentsOfFolder(
-            @RequestHeader(value = "X-FF-PATH", defaultValue = "/") String path,
+    public ResponseEntity<FolderContents> getContentsOfFolder(
+            @RequestHeader(value = FS_PATH_HEADER, defaultValue = "/") String path,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
 
@@ -36,7 +36,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "{fsItemId}/info")
-    public EntityModel<FileSystemItem> getFileOrFolderInfo(
+    public ResponseEntity<FileSystemItem> getFileOrFolderInfo(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
@@ -46,7 +46,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI+"search")
-    public EntityModel<FileSystemItem> searchFileOrFolderByName(
+    public ResponseEntity<FileSystemItem> searchFileOrFolderByName(
             @RequestParam(name = "name", defaultValue = "name") String name,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
@@ -56,7 +56,7 @@ public class FileSystemRestController {
     }
 
     @PostMapping(FS_BASE_URI+"upload")
-    public EntityModel<FileSystemItem> uploadFileOrFolder(
+    public ResponseEntity<FileSystemItem> uploadFileOrFolder(
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
@@ -66,7 +66,7 @@ public class FileSystemRestController {
     }
 
     @PutMapping(FS_BASE_URI+"{fsItemId}/update")
-    public EntityModel<FileSystemItem> updateExistingFileOrFolder(
+    public ResponseEntity<FileSystemItem> updateExistingFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
@@ -77,7 +77,7 @@ public class FileSystemRestController {
     }
 
     @DeleteMapping(FS_BASE_URI+"{fsItemId}/delete")
-    public EntityModel<ServerResponse> deleteFileOrFolder(
+    public ResponseEntity<ServerResponse> deleteFileOrFolder(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){

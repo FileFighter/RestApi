@@ -4,11 +4,13 @@ import de.filefighter.rest.domain.filesystem.data.dto.*;
 import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.OK;
 
 class FileSystemRestControllerUnitTest {
 
@@ -24,65 +26,65 @@ class FileSystemRestControllerUnitTest {
     void getContentsOfFolder() {
         Folder dummyFolder = new Folder();
         File dummyFile = new File();
-        EntityModel<FolderContents> expectedModel = EntityModel.of(FolderContents.builder()
+        ResponseEntity<FolderContents> expectedModel = new ResponseEntity<>(FolderContents.builder()
                 .files(new File[]{dummyFile})
-                .folders(new Folder[]{dummyFolder}).create());
+                .folders(new Folder[]{dummyFolder}).create(), OK);
 
         String path= "/root/data.txt";
         String token = "token";
 
         when(fileSystemRestServiceMock.getContentsOfFolderByIdAndAccessToken(path, token)).thenReturn(expectedModel);
 
-        EntityModel<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
+        ResponseEntity<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
         assertEquals(expectedModel, actualModel);
     }
 
     @Test
     void getFileOrFolderInfo() {
         File file = new File();
-        EntityModel<FileSystemItem> expectedModel = EntityModel.of(file);
+        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         long id = 420;
         String token = "token";
 
         when(fileSystemRestServiceMock.getInfoAboutFileOrFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
 
-        EntityModel<FileSystemItem> actualModel = fileSystemRestController.getFileOrFolderInfo(id, token);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.getFileOrFolderInfo(id, token);
         assertEquals(expectedModel, actualModel);
     }
 
     @Test
     void searchFileOrFolderByName() {
         File file = new File();
-        EntityModel<FileSystemItem> expectedModel = EntityModel.of(file);
+        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         String name = "randomFile.exe";
         String token = "token";
 
         when(fileSystemRestServiceMock.findFileOrFolderByNameAndAccessToken(name, token)).thenReturn(expectedModel);
 
-        EntityModel<FileSystemItem> actualModel = fileSystemRestController.searchFileOrFolderByName(name, token);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.searchFileOrFolderByName(name, token);
         assertEquals(expectedModel, actualModel);
     }
 
     @Test
     void uploadFileOrFolder() {
         File file = new File();
-        EntityModel<FileSystemItem> expectedModel = EntityModel.of(file);
+        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.create().name("ugabuga").build();
         String token = "token";
 
         when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, token)).thenReturn(expectedModel);
 
-        EntityModel<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(fileSystemItemUpdate, token);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(fileSystemItemUpdate, token);
         assertEquals(expectedModel, actualModel);
     }
 
     @Test
     void updateExistingFileOrFolder() {
         File file = new File();
-        EntityModel<FileSystemItem> expectedModel = EntityModel.of(file);
+        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         long id = 420L;
         FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.create().name("ugabuga").build();
@@ -90,21 +92,21 @@ class FileSystemRestControllerUnitTest {
 
         when(fileSystemRestServiceMock.updatedFileSystemItemWithIdAndAccessToken(id, fileSystemItemUpdate, token)).thenReturn(expectedModel);
 
-        EntityModel<FileSystemItem> actualModel = fileSystemRestController.updateExistingFileOrFolder(id, fileSystemItemUpdate, token);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.updateExistingFileOrFolder(id, fileSystemItemUpdate, token);
         assertEquals(expectedModel, actualModel);
     }
 
     @Test
     void deleteFileOrFolder() {
         ServerResponse response = new ServerResponse("denied", "not authorized");
-        EntityModel<ServerResponse> expectedModel = EntityModel.of(response);
+        ResponseEntity<ServerResponse> expectedModel = new ResponseEntity<>(response, OK);
 
         long id = 420;
         String token = "token";
 
         when(fileSystemRestServiceMock.deleteFileSystemItemWithIdAndAccessToken(id, token)).thenReturn(expectedModel);
 
-        EntityModel<ServerResponse> actualModel = fileSystemRestController.deleteFileOrFolder(id, token);
+        ResponseEntity<ServerResponse> actualModel = fileSystemRestController.deleteFileOrFolder(id, token);
         assertEquals(expectedModel, actualModel);
     }
 }

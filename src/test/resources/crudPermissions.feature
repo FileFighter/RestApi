@@ -84,7 +84,6 @@ Scenario: User does not exist
 
 
 Scenario: File does not exist
-  And user 1234 is owner of file or folder with id 111
   When user with token "900000" wants to give "edit" permission for "file" with id 111 to user 9877
   Then response status code is 404
   And response contains key "message" and value "No File with id 111 found."

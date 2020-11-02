@@ -1,6 +1,6 @@
 package de.filefighter.rest.configuration;
 
-import de.filefighter.rest.domain.user.data.persistance.UserEntitiy;
+import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,14 @@ public class PrepareDataBaseProd {
         return args -> {
             LOG.info("Starting with clean user collection.");
             repository.deleteAll();
-            LOG.info("Preloading default admin user: " + repository.save(new UserEntitiy(0L, "admin", "admin", "refreshToken1234", 0, 1)));
+            LOG.info("Preloading default admin user: " + repository.save(UserEntity
+                    .builder()
+                    .userId(0L)
+                    .username("admin")
+                    .password("admin")
+                    .refreshToken("refreshToken1234")
+                    .roleIds(new long[]{0, 1})
+                    .build()));
             LOG.info("Loading Users" + (repository.findAll().size() == 1 ? " was successful." : " failed."));
         };
     }
