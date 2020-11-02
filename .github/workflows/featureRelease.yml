@@ -6,7 +6,7 @@ on:
     branches:
       - 'feature/**'
     paths:
-      - 'src/**'
+      - 'src/main/**'
       - 'pom.xml'
 
 jobs:
