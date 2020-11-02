@@ -1,11 +1,11 @@
 package de.filefighter.rest;
 
-import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.filesystem.rest.FileSystemRestController;
 import de.filefighter.rest.domain.health.rest.SystemHealthRestController;
 import de.filefighter.rest.domain.permission.rest.PermissionRestController;
 import de.filefighter.rest.domain.user.rest.UserRestController;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
