@@ -13,11 +13,10 @@ class SystemHealthRestControllerUnitTest {
 
     private final SystemHealthRestService systemHealthRestServiceMock = mock(SystemHealthRestService.class);
     private MockMvc mockMvc;
-    private SystemHealthRestController systemHealthRestController;
 
     @BeforeEach
     public void setUp() {
-        systemHealthRestController = new SystemHealthRestController(systemHealthRestServiceMock);
+        SystemHealthRestController systemHealthRestController = new SystemHealthRestController(systemHealthRestServiceMock);
         mockMvc = MockMvcBuilders.standaloneSetup(systemHealthRestController).build();
     }
 

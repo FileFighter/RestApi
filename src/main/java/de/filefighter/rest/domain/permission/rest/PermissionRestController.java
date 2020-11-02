@@ -1,12 +1,12 @@
 package de.filefighter.rest.domain.permission.rest;
 
-import de.filefighter.rest.domain.permission.data.dto.request.PermissionRequest;
 import de.filefighter.rest.domain.permission.data.dto.PermissionSet;
+import de.filefighter.rest.domain.permission.data.dto.request.PermissionRequest;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -25,7 +25,7 @@ public class PermissionRestController {
 
     //R
     @GetMapping(FS_BASE_URI+"{fsItemId}/permission")
-    public EntityModel<PermissionSet> getPermissionSetForFileOrFolder(
+    public ResponseEntity<PermissionSet> getPermissionSetForFileOrFolder(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
@@ -36,7 +36,7 @@ public class PermissionRestController {
 
     //C U
     @PutMapping(FS_BASE_URI+"{fsItemId}/permission")
-    public EntityModel<ServerResponse> addUsersOrGroupsToPermissionSetForFileOrFolder(
+    public ResponseEntity<ServerResponse> addUsersOrGroupsToPermissionSetForFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody PermissionRequest permissionRequest,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
@@ -48,7 +48,7 @@ public class PermissionRestController {
 
     //D
     @DeleteMapping(FS_BASE_URI+"{fsItemId}/permission")
-    public EntityModel<ServerResponse> removeUsersOrGroupsFromPermissionSetForFileOrFolder(
+    public ResponseEntity<ServerResponse> removeUsersOrGroupsFromPermissionSetForFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody PermissionRequest permissionRequest,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken

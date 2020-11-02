@@ -1,9 +1,10 @@
 package de.filefighter.rest.cucumber;
 
+import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 
-public class CrudPermissionSteps extends CucumberIntegrationTest {
+public class CrudPermissionSteps extends RestApplicationIntegrationTest {
 
     @And("user {long} has permission of {string} for {string} with id {long}")
     public void userHasPermissionOfForWithIdId(long userId, String readOrWrite, String fileOrFolder, long fsItemId) {

@@ -10,9 +10,9 @@
     </parent>
     <groupId>de.filefighter</groupId>
     <artifactId>rest</artifactId>
-    <version>0.0.2</version>
-    <name>rest</name>
-    <description>RestApi</description>
+    <version>0.0.3-Snapshot</version>
+    <name>RestApi</name>
+    <description>RestApi for FileFighter</description>
 
     <properties>
         <java.version>11</java.version>
@@ -43,12 +43,12 @@
             <version>1.18.12</version>
         </dependency>
 
-        <!-- tag::spring-hateoas[] -->
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-io -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas</artifactId>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
         </dependency>
-        <!-- end::spring-hateoas[] -->
 
         <!-- TESTING -->
         <dependency>
@@ -76,7 +76,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>

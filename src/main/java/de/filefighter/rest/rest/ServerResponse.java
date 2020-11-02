@@ -1,8 +1,6 @@
 package de.filefighter.rest.rest;
 
-import lombok.Data;
 import lombok.Getter;
-import org.springframework.hateoas.EntityModel;
 
 @Getter
 public class ServerResponse {

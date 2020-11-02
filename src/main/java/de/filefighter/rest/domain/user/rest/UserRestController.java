@@ -8,7 +8,7 @@ import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -28,7 +28,7 @@ public class UserRestController {
     }
 
     @PostMapping(USER_BASE_URI + "register")
-    public EntityModel<User> registerNewUser(
+    public ResponseEntity<User> registerNewUser(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "admin-token") String accessToken,
             @RequestBody UserRegisterForm newUser) {
 
@@ -37,7 +37,7 @@ public class UserRestController {
     }
 
     @GetMapping(USER_BASE_URI + "login")
-    public EntityModel<RefreshToken> loginUserWithUsernameAndPassword(
+    public ResponseEntity<RefreshToken> loginUserWithUsernameAndPassword(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BASIC_PREFIX + "S2V2aW46MTIzNA==") String base64encodedUserAndPassword) {
 
         LOG.info("Requested Login.");
@@ -45,7 +45,7 @@ public class UserRestController {
     }
 
     @GetMapping(USER_BASE_URI + "{userId}/login")
-    public EntityModel<AccessToken> getAccessTokenAndUserInfoByRefreshTokenAndUserId(
+    public ResponseEntity<AccessToken> getAccessTokenAndUserInfoByRefreshTokenAndUserId(
             @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
 
@@ -55,7 +55,7 @@ public class UserRestController {
 
 
     @GetMapping(USER_BASE_URI + "{userId}/info")
-    public EntityModel<User> getUserInfoWithAccessToken(
+    public ResponseEntity<User> getUserInfoWithAccessToken(
             @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
 
@@ -64,7 +64,7 @@ public class UserRestController {
     }
 
     @PutMapping(USER_BASE_URI + "{userId}/edit")
-    public EntityModel<User> updateUserWithAccessToken(
+    public ResponseEntity<User> updateUserWithAccessToken(
             @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestBody UserRegisterForm updatedUser) {
@@ -74,7 +74,7 @@ public class UserRestController {
     }
 
     @GetMapping(USER_BASE_URI + "find")
-    public EntityModel<User> findUserByUsername(
+    public ResponseEntity<User> findUserByUsername(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestParam(name = "username", value = "username") String username
     ) {
