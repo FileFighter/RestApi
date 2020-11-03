@@ -19,20 +19,27 @@
 #  And response contains key "status" and value "denied"
 #  And response status code is 401
 #
-#Scenario: Successful retrieval of accessToken with refreshToken.
+#Scenario: Successful creation of new accessToken with refreshToken.
 #  When user requests accessToken with refreshToken "token" and userId 1234
 #  Then response contains key "userId" and value "1234"
-#  And response contains valid accessToken
+#  And response contains valid accessToken for user 1234
 #  And response status code is 200
 #
-#Scenario: Failed retrieval of accessToken with wrong refreshToken.
+#Scenario: Successful request of existing accessToken with refreshToken.
+#  Given accessToken with value "token" exists for user 1234
+#  When user requests accessToken with refreshToken "token" and userId 1234
+#  Then response contains key "userId" and value "1234"
+#  And response contains valid accessToken for user 1234
+#  And response status code is 200
+#
+#  Scenario: Failed retrieval of accessToken with wrong refreshToken.
 #  When user requests accessToken with refreshToken "not_the_token" and userId 1234
 #  Then response contains key "message" and value "User not authenticated."
 #  And response contains key "status" and value "denied"
 #  And response status code is 401
 #
 #Scenario: Successful UserInfo request with valid accessToken.
-#  Given user 1234 has access token "accessToken"
+#  Given accessToken with value "accessToken" exists for user 1234
 #  When user requests userInfo with accessToken "accessToken" and userId 1234
 #  Then response contains the user with id 1234
 #  And response status code is 200
