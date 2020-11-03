@@ -9,7 +9,7 @@ public class GroupRepository {
     //TODO: test this.
     public Groups getRoleById(long id) {
         for (Groups role : roles) {
-            if (role.getRoleId() == id) {
+            if (role.getGroupId() == id) {
                 return role;
             }
         }
