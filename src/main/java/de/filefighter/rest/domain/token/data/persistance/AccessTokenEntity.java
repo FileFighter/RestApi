@@ -15,5 +15,5 @@ public class AccessTokenEntity {
     private String value;
     private long userId;
     private long validUntil;
-    
+
 }

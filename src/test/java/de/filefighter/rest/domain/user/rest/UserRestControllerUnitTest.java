@@ -26,7 +26,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void registerNewUser() {
-        User user = User.builder().id(420).roles(null).username("kevin").create();
+        User user = User.builder().id(420).groups(null).username("kevin").create();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
         when(userRestServiceMock.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedUser);
@@ -38,7 +38,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void loginUserWithUsernameAndPassword() {
-        User user = User.builder().id(420).roles(null).username("kevin").create();
+        User user = User.builder().id(420).groups(null).username("kevin").create();
         RefreshToken refreshToken = RefreshToken.builder().refreshToken("token").user(user).build();
         ResponseEntity<RefreshToken> expectedRefreshToken = new ResponseEntity<>(refreshToken, OK);
 
@@ -62,7 +62,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void getUserInfoWithAccessToken() {
-        User user = User.builder().id(420).roles(null).username("kevin").create();
+        User user = User.builder().id(420).groups(null).username("kevin").create();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
         when(userRestServiceMock.getUserByAccessTokenAndUserId("token", 420)).thenReturn(expectedUser);
@@ -73,7 +73,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void updateUserWithAccessToken() {
-        User user = User.builder().id(420).roles(null).username("kevin").create();
+        User user = User.builder().id(420).groups(null).username("kevin").create();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
         UserRegisterForm userRegisterForm = UserRegisterForm.builder().create();
 
@@ -85,7 +85,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void findUserByUsername(){
-        User user = User.builder().id(420).roles(null).username("kevin").create();
+        User user = User.builder().id(420).groups(null).username("kevin").create();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
         String username="kevin";
