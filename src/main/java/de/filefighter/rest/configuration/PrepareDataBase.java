@@ -32,7 +32,7 @@ public class PrepareDataBase {
 
     @Bean
     @Profile("prod")
-    CommandLineRunner initUserDataBase(UserRepository repository) {
+    CommandLineRunner initUserDataBaseProd(UserRepository repository) {
 
         //Note: when the admin user changes his/her password, a new refreshToken will be created.
         return args -> {
@@ -42,9 +42,35 @@ public class PrepareDataBase {
                     .username("admin")
                     .password("admin")
                     .refreshToken("refreshToken1234")
-                    .roleIds(new long[]{0, 1})
+                    .groupIds(new long[]{0, 1})
                     .build()));
-            LOG.info("Loading Users" + (repository.findAll().size() == 1 ? " was successful." : " failed."));
+            LOG.info("Inserting Users" + (repository.findAll().size() == 1 ? " was successful." : " failed."));
+        };
+    }
+
+    @Bean
+    @Profile("dev")
+    CommandLineRunner initUserDataBaseDev(UserRepository repository) {
+
+        return args -> {
+            LOG.info("Preloading default users: " +
+                    repository.save(UserEntity
+                            .builder()
+                            .userId(0L)
+                            .username("user")
+                            .password("1234")
+                            .refreshToken("refreshToken1234")
+                            .groupIds(new long[]{0})
+                            .build()) +
+                    repository.save(UserEntity
+                            .builder()
+                            .userId(0L)
+                            .username("user1")
+                            .password("12345")
+                            .refreshToken("refreshToken1234")
+                            .groupIds(new long[]{0})
+                            .build()));
+            LOG.info("Inserting Users" + (repository.findAll().size() == 2 ? " was successful." : " failed."));
         };
     }
 }
