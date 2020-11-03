@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.filefighter.rest.RestApplicationIntegrationTest;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
-import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
-import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import io.cucumber.java.en.And;
@@ -18,11 +15,8 @@ import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
-import java.util.UUID;
 
-import static de.filefighter.rest.domain.token.business.AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,14 +40,6 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         userRepository.deleteAll();
         accessTokenRepository.deleteAll();
         fileSystemRepository.deleteAll();
-    }
-
-    @Given("accessToken with value {string} exists for user {long}")
-    public void accessTokenWithValueExistsForUser(String tokenValue, long userId) {
-        accessTokenRepository.save(AccessTokenEntity.builder()
-                .userId(userId)
-                .value(tokenValue)
-                .validUntil(Instant.now().getEpochSecond()+ ACCESS_TOKEN_DURATION_IN_SECONDS).build());
     }
 
     @And("user {long} exists")
