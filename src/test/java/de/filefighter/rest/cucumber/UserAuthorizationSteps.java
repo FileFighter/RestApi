@@ -4,9 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.filefighter.rest.RestApplicationIntegrationTest;
+import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
+import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import io.cucumber.java.en.And;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import org.bson.internal.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 
 import java.time.Instant;
@@ -15,17 +19,44 @@ import java.util.UUID;
 
 import static com.mongodb.internal.connection.tlschannel.util.Util.assertTrue;
 import static de.filefighter.rest.configuration.RestConfiguration.*;
+import static de.filefighter.rest.domain.token.business.AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+    private final AccessTokenRepository accessTokenRepository;
+
+    @Autowired
+    public UserAuthorizationSteps(AccessTokenRepository accessTokenRepository) {
+        this.objectMapper = new ObjectMapper();
+        this.accessTokenRepository = accessTokenRepository;
+    }
+
+
+    @Given("accessToken with value {string} exists for user {long} and is valid until {long}")
+    public void accessTokenWithValueExistsForUserAndIsValidUntil(String tokenValue, long userId, long validUntil) {
+        accessTokenRepository.save(AccessTokenEntity.builder()
+                .userId(userId)
+                .value(tokenValue)
+                .validUntil(validUntil)
+                .validUntil(Instant.now().getEpochSecond()+ ACCESS_TOKEN_DURATION_IN_SECONDS).build());
+    }
+
+    @Given("accessToken with value {string} exists for user {long}")
+    public void accessTokenWithValueExistsForUser(String tokenValue, long userId) {
+        accessTokenRepository.save(AccessTokenEntity.builder()
+                .userId(userId)
+                .value(tokenValue)
+                .validUntil(Instant.now().getEpochSecond()+ ACCESS_TOKEN_DURATION_IN_SECONDS).build());
+    }
 
     @When("user requests login with username {string} and password {string}")
     public void userRequestsLoginWithUsernameAndPassword(String username, String password) {
         String authString = username + ":" + password;
         String base64encoded = Base64.encode(authString.getBytes());
-        base64encoded = AUTHORIZATION_BASIC_PREFIX+ base64encoded;
+        base64encoded = AUTHORIZATION_BASIC_PREFIX + base64encoded;
 
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", base64encoded);
@@ -82,5 +113,15 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
 
         assertEquals(userId, actualUserId);
         assertEquals(refreshToken, actualRefreshToken);
+    }
+
+    @And("response contains valid accessToken for user {long} with a different value than {string}")
+    public void responseContainsValidAccessTokenForUserWithADifferentValueThan(int userId, String differentTokenValue) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        String actualTokenValue = rootNode.get("token").asText();
+        long actualUserId = rootNode.get("userId").asLong();
+
+        assertEquals(userId, actualUserId);
+        assertNotEquals(differentTokenValue, actualTokenValue);
     }
 }
