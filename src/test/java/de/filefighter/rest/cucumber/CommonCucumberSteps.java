@@ -148,7 +148,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     @And("response contains the user with id {long}")
     public void responseContainsTheUserWithId(long userId) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
-        long actualValue = rootNode.get("userId").asLong();
+        long actualValue = rootNode.get("id").asLong();
 
         assertEquals(userId, actualValue);
     }

@@ -49,7 +49,7 @@ public class UserRestController {
             @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
 
-        LOG.info("Requested refreshing for user {} with token {}.", userId, refreshToken);
+        LOG.info("Requested login for user {} with token {}.", userId, refreshToken);
         return userRestService.getAccessTokenByRefreshTokenAndUserId(refreshToken, userId);
     }
 

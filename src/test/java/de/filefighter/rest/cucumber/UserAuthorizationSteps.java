@@ -23,8 +23,9 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
 
     @When("user requests login with username {string} and password {string}")
     public void userRequestsLoginWithUsernameAndPassword(String username, String password) {
-        String authString = AUTHORIZATION_BASIC_PREFIX + username + ":" + password;
+        String authString = username + ":" + password;
         String base64encoded = Base64.encode(authString.getBytes());
+        base64encoded = AUTHORIZATION_BASIC_PREFIX+ base64encoded;
 
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", base64encoded);
@@ -64,10 +65,22 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
         long validUntil = rootNode.get("validUntil").asLong();
 
         int expectedTokenLength = UUID.randomUUID().toString().length();
-        long expectedValidUntil = Instant.now().getEpochSecond();
+        int actualTokenLength = tokenValue.length();
+        boolean isStillViable = validUntil > Instant.now().getEpochSecond();
 
-        assertEquals(expectedTokenLength, tokenValue.length());
-        assertTrue(validUntil > expectedValidUntil);
+        assertEquals(expectedTokenLength, actualTokenLength);
+        assertTrue(isStillViable);
         assertEquals(userId, actualUserId);
+    }
+
+    @And("response contains refreshToken {string} and the user with id {long}")
+    public void responseContainsRefreshTokenAndTheUserWithId(String refreshToken, long userId) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        String actualRefreshToken = rootNode.get("refreshToken").asText();
+        JsonNode userNode = rootNode.get("user");
+        long actualUserId = userNode.get("id").asLong();
+
+        assertEquals(userId, actualUserId);
+        assertEquals(refreshToken, actualRefreshToken);
     }
 }

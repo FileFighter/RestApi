@@ -7,5 +7,5 @@ import org.springframework.stereotype.Service;
 public interface AccessTokenRepository extends MongoRepository<AccessTokenEntity, String> {
     AccessTokenEntity findByUserId(long userId);
     AccessTokenEntity findByValue(String value);
-    void deleteByUserId(long userId);
+    AccessTokenEntity findByUserIdAndValue(long userId, String value);
 }

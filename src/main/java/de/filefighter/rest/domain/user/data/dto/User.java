@@ -9,11 +9,11 @@ import lombok.Data;
 public class User {
     private long id;
     private String username;
-    private Groups[] roles;
+    private Groups[] groups;
 
     public User(long id, String username, Groups... roles) {
         this.id = id;
         this.username = username;
-        this.roles = roles;
+        this.groups = roles;
     }
 }

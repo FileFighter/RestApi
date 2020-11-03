@@ -58,7 +58,7 @@ public class SystemHealthRestIntegrationTest {
                 .username("admin")
                 .password("admin")
                 .refreshToken("refreshToken1234")
-                .roleIds(new long[]{0, 1})
+                .groupIds(new long[]{0, 1})
                 .build()));
         String jsonString = this.restTemplate.getForObject("http://localhost:" + port + "/health", String.class);
 
