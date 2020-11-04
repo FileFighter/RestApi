@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Data
 @Document(collection = "file")
-@Builder(buildMethodName = "create")
+@Builder
 public class FileSystemEntity {
     @MongoId private String _id;
     private long id;

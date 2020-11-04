@@ -59,7 +59,7 @@ public class AccessTokenBusinessService {
 
     public AccessToken findAccessTokenByValueAndUserId(String accessTokenValue, long userId) {
         if (!stringIsValid(accessTokenValue))
-            throw new IllegalArgumentException("AccessTokenValue was not valid.");
+            throw new IllegalArgumentException("Value of AccessToken was not valid.");
 
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserIdAndValue(userId, accessTokenValue);
         if (null == accessTokenEntity)
@@ -73,7 +73,7 @@ public class AccessTokenBusinessService {
     }
 
     public String checkBearerHeader(String accessTokenValue) {
-        if (!accessTokenValue.matches("^" + AUTHORIZATION_BEARER_PREFIX + "(.*)$"))
+        if (!accessTokenValue.matches("^" + AUTHORIZATION_BEARER_PREFIX + "[^\\s](.*)$"))
             throw new UserNotAuthenticatedException("Header does not contain '" + AUTHORIZATION_BEARER_PREFIX + "', or format is invalid.");
         return accessTokenValue.split(AUTHORIZATION_BEARER_PREFIX)[1];
     }

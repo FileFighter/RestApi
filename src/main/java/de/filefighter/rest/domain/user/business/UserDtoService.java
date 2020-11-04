@@ -26,7 +26,7 @@ public class UserDtoService implements DtoServiceInterface<User, UserEntity> {
                 .id(entity.getUserId())
                 .username(entity.getUsername())
                 .groups(groupRepository.getRolesByIds(entity.getGroupIds()))
-                .create();
+                .build();
     }
 
     @Override

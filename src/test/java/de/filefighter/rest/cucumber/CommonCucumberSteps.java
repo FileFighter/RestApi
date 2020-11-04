@@ -69,15 +69,15 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         System.out.println(Arrays.toString(names));
 
-        // create root dir.
+        // build root dir.
         fileSystemRepository.save(FileSystemEntity
                 .builder()
                 .isFile(false)
                 .path(completeFilePath.toString())
-                .create());
+                .build());
 
 
-        // create all files and folders.
+        // build all files and folders.
         for (int i = 0; i < names.length; i++) {
             if (!names[i].isEmpty() && !names[i].isBlank()) {
                 boolean isLastOne = i == names.length - 1;
@@ -88,7 +88,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                             .builder()
                             .isFile(false)
                             .path(completeFilePath.toString())
-                            .create());
+                            .build());
                     System.out.println("folder: "+completeFilePath.toString());
                 }else{
                     System.out.println("last one: "+names[i]);
@@ -97,7 +97,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                                 .builder()
                                 .isFile(true)
                                 .id(fsItemId)
-                                .create());
+                                .build());
                     } else if (fileOrFolder.equals("folder")) {
                         completeFilePath.append(names[i]).append("/");
                         fileSystemRepository.save(FileSystemEntity
@@ -105,7 +105,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                                 .isFile(false)
                                 .id(fsItemId)
                                 .path(completeFilePath.toString())
-                                .create());
+                                .build());
                     } else {
                         throw new IllegalArgumentException("Found not valid string for FileOrFolder in Steps file.");
                     }

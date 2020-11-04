@@ -4,8 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 
 
-@Builder(builderClassName = "UserBuilder", buildMethodName = "create")
 @Data
+@Builder
 public class User {
     private long id;
     private String username;

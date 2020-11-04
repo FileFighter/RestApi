@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder(buildMethodName = "create", builderClassName = "UserRegistrationFormBuilder")
+@Builder
 public class UserRegisterForm {
     private String username;
     private String password;
