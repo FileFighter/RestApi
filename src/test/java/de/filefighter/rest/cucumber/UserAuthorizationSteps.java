@@ -41,7 +41,7 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
                 .userId(userId)
                 .value(tokenValue)
                 .validUntil(validUntil)
-                .validUntil(Instant.now().getEpochSecond()+ ACCESS_TOKEN_DURATION_IN_SECONDS).build());
+                .build());
     }
 
     @Given("accessToken with value {string} exists for user {long}")
@@ -49,7 +49,7 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
         accessTokenRepository.save(AccessTokenEntity.builder()
                 .userId(userId)
                 .value(tokenValue)
-                .validUntil(Instant.now().getEpochSecond()+ ACCESS_TOKEN_DURATION_IN_SECONDS).build());
+                .validUntil(Instant.now().getEpochSecond() + ACCESS_TOKEN_DURATION_IN_SECONDS).build());
     }
 
     @When("user requests login with username {string} and password {string}")
@@ -116,7 +116,7 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
     }
 
     @And("response contains valid accessToken for user {long} with a different value than {string}")
-    public void responseContainsValidAccessTokenForUserWithADifferentValueThan(int userId, String differentTokenValue) throws JsonProcessingException {
+    public void responseContainsValidAccessTokenForUserWithADifferentValueThan(long userId, String differentTokenValue) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
         String actualTokenValue = rootNode.get("token").asText();
         long actualUserId = rootNode.get("userId").asLong();

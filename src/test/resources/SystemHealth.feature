@@ -13,7 +13,7 @@ Scenario: SystemHealth is requested without users in db
 Scenario: SystemHealth is requested with users in db
   Given user 1234 exists
   And user 3214 exists
-  And the user waits for 1 second(s)
+  And the user waits for 2 second(s)
   When the systemHealth endpoint is requested
   Then response contains key "userCount" and value "2"
   And response contains key "uptimeInSeconds" and value of at least 1
