@@ -22,7 +22,7 @@ public class SystemHealthBusinessService {
         return SystemHealth.builder()
                 .uptimeInSeconds(currentEpoch - serverStartedAt)
                 .userCount(userBusinessService.getUserCount())
-                .create();
+                .build();
     }
 
     public long getCurrentEpochSeconds(){

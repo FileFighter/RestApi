@@ -28,7 +28,7 @@ class FileSystemRestControllerUnitTest {
         File dummyFile = new File();
         ResponseEntity<FolderContents> expectedModel = new ResponseEntity<>(FolderContents.builder()
                 .files(new File[]{dummyFile})
-                .folders(new Folder[]{dummyFolder}).create(), OK);
+                .folders(new Folder[]{dummyFolder}).build(), OK);
 
         String path= "/root/data.txt";
         String token = "token";
@@ -72,7 +72,7 @@ class FileSystemRestControllerUnitTest {
         File file = new File();
         ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
-        FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.create().name("ugabuga").build();
+        FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.builder().name("ugabuga").build();
         String token = "token";
 
         when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, token)).thenReturn(expectedModel);
@@ -87,7 +87,7 @@ class FileSystemRestControllerUnitTest {
         ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         long id = 420L;
-        FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.create().name("ugabuga").build();
+        FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.builder().name("ugabuga").build();
         String token = "token";
 
         when(fileSystemRestServiceMock.updatedFileSystemItemWithIdAndAccessToken(id, fileSystemItemUpdate, token)).thenReturn(expectedModel);

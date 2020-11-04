@@ -25,6 +25,7 @@ public class PrepareDataBase {
     private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBase.class);
 
     @Bean
+    @Profile("dev,prod")
     CommandLineRunner veryImportantFileFighterStartScript() {
         return args -> {
             System.out.println();

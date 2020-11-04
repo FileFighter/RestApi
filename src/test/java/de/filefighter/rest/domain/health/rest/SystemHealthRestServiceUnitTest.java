@@ -23,7 +23,7 @@ class SystemHealthRestServiceUnitTest {
 
     @Test
     void getSystemHealth() {
-        SystemHealth dummyHealth = SystemHealth.builder().uptimeInSeconds(420).create();
+        SystemHealth dummyHealth = SystemHealth.builder().uptimeInSeconds(420).build();
         ResponseEntity<SystemHealth> expectedModel = new ResponseEntity<>(dummyHealth, HttpStatus.OK);
 
         when(systemHealthBusinessServiceMock.getCurrentSystemHealthInfo()).thenReturn(dummyHealth);
