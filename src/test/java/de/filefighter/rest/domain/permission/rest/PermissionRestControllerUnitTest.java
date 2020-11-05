@@ -30,7 +30,7 @@ class PermissionRestControllerUnitTest {
     void getPermissionSetForFileOrFolder() {
         String token = "token";
         long id = 420;
-        User dummyUser = User.builder().create();
+        User dummyUser = User.builder().build();
         ResponseEntity<PermissionSet> expected = new ResponseEntity<>(new PermissionSet(null, null, new User[]{dummyUser}, null), OK);
 
         when(permissionRestService.getPermissionSetByIdAndToken(id, token)).thenReturn(expected);

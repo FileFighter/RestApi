@@ -9,7 +9,7 @@ public class GroupRepository {
     //TODO: test this.
     public Groups getRoleById(long id) {
         for (Groups role : roles) {
-            if (role.getRoleId() == id) {
+            if (role.getGroupId() == id) {
                 return role;
             }
         }
@@ -17,7 +17,11 @@ public class GroupRepository {
     }
 
     public Groups[] getRolesByIds(long... ids){
-        Groups[] roles = new Groups[ids.length]; //TODO: check this again.
+        Groups[] roles;
+        if(null == ids){
+            return new Groups[0];
+        }
+        roles = new Groups[ids.length];
 
         for (int i = 0; i < ids.length; i++) {
             roles[i] = this.getRoleById(ids[i]);

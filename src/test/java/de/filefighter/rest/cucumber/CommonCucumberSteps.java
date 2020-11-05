@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.filefighter.rest.RestApplicationIntegrationTest;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
@@ -16,11 +15,8 @@ import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
-import java.util.UUID;
 
-import static de.filefighter.rest.domain.token.business.AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,16 +50,6 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .build());
     }
 
-    @And("user {long} has access token {string}")
-    public void userHasAccessToken(long userId, String accessTokenValue) {
-        accessTokenRepository.save(AccessTokenEntity
-                .builder()
-                .userId(userId)
-                .value(accessTokenValue)
-                .validUntil(Instant.now().getEpochSecond() + ACCESS_TOKEN_DURATION_IN_SECONDS)
-                .build());
-    }
-
     @And("user with id {long} exists and has username {string}, password {string} and refreshToken {string}")
     public void userWithIdExistsAndHasUsernamePasswordAndRefreshToken(long userId, String username, String password, String refreshTokenValue) {
         userRepository.save(UserEntity
@@ -83,15 +69,15 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         System.out.println(Arrays.toString(names));
 
-        // create root dir.
+        // build root dir.
         fileSystemRepository.save(FileSystemEntity
                 .builder()
                 .isFile(false)
                 .path(completeFilePath.toString())
-                .create());
+                .build());
 
 
-        // create all files and folders.
+        // build all files and folders.
         for (int i = 0; i < names.length; i++) {
             if (!names[i].isEmpty() && !names[i].isBlank()) {
                 boolean isLastOne = i == names.length - 1;
@@ -102,7 +88,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                             .builder()
                             .isFile(false)
                             .path(completeFilePath.toString())
-                            .create());
+                            .build());
                     System.out.println("folder: "+completeFilePath.toString());
                 }else{
                     System.out.println("last one: "+names[i]);
@@ -111,7 +97,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                                 .builder()
                                 .isFile(true)
                                 .id(fsItemId)
-                                .create());
+                                .build());
                     } else if (fileOrFolder.equals("folder")) {
                         completeFilePath.append(names[i]).append("/");
                         fileSystemRepository.save(FileSystemEntity
@@ -119,7 +105,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                                 .isFile(false)
                                 .id(fsItemId)
                                 .path(completeFilePath.toString())
-                                .create());
+                                .build());
                     } else {
                         throw new IllegalArgumentException("Found not valid string for FileOrFolder in Steps file.");
                     }
@@ -148,7 +134,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     @And("response contains the user with id {long}")
     public void responseContainsTheUserWithId(long userId) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
-        long actualValue = rootNode.get("userId").asLong();
+        long actualValue = rootNode.get("id").asLong();
 
         assertEquals(userId, actualValue);
     }

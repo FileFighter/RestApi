@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 
 @Getter
-@Builder(buildMethodName = "create")
+@Builder
 public class SystemHealth {
     private final long uptimeInSeconds;
     private final long userCount;
