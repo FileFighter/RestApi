@@ -7,6 +7,7 @@ Background:
 
 Scenario: SystemHealth is requested without users in db
   When the systemHealth endpoint is requested
+  And the user waits for 2 second(s)
   Then response contains key "userCount" and value "0"
   And response contains key "uptimeInSeconds" and value of at least 1
 
