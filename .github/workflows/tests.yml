@@ -10,7 +10,7 @@ on:
     tag: [ v*.*.* ]
 
 jobs:
-  Build_Docker_Image_on_Push:
+  Run_all_tests:
     runs-on: ubuntu-latest
     steps:
       -
