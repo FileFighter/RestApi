@@ -2,12 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
     paths:
       - 'src/**'
       - 'pom.xml'
-  create:
-    tag: [ v*.*.* ]
 
 jobs:
   Run_all_tests:
