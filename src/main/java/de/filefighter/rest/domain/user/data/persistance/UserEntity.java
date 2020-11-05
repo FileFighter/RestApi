@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 public class UserEntity {
 
     @MongoId
-    private String id;
+    private String _id;
     private long userId;
     private String username;
     private String password;

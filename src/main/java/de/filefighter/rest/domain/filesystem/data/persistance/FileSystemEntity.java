@@ -6,10 +6,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Data
-@Document(collection = "file")
+@Document(collection = "filesystem")
 @Builder
 public class FileSystemEntity {
-    @MongoId private String _id;
+
+    @MongoId
+    private String _id;
     private long id;
     private String name;
     private String path;
@@ -24,4 +26,5 @@ public class FileSystemEntity {
     private long[] visibleForUserIds;
     private long[] editableForUserIds;
     private long[] itemIds;
+
 }
