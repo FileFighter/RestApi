@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'pom.xml'
+  create:
+    tag: [ v*.*.* ]
+
+jobs:
+  Build_Docker_Image_on_Push:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v1
+      -
+        name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.0.8'
+          architecture: x64
+      -
+        name: Setup database for tests.
+        run: |
+          docker create -p 27017:27017 --name FileFighterDB mongo:latest
+          docker start FileFighterDB
+      -
+        name: Run all Tests
+        run: mvn clean test -f pom.xml
+      -
+        name: Upload CodeCov.
+        run: bash <(curl -s https://codecov.io/bash) -Z
