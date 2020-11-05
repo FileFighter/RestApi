@@ -7,7 +7,7 @@ public class File extends FileSystemItem{
     public File() {
     }
 
-    public File(long id, String name, double size, long createdByUserId, boolean isPublic, long lastUpdated, FileSystemType type, PermissionSet permissionSet) {
-        super(id, name, size, createdByUserId, isPublic, lastUpdated, type, permissionSet);
+    public File(long id, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type, PermissionSet permissionSet) {
+        super(id, name, size, createdByUserId, lastUpdated, type, permissionSet);
     }
 }

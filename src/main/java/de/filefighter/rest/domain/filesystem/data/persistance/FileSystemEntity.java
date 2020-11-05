@@ -19,7 +19,6 @@ public class FileSystemEntity {
     private double size;
     private boolean isFile;
     private long createdByUserId; //uploadedBy
-    private boolean isPublic;
     private long lastUpdated;
     private long[] visibleForRoleIds;
     private long[] editableForRoleIds;
