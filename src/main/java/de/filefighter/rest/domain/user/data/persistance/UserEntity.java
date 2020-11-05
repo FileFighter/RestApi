@@ -16,7 +16,6 @@ public class UserEntity {
     private String username;
     private String password;
     private String refreshToken; //TODO: add valid_until for refreshToken
-    private long[] roleIds;
-
+    private long[] groupIds;
 
 }

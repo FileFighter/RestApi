@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class TokenNotFoundAdvise {
+public class AccessTokenNotFoundAdvise {
     @ResponseBody
-    @ExceptionHandler(TokenNotFoundException.class)
+    @ExceptionHandler(AccessTokenNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
 
-    ResponseEntity<ServerResponse> tokenNotFoundAdvise(TokenNotFoundException ex) {
+    ResponseEntity<ServerResponse> tokenNotFoundAdvise(AccessTokenNotFoundException ex) {
         LoggerFactory.getLogger(UserAlreadyExistsAdvise.class).warn(ex.getMessage());
-        return new ResponseEntity<>(new ServerResponse("Denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

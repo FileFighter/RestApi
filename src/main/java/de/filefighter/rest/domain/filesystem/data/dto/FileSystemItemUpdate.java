@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder(builderMethodName = "create")
+@Builder
 public class FileSystemItemUpdate {
     private String name;
     private FileSystemType type;
