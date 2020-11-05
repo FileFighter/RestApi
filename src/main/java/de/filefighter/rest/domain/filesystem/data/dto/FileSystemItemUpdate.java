@@ -10,5 +10,4 @@ public class FileSystemItemUpdate {
     private String name;
     private FileSystemType type;
     private double size;
-    private boolean isPublic;
 }
