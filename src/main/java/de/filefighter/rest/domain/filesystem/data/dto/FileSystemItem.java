@@ -12,7 +12,6 @@ public class FileSystemItem {
     private String name;
     private double size;
     private long createdByUserId; //uploadedBy
-    private boolean isPublic;
     private long lastUpdated;
     private FileSystemType type;
     private PermissionSet permissionSet;
@@ -20,12 +19,11 @@ public class FileSystemItem {
     protected FileSystemItem() {
     }
 
-    public FileSystemItem(long id, String name, double size, long createdByUserId, boolean isPublic, long lastUpdated, FileSystemType type, PermissionSet permissionSet) {
+    public FileSystemItem(long id, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type, PermissionSet permissionSet) {
         this.id = id;
         this.name = name;
         this.size = size;
         this.createdByUserId = createdByUserId;
-        this.isPublic = isPublic;
         this.lastUpdated = lastUpdated;
         this.type = type;
         this.permissionSet = permissionSet;
