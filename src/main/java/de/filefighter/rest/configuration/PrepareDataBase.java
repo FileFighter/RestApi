@@ -25,7 +25,7 @@ public class PrepareDataBase {
     private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBase.class);
 
     @Bean
-    @Profile("dev,prod")
+    @Profile({"dev", "prod"})
     CommandLineRunner veryImportantFileFighterStartScript() {
         return args -> {
             System.out.println();
@@ -37,11 +37,11 @@ public class PrepareDataBase {
             System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |   ");
             System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|   ");
             System.out.println("                                     |___/                             ");
-            System.out.println("                   Version 0.2 Last updated at 03.11.20                ");
-            System.out.println("              Developed by Gimleux, Valentin, Open-Schnick.            ");
-            System.out.println("            Development Blog: https://filefighter.github.io            ");
+            System.out.println("                  Version 0.2 Last updated at 03.11.20                ");
+            System.out.println("             Developed by Gimleux, Valentin, Open-Schnick.            ");
+            System.out.println("           Development Blog: https://filefighter.github.io            ");
             System.out.println("       The code can be found at: https://www.github.com/filefighter    ");
-            System.out.println("                    Running on http://localhost:"+serverPort);
+            System.out.println("                   Running on http://localhost:" + serverPort);
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
             System.out.println();
