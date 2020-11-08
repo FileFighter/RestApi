@@ -1,4 +1,4 @@
-package de.filefighter.rest.domain.user.role;
+package de.filefighter.rest.domain.user.group;
 
 public enum Groups {
     UNDEFINED(-1, "No group"),
@@ -8,8 +8,8 @@ public enum Groups {
     private final long groupId;
     private final String displayName;
 
-    Groups(long roleId, String displayName) {
-        this.groupId = roleId;
+    Groups(long groupId, String displayName) {
+        this.groupId = groupId;
         this.displayName = displayName;
     }
 

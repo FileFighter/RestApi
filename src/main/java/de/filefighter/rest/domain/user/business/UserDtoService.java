@@ -5,7 +5,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import de.filefighter.rest.domain.user.role.GroupRepository;
+import de.filefighter.rest.domain.user.group.GroupRepository;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +25,7 @@ public class UserDtoService implements DtoServiceInterface<User, UserEntity> {
                 .builder()
                 .id(entity.getUserId())
                 .username(entity.getUsername())
-                .groups(groupRepository.getRolesByIds(entity.getGroupIds()))
+                .groups(groupRepository.getGroupsByIds(entity.getGroupIds()))
                 .build();
     }
 

@@ -1,5 +1,5 @@
 package de.filefighter.rest.domain.user.data.dto;
-import de.filefighter.rest.domain.user.role.Groups;
+import de.filefighter.rest.domain.user.group.Groups;
 import lombok.Builder;
 import lombok.Data;
 
