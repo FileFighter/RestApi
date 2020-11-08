@@ -8,5 +8,6 @@ import lombok.Data;
 public class UserRegisterForm {
     private String username;
     private String password;
+    private String confirmationPassword;
     private long[] roleIds;
 }
