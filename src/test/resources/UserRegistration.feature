@@ -22,6 +22,12 @@ Feature: User Registration
     And response contains key "message" and value "User already exists"
     And response contains key "status" and value "conflict"
 
+  Scenario: Failed registration with used username (other case), arbitrary password and password confirmation.
+    When user requests registration with username "User", password "pig-system" and password confirmation "pig-system"
+    Then response status code is 409
+    And response contains key "message" and value "User already exists"
+    And response contains key "status" and value "conflict"
+
   Scenario: Failed registration with username, password and deviating password confirmation.
     When user requests registration with username "kangaroo", password "pig-system" and password confirmation "i-love-capitalism"
     Then response status code is 409
