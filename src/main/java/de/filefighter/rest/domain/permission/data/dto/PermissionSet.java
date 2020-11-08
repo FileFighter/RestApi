@@ -1,7 +1,7 @@
 package de.filefighter.rest.domain.permission.data.dto;
 
 import de.filefighter.rest.domain.user.data.dto.User;
-import de.filefighter.rest.domain.user.role.Groups;
+import de.filefighter.rest.domain.user.group.Groups;
 import lombok.Getter;
 
 @Getter
