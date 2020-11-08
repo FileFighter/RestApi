@@ -47,3 +47,5 @@ Feature:
     Then response status code is 409
     And response contains key "message" and value "Password must not appear in the top 10000 most common passwords"
     And response contains key "status" and value "conflict"
+
+    #https://github.com/iryndin/10K-Most-Popular-Passwords/blob/master/passwords.txt
