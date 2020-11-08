@@ -35,7 +35,13 @@ Feature: User Registration
     And response contains key "status" and value "conflict"
 
   Scenario: Failed registration with username, password and password confirmation; username is part of password.
-    When user requests registration with username "kangaroo", password "kangaroo-system" and password confirmation "kangaroo-system"
+    When user requests registration with username "kangaroo", password "vietnam" and password confirmation "vietnam"
     Then response status code is 409
     And response contains key "message" and value "Username must not appear in password"
+    And response contains key "status" and value "conflict"
+
+  Scenario: Failed registration with username, password and password confirmation; password appears in list of top 10k passwords
+    When user requests registration with username "kangaroo", password "kangaroo-system" and password confirmation "kangaroo-system"
+    Then response status code is 409
+    And response contains key "message" and value "Password must not appear in the top 10000 most common passwords"
     And response contains key "status" and value "conflict"

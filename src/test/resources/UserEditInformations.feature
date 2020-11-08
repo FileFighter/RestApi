@@ -20,6 +20,7 @@ Feature:
     When user requests change of username with value "user" and refreshToken "token" and id "1234"
     Then response contains key "message" and value "No changes"
     And response status code is 409
+    And response contains key "status" and value "conflict"
 
   Scenario: Failed change of username; new username already assigned
     Given user 1235 exists
@@ -27,13 +28,22 @@ Feature:
     When user requests change of username with value "kangaroo" and refreshToken "token" and id "1234"
     Then response contains key "message" and value "Username already assigned"
     And response status code is 409
+    And response contains key "status" and value "conflict"
 
   Scenario: Failed change of password; new password equals old password
     When user requests change of password with value "secure_password" and refreshToken "token" and id "1234"
     Then response contains key "message" and value "No changes"
     And response status code is 409
+    And response contains key "status" and value "conflict"
 
   Scenario: Failed change of password; new password contains username
     When user requests change of password with value "user123" and refreshToken "token" and id "1234"
     Then response contains key "message" and value "Username must not appear in password"
     And response status code is 409
+    And response contains key "status" and value "conflict"
+
+  Scenario: Failed change of password; new password appears in list of top 10k passwords
+    When user requests change of password with value "vietnam" and refreshToken "token" and id "1234"
+    Then response status code is 409
+    And response contains key "message" and value "Password must not appear in the top 10000 most common passwords"
+    And response contains key "status" and value "conflict"
