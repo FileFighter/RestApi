@@ -39,7 +39,6 @@ Scenario: Successful retrieval of overwritten accessToken with refreshToken
   And response contains valid accessToken for user 1234 with a different value than "6bb9cb4f-7b51-4c0a-8013-ed7a34e56282"
   And response status code is 200
 
-
   Scenario: Failed retrieval of accessToken with wrong refreshToken.
   When user requests accessToken with refreshToken "not_the_token" and userId 1234
   Then response contains key "message" and value "Could not find user 1234"
