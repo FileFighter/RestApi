@@ -151,4 +151,14 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         assertTrue(actualValue >= value);
     }
+
+    @And("user with id {long} exists and has username {string}, password {string}")
+    public void userWithIdExistsAndHasUsernamePassword(long userId, String username, String password) {
+        userRepository.save(UserEntity
+                .builder()
+                .userId(userId)
+                .username(username)
+                .password(password)
+                .build());
+    }
 }
