@@ -9,4 +9,5 @@ public interface UserRepository extends MongoRepository<UserEntity, String> {
     UserEntity findByUsernameAndPassword(String username, String password);
     UserEntity findByRefreshTokenAndUserId(String refreshToken, long userId);
     UserEntity findByUserId(long userId);
+    UserEntity findByLowercaseUsername(String lowercaseUsername);
 }

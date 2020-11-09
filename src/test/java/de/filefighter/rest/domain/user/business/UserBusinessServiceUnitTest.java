@@ -7,6 +7,7 @@ import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
+import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,21 +46,21 @@ class UserBusinessServiceUnitTest {
         String withoutFormalRequirements = AUTHORIZATION_BASIC_PREFIX + "dWdhYnVnYXBhc3N3b3Jk"; //ugabugapassword
         String userNotFound = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA=="; // user:password
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userBusinessService.getUserByUsernameAndPassword(notValid)
         );
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userBusinessService.getUserByUsernameAndPassword(validButDoesntMatch)
         );
         assertThrows(RuntimeException.class, () ->
                 userBusinessService.getUserByUsernameAndPassword(matchesButIsNotSupportedEncoding)
         );
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userBusinessService.getUserByUsernameAndPassword(withoutFormalRequirements)
         );
 
         when(userRepositoryMock.findByUsernameAndPassword("user", "password")).thenReturn(null);
-        assertThrows(UserNotFoundException.class, () ->
+        assertThrows(UserNotAuthenticatedException.class, () ->
                 userBusinessService.getUserByUsernameAndPassword(userNotFound)
         );
     }
@@ -79,7 +80,6 @@ class UserBusinessServiceUnitTest {
 
     @Test
     void getRefreshTokenForUserWithoutUser() {
-        String invalidString = "";
         long userId = 420;
         String username = "someString";
 
@@ -87,7 +87,7 @@ class UserBusinessServiceUnitTest {
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(null);
 
-        assertThrows(UserNotFoundException.class, () ->
+        assertThrows(UserNotAuthenticatedException.class, () ->
                 userBusinessService.getRefreshTokenForUser(dummyUser)
         );
     }
@@ -166,8 +166,9 @@ class UserBusinessServiceUnitTest {
 
     @Test
     void getUserByRefreshTokenAndUserIdWithInvalidToken() {
-        assertThrows(UserNotAuthenticatedException.class, () ->
-                userBusinessService.getUserByRefreshTokenAndUserId("", 0)
+        String invalidToken = "";
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+                userBusinessService.getUserByRefreshTokenAndUserId(invalidToken, 0)
         );
     }
 
@@ -178,7 +179,7 @@ class UserBusinessServiceUnitTest {
 
         when(userRepositoryMock.findByRefreshTokenAndUserId(token, userId)).thenReturn(null);
 
-        assertThrows(UserNotFoundException.class, () ->
+        assertThrows(UserNotAuthenticatedException.class, () ->
                 userBusinessService.getUserByRefreshTokenAndUserId(token, userId)
         );
     }

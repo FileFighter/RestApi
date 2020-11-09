@@ -111,4 +111,17 @@ public class UserBusinessService {
 
         return userDtoService.createDto(userEntity);
     }
+
+    public User findUserByUsername(String username) {
+        if (!stringIsValid(username))
+            throw new RequestDidntMeetFormalRequirementsException("Username was not valid.");
+
+        String lowercaseUsername = username.toLowerCase().replace(" ","");
+
+        UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
+        if (null == entity)
+            throw new UserNotFoundException("User with username '" + username + "' not found.");
+
+        return userDtoService.createDto(entity);
+    }
 }

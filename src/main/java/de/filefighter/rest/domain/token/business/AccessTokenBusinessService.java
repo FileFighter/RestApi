@@ -68,6 +68,17 @@ public class AccessTokenBusinessService {
         return accessTokenDtoService.createDto(accessTokenEntity);
     }
 
+    public AccessToken findAccessTokenByValue(String accessTokenValue) {
+        if (!stringIsValid(accessTokenValue))
+            throw new IllegalArgumentException("Value of AccessToken was not valid.");
+
+        AccessTokenEntity accessTokenEntity = accessTokenRepository.findByValue(accessTokenValue);
+        if (null == accessTokenEntity)
+            throw new UserNotAuthenticatedException("AccessToken not found.");
+
+        return accessTokenDtoService.createDto(accessTokenEntity);
+    }
+
     public String generateRandomTokenValue() {
         return UUID.randomUUID().toString();
     }
