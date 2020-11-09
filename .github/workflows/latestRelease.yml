@@ -7,9 +7,9 @@ jobs:
   Build_Docker_Image_on_Push:
     runs-on: ubuntu-latest
     steps:
-      - 
-        uses: actions/checkout@v1          
-      - 
+      -
+        uses: actions/checkout@v1
+      -
         name: Set up JDK
         uses: actions/setup-java@v1
         with:
@@ -29,7 +29,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PW }}
-      - 
+      -
         name: Push Image to DockerHub Registry
         run: |
           IMAGE_ID=$(docker images rest -q)
