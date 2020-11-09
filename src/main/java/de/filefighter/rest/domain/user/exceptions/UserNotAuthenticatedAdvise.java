@@ -16,7 +16,7 @@ public class UserNotAuthenticatedAdvise {
     @ExceptionHandler(UserNotAuthenticatedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     ResponseEntity<ServerResponse> userNotAuthenticatedHandler(UserNotAuthenticatedException ex) {
-        LoggerFactory.getLogger(UserAlreadyExistsAdvise.class).warn(ex.getMessage());
+        LoggerFactory.getLogger(UserNotAuthenticatedException.class).warn(ex.getMessage());
         return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 }

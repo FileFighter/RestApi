@@ -16,7 +16,7 @@ public class UserAlreadyExistsAdvise {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
 
     ResponseEntity<ServerResponse> userAlreadyExistsAdvise(UserAlreadyExistsException ex) {
-        LoggerFactory.getLogger(UserAlreadyExistsAdvise.class).warn(ex.getMessage());
+        LoggerFactory.getLogger(UserAlreadyExistsException.class).warn(ex.getMessage());
         return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }
