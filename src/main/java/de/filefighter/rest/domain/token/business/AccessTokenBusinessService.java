@@ -6,6 +6,7 @@ import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.token.exceptions.AccessTokenNotFoundException;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
+import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -59,7 +60,7 @@ public class AccessTokenBusinessService {
 
     public AccessToken findAccessTokenByValueAndUserId(String accessTokenValue, long userId) {
         if (!stringIsValid(accessTokenValue))
-            throw new IllegalArgumentException("Value of AccessToken was not valid.");
+            throw new RequestDidntMeetFormalRequirementsException("Value of AccessToken was not valid.");
 
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserIdAndValue(userId, accessTokenValue);
         if (null == accessTokenEntity)
@@ -70,7 +71,7 @@ public class AccessTokenBusinessService {
 
     public AccessToken findAccessTokenByValue(String accessTokenValue) {
         if (!stringIsValid(accessTokenValue))
-            throw new IllegalArgumentException("Value of AccessToken was not valid.");
+            throw new RequestDidntMeetFormalRequirementsException("Value of AccessToken was not valid.");
 
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByValue(accessTokenValue);
         if (null == accessTokenEntity)
@@ -85,7 +86,7 @@ public class AccessTokenBusinessService {
 
     public String checkBearerHeader(String accessTokenValue) {
         if (!accessTokenValue.matches("^" + AUTHORIZATION_BEARER_PREFIX + "[^\\s](.*)$"))
-            throw new UserNotAuthenticatedException("Header does not contain '" + AUTHORIZATION_BEARER_PREFIX + "', or format is invalid.");
+            throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + AUTHORIZATION_BEARER_PREFIX + "', or format is invalid.");
         return accessTokenValue.split(AUTHORIZATION_BEARER_PREFIX)[1];
     }
 }
