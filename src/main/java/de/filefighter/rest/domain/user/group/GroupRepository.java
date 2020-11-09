@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 public class GroupRepository {
     private final Groups[] groups = Groups.values();
 
-    //TODO: test this.
     public Groups getGroupById(long id) {
         for (Groups group : groups) {
             if (group.getGroupId() == id) {
@@ -18,7 +17,7 @@ public class GroupRepository {
 
     public Groups[] getGroupsByIds(long... ids){
         Groups[] groups;
-        if(null == ids){
+        if(ids.length == 0){
             return new Groups[0];
         }
         groups = new Groups[ids.length];

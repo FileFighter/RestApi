@@ -8,9 +8,9 @@ jobs:
   Build_Docker_Image_on_new_Tag:
     runs-on: ubuntu-latest
     steps:
-      - 
-        uses: actions/checkout@v1          
-      - 
+      -
+        uses: actions/checkout@v1
+      -
         name: Set up JDK
         uses: actions/setup-java@v1
         with:
@@ -24,7 +24,7 @@ jobs:
       -
          name: Run all Tests
          run: mvn clean test -f pom.xml
-      - 
+      -
         name: Build Docker Image
         run: mvn spring-boot:build-image -f pom.xml
       -
@@ -33,7 +33,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PW }}
-      - 
+      -
         name: Generate Image Tag from Git Tag
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
