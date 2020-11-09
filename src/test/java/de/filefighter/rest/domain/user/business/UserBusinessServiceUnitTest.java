@@ -198,4 +198,34 @@ class UserBusinessServiceUnitTest {
 
         assertEquals(dummyUser, actual);
     }
+
+    @Test
+    void findUserByUsernameThrowsExceptions(){
+        String invalidFormat = "";
+        String validFormat = "ugabuga";
+
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+                userBusinessService.findUserByUsername(invalidFormat)
+        );
+
+        when(userRepositoryMock.findByLowercaseUsername(validFormat)).thenReturn(null);
+
+        assertThrows(UserNotFoundException.class, () ->
+                userBusinessService.findUserByUsername(validFormat)
+        );
+    }
+
+    @Test
+    void findUserByUsernameWorksCorrectly(){
+        String username = "some str ing w i th white spaces";
+        UserEntity userEntity = UserEntity.builder().build();
+        User user = User.builder().build();
+
+        when(userRepositoryMock.findByLowercaseUsername("somestringwithwhitespaces")).thenReturn(userEntity);
+        when(userDtoServiceMock.createDto(userEntity)).thenReturn(user);
+
+        User actual = userBusinessService.findUserByUsername(username);
+
+        assertEquals(user, actual);
+    }
 }

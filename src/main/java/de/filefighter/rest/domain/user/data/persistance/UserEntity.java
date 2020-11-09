@@ -16,7 +16,7 @@ public class UserEntity {
     private final String _id;
     private final long userId;
     private final String username;
-    private final String lowercaseUsername;
+    private final String lowercaseUsername; // Redundancy for performance tradeoff.
     private final String password;
     private final String refreshToken; //TODO: add valid_until for refreshToken
     private final long[] groupIds;
