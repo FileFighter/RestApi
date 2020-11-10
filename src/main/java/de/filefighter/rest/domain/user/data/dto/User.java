@@ -11,9 +11,9 @@ public class User {
     private String username;
     private Groups[] groups;
 
-    public User(long id, String username, Groups... roles) {
+    public User(long id, String username, Groups... groups) {
         this.id = id;
         this.username = username;
-        this.groups = roles;
+        this.groups = groups;
     }
 }

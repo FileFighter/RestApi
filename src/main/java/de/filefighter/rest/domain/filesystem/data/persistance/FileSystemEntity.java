@@ -20,8 +20,8 @@ public class FileSystemEntity {
     private boolean isFile;
     private long createdByUserId; //uploadedBy
     private long lastUpdated;
-    private long[] visibleForRoleIds;
-    private long[] editableForRoleIds;
+    private long[] visibleForGroupIds;
+    private long[] editableFoGroupIds;
     private long[] visibleForUserIds;
     private long[] editableForUserIds;
     private long[] itemIds;
