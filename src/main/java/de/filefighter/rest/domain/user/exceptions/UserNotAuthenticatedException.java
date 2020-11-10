@@ -5,10 +5,6 @@ public class UserNotAuthenticatedException extends RuntimeException{
         super("User could not be authenticated. "+reason);
     }
 
-//    public UserNotAuthenticatedException() {
-//        super("User could not be authenticated.");
-//    }
-
     public UserNotAuthenticatedException(long id){
         super("User with the id "+id+" could not be authenticated.");
     }
