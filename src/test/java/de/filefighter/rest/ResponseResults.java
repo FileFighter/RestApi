@@ -1,10 +1,8 @@
 package de.filefighter.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 
-import org.apache.commons.io.IOUtils;
+import io.cucumber.messages.internal.com.google.common.io.CharStreams;
 import org.springframework.http.client.ClientHttpResponse;
 
 public class ResponseResults {
@@ -13,10 +11,12 @@ public class ResponseResults {
 
     ResponseResults(final ClientHttpResponse response) throws IOException {
         this.theResponse = response;
-        final InputStream bodyInputStream = response.getBody();
-        final StringWriter stringWriter = new StringWriter();
-        IOUtils.copy(bodyInputStream, stringWriter); //TODO: change maybe?
-        this.body = stringWriter.toString();
+
+        String text;
+        try (Reader reader = new InputStreamReader(response.getBody())) {
+            text = CharStreams.toString(reader);
+        }
+        body = text;
     }
 
     public ClientHttpResponse getTheResponse() {
