@@ -6,14 +6,14 @@ import lombok.Getter;
 
 @Getter
 public class PermissionSet {
-    private final Groups[] visibleForRoles;
-    private final Groups[] editableForRoles;
+    private final Groups[] visibleForGroups;
+    private final Groups[] editableForGroups;
     private final User[] visibleForUsers;
     private final User[] editableForUsers;
 
-    public PermissionSet(Groups[] visibleForRoles, Groups[] editableForRoles, User[] visibleForUsers, User[] editableForUsers) {
-        this.visibleForRoles = visibleForRoles;
-        this.editableForRoles = editableForRoles;
+    public PermissionSet(Groups[] visibleForGroups, Groups[] editableForGroups, User[] visibleForUsers, User[] editableForUsers) {
+        this.visibleForGroups = visibleForGroups;
+        this.editableForGroups = editableForGroups;
         this.visibleForUsers = visibleForUsers;
         this.editableForUsers = editableForUsers;
     }
