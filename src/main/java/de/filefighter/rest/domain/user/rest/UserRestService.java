@@ -57,6 +57,9 @@ public class UserRestService implements UserRestServiceInterface {
 
     @Override
     public ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessToken) {
-        return null;
+        String cleanValue = accessTokenBusinessService.checkBearerHeader(accessToken);
+        AccessToken token = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
+        User foundUser = userBusinessService.findUserByUsername(username);
+        return new ResponseEntity<>(foundUser, HttpStatus.OK);
     }
 }

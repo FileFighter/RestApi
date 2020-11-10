@@ -1,6 +1,5 @@
-package de.filefighter.rest.domain.token.exceptions;
+package de.filefighter.rest.rest.exceptions;
 
-import de.filefighter.rest.domain.user.exceptions.UserAlreadyExistsAdvise;
 import de.filefighter.rest.rest.ServerResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,13 +10,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class AccessTokenNotFoundAdvise {
-    @ResponseBody
-    @ExceptionHandler(AccessTokenNotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+public class RequestDidntMeetFormalRequirementsAdvise {
 
-    ResponseEntity<ServerResponse> tokenNotFoundAdvise(AccessTokenNotFoundException ex) {
-        LoggerFactory.getLogger(AccessTokenNotFoundException.class).warn(ex.getMessage());
+    @ResponseBody
+    @ExceptionHandler(RequestDidntMeetFormalRequirementsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ResponseEntity<ServerResponse> requestDidntMeetFormalRequirements(RequestDidntMeetFormalRequirementsException ex) {
+        LoggerFactory.getLogger(RequestDidntMeetFormalRequirementsException.class).warn(ex.getMessage());
         return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

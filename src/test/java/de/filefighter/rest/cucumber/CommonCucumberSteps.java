@@ -12,6 +12,8 @@ import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CommonCucumberSteps.class);
     private final UserRepository userRepository;
     private final AccessTokenRepository accessTokenRepository;
     private final FileSystemRepository fileSystemRepository;
@@ -44,21 +47,33 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     @And("user {long} exists")
     public void userExists(long userId) {
-        userRepository.save(UserEntity
+        LOG.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
-                .build());
+                .build()));
     }
 
     @And("user with id {long} exists and has username {string}, password {string} and refreshToken {string}")
     public void userWithIdExistsAndHasUsernamePasswordAndRefreshToken(long userId, String username, String password, String refreshTokenValue) {
-        userRepository.save(UserEntity
+        LOG.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .username(username)
+                .lowercaseUsername(username.toLowerCase())
                 .password(password)
                 .refreshToken(refreshTokenValue)
-                .build());
+                .build()));
+    }
+
+    @And("user with id {long} exists and has username {string}, password {string}")
+    public void userWithIdExistsAndHasUsernamePassword(long userId, String username, String password) {
+        LOG.info("Creating User: " + userRepository.save(UserEntity
+                .builder()
+                .userId(userId)
+                .username(username)
+                .lowercaseUsername(username.toLowerCase())
+                .password(password)
+                .build()));
     }
 
     // This step almost needs a unit test.
@@ -81,7 +96,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         for (int i = 0; i < names.length; i++) {
             if (!names[i].isEmpty() && !names[i].isBlank()) {
                 boolean isLastOne = i == names.length - 1;
-                if(!isLastOne){
+                if (!isLastOne) {
                     //is obviously a folder.
                     completeFilePath.append(names[i]).append("/");
                     fileSystemRepository.save(FileSystemEntity
@@ -89,9 +104,9 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                             .isFile(false)
                             .path(completeFilePath.toString())
                             .build());
-                    System.out.println("folder: "+completeFilePath.toString());
-                }else{
-                    System.out.println("last one: "+names[i]);
+                    System.out.println("folder: " + completeFilePath.toString());
+                } else {
+                    System.out.println("last one: " + names[i]);
                     if (fileOrFolder.equals("file")) {
                         fileSystemRepository.save(FileSystemEntity
                                 .builder()

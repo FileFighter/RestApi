@@ -7,6 +7,7 @@ import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
+import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -39,11 +40,11 @@ public class UserBusinessService {
 
     public User getUserByUsernameAndPassword(String base64encodedUserAndPasswordWithHeaderPrefix) {
         if (!stringIsValid(base64encodedUserAndPasswordWithHeaderPrefix))
-            throw new UserNotAuthenticatedException("Header was empty.");
+            throw new RequestDidntMeetFormalRequirementsException("Header was empty.");
 
         //TODO: maybe filter unsupported characters?
         if (!base64encodedUserAndPasswordWithHeaderPrefix.matches("^" + AUTHORIZATION_BASIC_PREFIX + "[^\\s](.*)$"))
-            throw new UserNotAuthenticatedException("Header does not contain '" + AUTHORIZATION_BASIC_PREFIX + "', or format is invalid.");
+            throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + AUTHORIZATION_BASIC_PREFIX + "', or format is invalid.");
 
         String[] split = base64encodedUserAndPasswordWithHeaderPrefix.split(AUTHORIZATION_BASIC_PREFIX);
 
@@ -60,14 +61,14 @@ public class UserBusinessService {
         split = decodedUsernameUndPassword.strip().split(":");
 
         if (split.length != 2)
-            throw new UserNotAuthenticatedException("Credentials didnt meet formal requirements.");
+            throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");
 
         String username = split[0];
         String password = split[1];
 
         UserEntity userEntity = userRepository.findByUsernameAndPassword(username, password);
         if (null == userEntity)
-            throw new UserNotFoundException("No User found with this username and password.");
+            throw new UserNotAuthenticatedException("No User found with this username and password.");
 
         return userDtoService.createDto(userEntity);
     }
@@ -75,7 +76,7 @@ public class UserBusinessService {
     public RefreshToken getRefreshTokenForUser(User user) {
         UserEntity userEntity = userRepository.findByUserIdAndUsername(user.getId(), user.getUsername());
         if (null == userEntity)
-            throw new UserNotFoundException();
+            throw new UserNotAuthenticatedException(user.getId());
 
         String refreshTokenValue = userEntity.getRefreshToken();
 
@@ -91,11 +92,11 @@ public class UserBusinessService {
 
     public User getUserByRefreshTokenAndUserId(String refreshToken, long userId) {
         if (!stringIsValid(refreshToken))
-            throw new UserNotAuthenticatedException("RefreshToken was not valid.");
+            throw new RequestDidntMeetFormalRequirementsException("RefreshToken was not valid.");
 
         UserEntity userEntity = userRepository.findByRefreshTokenAndUserId(refreshToken, userId);
         if (null == userEntity)
-            throw new UserNotFoundException(userId);
+            throw new UserNotAuthenticatedException(userId);
 
         return userDtoService.createDto(userEntity);
     }
@@ -109,5 +110,18 @@ public class UserBusinessService {
             throw new UserNotFoundException(userId);
 
         return userDtoService.createDto(userEntity);
+    }
+
+    public User findUserByUsername(String username) {
+        if (!stringIsValid(username))
+            throw new RequestDidntMeetFormalRequirementsException("Username was not valid.");
+
+        String lowercaseUsername = username.toLowerCase().replace(" ","");
+
+        UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
+        if (null == entity)
+            throw new UserNotFoundException("User with username '" + username + "' not found.");
+
+        return userDtoService.createDto(entity);
     }
 }
