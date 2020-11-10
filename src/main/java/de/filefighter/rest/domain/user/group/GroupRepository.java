@@ -17,7 +17,7 @@ public class GroupRepository {
 
     public Groups[] getGroupsByIds(long... ids){
         Groups[] groups;
-        if(ids.length == 0){
+        if(null == ids || ids.length == 0){
             return new Groups[0];
         }
         groups = new Groups[ids.length];
