@@ -1,6 +1,8 @@
 package de.filefighter.rest.configuration;
 
+import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
+import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
@@ -128,6 +130,39 @@ public class PrepareDataBase {
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
             LOG.info("Inserting token" + (repository.findAll().size() == 2 ? " was successful." : " failed."));
+        };
+    }
+
+    @Bean
+    @Profile("dev")
+    CommandLineRunner initFileSystemDataBaseDev(FileSystemRepository repository) {
+
+        return args -> {
+            LOG.info("Preloading default tokens: " +
+                    repository.save(FileSystemEntity.builder()
+                            .createdByUserId(0)
+                            .id(0)
+                            .isFile(false)
+                            .path("/")
+                            .itemIds(new long[]{1})
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("root")
+                            .size(420)
+                            .typeId(FileSystemType.FOLDER.getId())
+                            .visibleForGroupIds(new long[]{-1,0,1})
+                            .build()) +
+                    repository.save(FileSystemEntity.builder()
+                            .createdByUserId(0)
+                            .id(1)
+                            .isFile(true)
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("dummyFile.txt")
+                            .size(420)
+                            .typeId(FileSystemType.TEXT.getId())
+                            .editableFoGroupIds(new long[]{0})
+                            .visibleForGroupIds(new long[]{0})
+                            .build()));
+            LOG.info("Inserting FileSystemItems" + (repository.findAll().size() == 2 ? " was successful." : " failed."));
         };
     }
 }
