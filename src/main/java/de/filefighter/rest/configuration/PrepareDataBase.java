@@ -24,6 +24,12 @@ public class PrepareDataBase {
     @Value("${server.port}")
     int serverPort;
 
+    @Value("${filefighter.version}")
+    String version;
+
+    @Value("${filefighter.date}")
+    String date;
+
     private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBase.class);
 
     @Bean
@@ -39,7 +45,7 @@ public class PrepareDataBase {
             System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |   ");
             System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|   ");
             System.out.println("                                     |___/                             ");
-            System.out.println("                  Version 0.2 Last updated at 03.11.20                ");
+            System.out.println("                  Version v"+version+" Last updated at "+date+"               ");
             System.out.println("             Developed by Gimleux, Valentin, Open-Schnick.            ");
             System.out.println("           Development Blog: https://filefighter.github.io            ");
             System.out.println("       The code can be found at: https://www.github.com/filefighter    ");

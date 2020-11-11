@@ -1,5 +1,6 @@
 package de.filefighter.rest.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -15,6 +16,9 @@ import java.util.Collections;
 @EnableSwagger2
 public class SwaggerConfiguration {
 
+    @Value("${filefighter.version}")
+    String version;
+
     @Bean
     public Docket swaggerConfig() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -28,7 +32,7 @@ public class SwaggerConfiguration {
         return new ApiInfo(
                 "FileFighter REST",
                 "REST-API of the FileFighter application.",
-                "0.2",
+                version,
                 null,
                 new Contact("FileFighter Dev-Team", "https://github.com/filefighter/", "filefighter@t-online.de"),
                 "MIT License",
