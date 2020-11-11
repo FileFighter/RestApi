@@ -80,13 +80,18 @@ public class AccessTokenBusinessService {
         return accessTokenDtoService.createDto(accessTokenEntity);
     }
 
-    public String generateRandomTokenValue() {
-        return UUID.randomUUID().toString();
-    }
 
     public String checkBearerHeader(String accessTokenValue) {
         if (!accessTokenValue.matches("^" + AUTHORIZATION_BEARER_PREFIX + "[^\\s](.*)$"))
             throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + AUTHORIZATION_BEARER_PREFIX + "', or format is invalid.");
         return accessTokenValue.split(AUTHORIZATION_BEARER_PREFIX)[1];
+    }
+
+    public String generateRandomTokenValue() {
+        return UUID.randomUUID().toString();
+    }
+
+    public long getAccessTokenCount() {
+        return accessTokenRepository.count();
     }
 }
