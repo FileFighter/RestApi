@@ -12,4 +12,10 @@ import lombok.Getter;
 public class SystemHealth {
     private final long uptimeInSeconds;
     private final long userCount;
+    private final DataIntegrity dataIntegrity;
+    private final String version;
+
+    public enum DataIntegrity {
+        STABLE, POSSIBLE_RISK, UNSTABLE
+    }
 }
