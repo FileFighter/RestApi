@@ -24,9 +24,9 @@ class UserAuthorizationServiceUnitTest {
 
     @Test
     void authenticateUserWithUsernameAndPasswordThrows() {
-        String matchesButIsNotSupportedEncoding = AUTHORIZATION_BASIC_PREFIX + "���";
-        String matchesButDoesNotMeetRequirements = AUTHORIZATION_BASIC_PREFIX + "dWdhYnVnYQ==";
-        String matchesButUserWasNotFound = AUTHORIZATION_BASIC_PREFIX + "dXNlcjp1c2Vy";
+        String matchesButIsNotSupportedEncoding = "���";
+        String matchesButDoesNotMeetRequirements = "dWdhYnVnYQ==";
+        String matchesButUserWasNotFound = "dXNlcjp1c2Vy";
 
         assertThrows(RuntimeException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding)
@@ -43,7 +43,7 @@ class UserAuthorizationServiceUnitTest {
 
     @Test
     void authenticateUserWithUsernameAndPasswordWorksCorrectly() {
-        String header = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA=="; // user:password
+        String header = "dXNlcjpwYXNzd29yZA=="; // user:password
         User dummyUser = User.builder().build();
         UserEntity dummyEntity = UserEntity.builder().build();
 
@@ -68,14 +68,13 @@ class UserAuthorizationServiceUnitTest {
     @Test
     void authenticateUserWithRefreshTokenWorksCorrectly() {
         String refreshToken = "Something";
-        String authString = AUTHORIZATION_BEARER_PREFIX + refreshToken;
         UserEntity dummyEntity = UserEntity.builder().build();
         User dummyUser = User.builder().build();
 
         when(userRepositoryMock.findByRefreshToken(refreshToken)).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
 
-        User actualUser = userAuthorizationService.authenticateUserWithRefreshToken(authString);
+        User actualUser = userAuthorizationService.authenticateUserWithRefreshToken(refreshToken);
         assertEquals(dummyUser, actualUser);
     }
 
