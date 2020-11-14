@@ -118,7 +118,7 @@ class AccessTokenBusinessServiceUnitTest {
     }
 
     @Test
-    void findAccessTokenByValueThrowsException(){
+    void findAccessTokenByValueThrowsException() {
         String invalidFormat = "";
         String validFormat = "ugabuga";
 
@@ -134,7 +134,7 @@ class AccessTokenBusinessServiceUnitTest {
     }
 
     @Test
-    void findAccessTokenByValueSuccessfully(){
+    void findAccessTokenByValueSuccessfully() {
         String validFormat = "ugabuga";
 
         AccessTokenEntity accessTokenEntity = AccessTokenEntity.builder().build();
@@ -155,29 +155,51 @@ class AccessTokenBusinessServiceUnitTest {
     }
 
     @Test
-    void checkBearerHeaderWithWrongHeader(){
+    void validateAccessTokenValueWithWrongHeader() {
         String header0 = "wrongHeader";
         String header1 = "";
         String header2 = "Bearer: ";
 
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.checkBearerHeader(header0)
+                accessTokenBusinessService.validateAccessTokenValue(header0)
         );
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.checkBearerHeader(header1)
+                accessTokenBusinessService.validateAccessTokenValue(header1)
         );
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.checkBearerHeader(header2)
+                accessTokenBusinessService.validateAccessTokenValue(header2)
         );
     }
 
     @Test
-    void checkBearerHeaderWithCorrectHeader(){
+    void validateAccessTokenValueButTokenDoesNotExist() {
         String header = "Bearer: something";
-        String expected = "something";
 
-        String actual = accessTokenBusinessService.checkBearerHeader(header);
+        when(accessTokenRepositoryMock.findByValue("something")).thenReturn(null);
 
+        assertThrows(UserNotAuthenticatedException.class, () ->
+                accessTokenBusinessService.validateAccessTokenValue(header)
+        );
+    }
+
+    @Test
+    void validateAccessTokenValue() {
+        String header = "Bearer: something";
+        AccessToken expected = AccessToken.builder().build();
+        AccessTokenEntity accessTokenEntity = AccessTokenEntity.builder().build();
+
+        when(accessTokenRepositoryMock.findByValue("something")).thenReturn(accessTokenEntity);
+        when(accessTokenDtoServiceMock.createDto(accessTokenEntity)).thenReturn(expected);
+
+        AccessToken actual = accessTokenBusinessService.validateAccessTokenValue(header);
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void getAccessTokenCount(){
+        long count = 420;
+        when(accessTokenRepositoryMock.count()).thenReturn(count);
+
+        assertEquals(420, accessTokenBusinessService.getAccessTokenCount());
     }
 }

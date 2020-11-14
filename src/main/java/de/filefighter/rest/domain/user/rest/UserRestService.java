@@ -1,8 +1,11 @@
 package de.filefighter.rest.domain.user.rest;
 
+import de.filefighter.rest.configuration.RestConfiguration;
+import de.filefighter.rest.domain.common.Utils;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
+import de.filefighter.rest.domain.user.business.UserAuthorizationService;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
@@ -10,43 +13,47 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
+
 
 @Service
 public class UserRestService implements UserRestServiceInterface {
 
     private final UserBusinessService userBusinessService;
+    private final UserAuthorizationService userAuthorizationService;
     private final AccessTokenBusinessService accessTokenBusinessService;
 
-    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService) {
+    public UserRestService(UserBusinessService userBusinessService, UserAuthorizationService userAuthorizationService, AccessTokenBusinessService accessTokenBusinessService) {
         this.userBusinessService = userBusinessService;
+        this.userAuthorizationService = userAuthorizationService;
         this.accessTokenBusinessService = accessTokenBusinessService;
     }
 
     @Override
-    public ResponseEntity<User> getUserByAccessTokenAndUserId(String accessTokenValue, long userId) {
-        String cleanValue = accessTokenBusinessService.checkBearerHeader(accessTokenValue);
-        AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValueAndUserId(cleanValue, userId);
-        User user = userBusinessService.getUserByAccessTokenAndUserId(accessToken, userId);
+    public ResponseEntity<User> getUserByUserIdAuthenticateWithAccessToken(String accessToken, long userId) {
+        AccessToken validAccessToken = accessTokenBusinessService.validateAccessTokenValue(accessToken);
+        userAuthorizationService.authenticateUserWithAccessToken(validAccessToken);
+        User user = userBusinessService.getUserById(userId);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<RefreshToken> getRefreshTokenWithUsernameAndPassword(String base64encodedUserAndPassword) {
-        User user = userBusinessService.getUserByUsernameAndPassword(base64encodedUserAndPassword);
-        RefreshToken refreshToken = userBusinessService.getRefreshTokenForUser(user);
+        User authenticatedUser = userAuthorizationService.authenticateUserWithUsernameAndPassword(base64encodedUserAndPassword);
+        RefreshToken refreshToken = userBusinessService.getRefreshTokenForUser(authenticatedUser);
         return new ResponseEntity<>(refreshToken, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<AccessToken> getAccessTokenByRefreshTokenAndUserId(String refreshToken, long userId) {
-        String cleanValue = accessTokenBusinessService.checkBearerHeader(refreshToken);
-        User user = userBusinessService.getUserByRefreshTokenAndUserId(cleanValue, userId);
+    public ResponseEntity<AccessToken> getAccessTokenByRefreshToken(String refreshToken) {
+        String cleanValue = Utils.validateAuthorizationHeader(AUTHORIZATION_BEARER_PREFIX, refreshToken);
+        User user = userAuthorizationService.authenticateUserWithRefreshToken(cleanValue);
         AccessToken accessToken = accessTokenBusinessService.getValidAccessTokenForUser(user);
         return new ResponseEntity<>(accessToken, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<User> updateUserByAccessTokenAndUserId(UserRegisterForm updatedUser, String accessToken, long userId) {
+    public ResponseEntity<User> updateUserWithAccessToken(UserRegisterForm updatedUser, String accessToken) {
         return null;
     }
 
@@ -57,8 +64,8 @@ public class UserRestService implements UserRestServiceInterface {
 
     @Override
     public ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessToken) {
-        String cleanValue = accessTokenBusinessService.checkBearerHeader(accessToken);
-        AccessToken token = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
+        AccessToken token = accessTokenBusinessService.validateAccessTokenValue(accessToken);
+        userAuthorizationService.authenticateUserWithAccessToken(token);
         User foundUser = userBusinessService.findUserByUsername(username);
         return new ResponseEntity<>(foundUser, HttpStatus.OK);
     }

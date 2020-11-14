@@ -27,8 +27,6 @@ public class UserBusinessService {
     private final UserRepository userRepository;
     private final UserDtoService userDtoService;
 
-    private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
-
     public UserBusinessService(UserRepository userRepository, UserDtoService userDtoService) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
@@ -38,37 +36,11 @@ public class UserBusinessService {
         return userRepository.count();
     }
 
-    public User getUserByUsernameAndPassword(String base64encodedUserAndPasswordWithHeaderPrefix) {
-        if (!stringIsValid(base64encodedUserAndPasswordWithHeaderPrefix))
-            throw new RequestDidntMeetFormalRequirementsException("Header was empty.");
-
-        //TODO: maybe filter unsupported characters?
-        if (!base64encodedUserAndPasswordWithHeaderPrefix.matches("^" + AUTHORIZATION_BASIC_PREFIX + "[^\\s](.*)$"))
-            throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + AUTHORIZATION_BASIC_PREFIX + "', or format is invalid.");
-
-        String[] split = base64encodedUserAndPasswordWithHeaderPrefix.split(AUTHORIZATION_BASIC_PREFIX);
-
-        base64encodedUserAndPasswordWithHeaderPrefix = split[1];
-        String decodedUsernameUndPassword;
-        try {
-            byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPasswordWithHeaderPrefix);
-            decodedUsernameUndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException | IllegalArgumentException ex) {
-            LOG.warn("Found UnsupportedEncodingException in {}", base64encodedUserAndPasswordWithHeaderPrefix);
-            throw new RuntimeException(ex);
+    public User getUserById(long userId) {
+        UserEntity userEntity = userRepository.findByUserId(userId);
+        if (null == userEntity) {
+            throw new UserNotFoundException(userId);
         }
-
-        split = decodedUsernameUndPassword.strip().split(":");
-
-        if (split.length != 2)
-            throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");
-
-        String username = split[0];
-        String password = split[1];
-
-        UserEntity userEntity = userRepository.findByUsernameAndPassword(username, password);
-        if (null == userEntity)
-            throw new UserNotAuthenticatedException("No User found with this username and password.");
 
         return userDtoService.createDto(userEntity);
     }
@@ -76,7 +48,7 @@ public class UserBusinessService {
     public RefreshToken getRefreshTokenForUser(User user) {
         UserEntity userEntity = userRepository.findByUserIdAndUsername(user.getId(), user.getUsername());
         if (null == userEntity)
-            throw new UserNotAuthenticatedException(user.getId());
+            throw new UserNotFoundException(user.getId());
 
         String refreshTokenValue = userEntity.getRefreshToken();
 
@@ -90,33 +62,11 @@ public class UserBusinessService {
                 .build();
     }
 
-    public User getUserByRefreshTokenAndUserId(String refreshToken, long userId) {
-        if (!stringIsValid(refreshToken))
-            throw new RequestDidntMeetFormalRequirementsException("RefreshToken was not valid.");
-
-        UserEntity userEntity = userRepository.findByRefreshTokenAndUserId(refreshToken, userId);
-        if (null == userEntity)
-            throw new UserNotAuthenticatedException(userId);
-
-        return userDtoService.createDto(userEntity);
-    }
-
-    public User getUserByAccessTokenAndUserId(AccessToken accessToken, long userId) {
-        if (accessToken.getUserId() != userId)
-            throw new UserNotAuthenticatedException(userId);
-
-        UserEntity userEntity = userRepository.findByUserId(userId);
-        if (null == userEntity)
-            throw new UserNotFoundException(userId);
-
-        return userDtoService.createDto(userEntity);
-    }
-
     public User findUserByUsername(String username) {
         if (!stringIsValid(username))
             throw new RequestDidntMeetFormalRequirementsException("Username was not valid.");
 
-        String lowercaseUsername = username.toLowerCase().replace(" ","");
+        String lowercaseUsername = username.toLowerCase().replace(" ", "");
 
         UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
         if (null == entity)
