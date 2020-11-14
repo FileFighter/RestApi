@@ -15,6 +15,7 @@ import java.util.UUID;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 import static de.filefighter.rest.domain.common.Utils.stringIsValid;
+import static de.filefighter.rest.domain.common.Utils.validateAuthorizationHeader;
 
 @Service
 public class AccessTokenBusinessService {
@@ -81,10 +82,13 @@ public class AccessTokenBusinessService {
     }
 
 
-    public String checkBearerHeader(String accessTokenValue) {
-        if (!accessTokenValue.matches("^" + AUTHORIZATION_BEARER_PREFIX + "[^\\s](.*)$"))
-            throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + AUTHORIZATION_BEARER_PREFIX + "', or format is invalid.");
-        return accessTokenValue.split(AUTHORIZATION_BEARER_PREFIX)[1];
+    public AccessToken validateAccessTokenValue(String accessTokenValue) {
+        String cleanValue = validateAuthorizationHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
+        AccessTokenEntity accessTokenEntity = accessTokenRepository.findByValue(cleanValue);
+        if (null == accessTokenEntity)
+            throw new UserNotAuthenticatedException("AccessToken not found.");
+
+        return accessTokenDtoService.createDto(accessTokenEntity);
     }
 
     public String generateRandomTokenValue() {

@@ -4,8 +4,8 @@
   <OriginalElement>9354147b-ef48-46d1-ba1e-bb184772808e.SCHEMA:filefighter</OriginalElement>
   <nodes>
     <node x="259.0" y="0.0">9354147b-ef48-46d1-ba1e-bb184772808e.TABLE:filefighter.user</node>
-    <node x="0.0" y="0.0">9354147b-ef48-46d1-ba1e-bb184772808e.TABLE:filefighter.filesystem</node>
     <node x="0.0" y="389.0">9354147b-ef48-46d1-ba1e-bb184772808e.TABLE:filefighter.token</node>
+    <node x="0.0" y="0.0">9354147b-ef48-46d1-ba1e-bb184772808e.TABLE:filefighter.filesystem</node>
   </nodes>
   <notes />
   <edges />

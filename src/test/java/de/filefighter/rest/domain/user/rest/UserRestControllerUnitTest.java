@@ -44,7 +44,7 @@ class UserRestControllerUnitTest {
 
         when(userRestServiceMock.getRefreshTokenWithUsernameAndPassword(any())).thenReturn(expectedRefreshToken);
 
-        ResponseEntity<RefreshToken> actualRefreshToken = userRestController.loginUserWithUsernameAndPassword("");
+        ResponseEntity<RefreshToken> actualRefreshToken = userRestController.loginWithUsernameAndPassword("");
 
         assertEquals(expectedRefreshToken, actualRefreshToken);
     }
@@ -54,9 +54,9 @@ class UserRestControllerUnitTest {
         AccessToken accessToken = AccessToken.builder().build();
         ResponseEntity<AccessToken> accessTokenEntityModel = new ResponseEntity<>(accessToken, OK);
 
-        when(userRestServiceMock.getAccessTokenByRefreshTokenAndUserId("token", 420)).thenReturn(accessTokenEntityModel);
+        when(userRestServiceMock.getAccessTokenByRefreshToken("token")).thenReturn(accessTokenEntityModel);
 
-        ResponseEntity<AccessToken> actualAccessTokenEntity = userRestController.getAccessTokenAndUserInfoByRefreshTokenAndUserId(420, "token");
+        ResponseEntity<AccessToken> actualAccessTokenEntity = userRestController.getAccessToken("token");
         assertEquals(accessTokenEntityModel, actualAccessTokenEntity);
     }
 
@@ -65,8 +65,8 @@ class UserRestControllerUnitTest {
         User user = User.builder().id(420).groups(null).username("kevin").build();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
-        when(userRestServiceMock.getUserByAccessTokenAndUserId("token", 420)).thenReturn(expectedUser);
-        ResponseEntity<User> actualUser = userRestController.getUserInfoWithAccessToken(420,"token");
+        when(userRestServiceMock.getUserByUserIdAuthenticateWithAccessToken("token", 420)).thenReturn(expectedUser);
+        ResponseEntity<User> actualUser = userRestController.getUserInfo(420,"token");
 
         assertEquals(expectedUser, actualUser);
     }
@@ -77,8 +77,8 @@ class UserRestControllerUnitTest {
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
         UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
 
-        when(userRestServiceMock.updateUserByAccessTokenAndUserId(userRegisterForm, "token", 420)).thenReturn(expectedUser);
-        ResponseEntity<User> actualUser = userRestController.updateUserWithAccessToken(420,"token", userRegisterForm);
+        when(userRestServiceMock.updateUserWithAccessToken(userRegisterForm, "token")).thenReturn(expectedUser);
+        ResponseEntity<User> actualUser = userRestController.updateUser("token", userRegisterForm);
 
         assertEquals(expectedUser, actualUser);
     }

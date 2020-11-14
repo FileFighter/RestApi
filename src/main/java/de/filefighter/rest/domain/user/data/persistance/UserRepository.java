@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 public interface UserRepository extends MongoRepository<UserEntity, String> {
     UserEntity findByUserIdAndUsername(long userId, String username);
     UserEntity findByUsernameAndPassword(String username, String password);
-    UserEntity findByRefreshTokenAndUserId(String refreshToken, long userId);
+    UserEntity findByRefreshToken(String refreshToken);
     UserEntity findByUserId(long userId);
     UserEntity findByLowercaseUsername(String lowercaseUsername);
 }

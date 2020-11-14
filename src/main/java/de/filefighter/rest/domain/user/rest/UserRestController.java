@@ -37,40 +37,38 @@ public class UserRestController {
     }
 
     @GetMapping(USER_BASE_URI + "login")
-    public ResponseEntity<RefreshToken> loginUserWithUsernameAndPassword(
+    public ResponseEntity<RefreshToken> loginWithUsernameAndPassword(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BASIC_PREFIX + "S2V2aW46MTIzNA==") String base64encodedUserAndPassword) {
 
         LOG.info("Requested Login.");
         return userRestService.getRefreshTokenWithUsernameAndPassword(base64encodedUserAndPassword);
     }
 
-    @GetMapping(USER_BASE_URI + "{userId}/login")
-    public ResponseEntity<AccessToken> getAccessTokenAndUserInfoByRefreshTokenAndUserId(
-            @PathVariable long userId,
+    @GetMapping(USER_BASE_URI + "auth")
+    public ResponseEntity<AccessToken> getAccessToken(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
 
-        LOG.info("Requested login for user {} with token {}.", userId, refreshToken);
-        return userRestService.getAccessTokenByRefreshTokenAndUserId(refreshToken, userId);
+        LOG.info("Requested login for token {}.", refreshToken);
+        return userRestService.getAccessTokenByRefreshToken(refreshToken);
     }
 
 
     @GetMapping(USER_BASE_URI + "{userId}/info")
-    public ResponseEntity<User> getUserInfoWithAccessToken(
+    public ResponseEntity<User> getUserInfo(
             @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
 
         LOG.info("Requested User {} with token {}.", userId, accessToken);
-        return userRestService.getUserByAccessTokenAndUserId(accessToken, userId);
+        return userRestService.getUserByUserIdAuthenticateWithAccessToken(accessToken, userId);
     }
 
-    @PutMapping(USER_BASE_URI + "{userId}/edit")
-    public ResponseEntity<User> updateUserWithAccessToken(
-            @PathVariable long userId,
+    @PutMapping(USER_BASE_URI + "edit")
+    public ResponseEntity<User> updateUser(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestBody UserRegisterForm updatedUser) {
 
-        LOG.info("Updated User with the id {} and Token {}, with form {}.", userId, accessToken, updatedUser);
-        return userRestService.updateUserByAccessTokenAndUserId(updatedUser, accessToken, userId);
+        LOG.info("Updated User and Token {}, with form {}.", accessToken, updatedUser);
+        return userRestService.updateUserWithAccessToken(updatedUser, accessToken);
     }
 
     @GetMapping(USER_BASE_URI + "find")
