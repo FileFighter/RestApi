@@ -39,46 +39,6 @@ class UserBusinessServiceUnitTest {
     }
 
     @Test
-    void getUserByUsernameAndPasswordThrowsErrors() {
-        String notValid = "";
-        String validButDoesntMatch = "something";
-        String matchesButIsNotSupportedEncoding = AUTHORIZATION_BASIC_PREFIX + "���";
-        String withoutFormalRequirements = AUTHORIZATION_BASIC_PREFIX + "dWdhYnVnYXBhc3N3b3Jk"; //ugabugapassword
-        String userNotFound = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA=="; // user:password
-
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userBusinessService.getUserByUsernameAndPassword(notValid)
-        );
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userBusinessService.getUserByUsernameAndPassword(validButDoesntMatch)
-        );
-        assertThrows(RuntimeException.class, () ->
-                userBusinessService.getUserByUsernameAndPassword(matchesButIsNotSupportedEncoding)
-        );
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userBusinessService.getUserByUsernameAndPassword(withoutFormalRequirements)
-        );
-
-        when(userRepositoryMock.findByUsernameAndPassword("user", "password")).thenReturn(null);
-        assertThrows(UserNotAuthenticatedException.class, () ->
-                userBusinessService.getUserByUsernameAndPassword(userNotFound)
-        );
-    }
-
-    @Test
-    void getUserByUsernameAndPasswordWorksCorrectly() {
-        String header = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA=="; // user:password
-        User dummyUser = User.builder().build();
-        UserEntity dummyEntity = UserEntity.builder().build();
-
-        when(userRepositoryMock.findByUsernameAndPassword("user", "password")).thenReturn(dummyEntity);
-        when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
-
-        User actual = userBusinessService.getUserByUsernameAndPassword(header);
-        assertEquals(dummyUser, actual);
-    }
-
-    @Test
     void getRefreshTokenForUserWithoutUser() {
         long userId = 420;
         String username = "someString";
@@ -87,7 +47,7 @@ class UserBusinessServiceUnitTest {
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(null);
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getRefreshTokenForUser(dummyUser)
         );
     }
@@ -123,79 +83,25 @@ class UserBusinessServiceUnitTest {
         assertEquals(expected, actual);
     }
 
-    // -------------------------------------------------------------------------------------------- //
-
     @Test
-    void getUserByAccessTokenAndUserIdWithInvalidUserId() {
-        long userId = 420;
-        AccessToken dummyAccessToken = AccessToken.builder().userId(300).build();
-
-        assertThrows(UserNotAuthenticatedException.class, () ->
-                userBusinessService.getUserByAccessTokenAndUserId(dummyAccessToken, userId)
-        );
-    }
-
-    @Test
-    void getUserByAccessTokenAndUserIdWithoutUser() {
-        long userId = 420;
-        AccessToken accessToken = AccessToken.builder().userId(userId).build();
-
-        when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
+    void getUserByIdThrowsExceptions(){
+        long id = 420;
+        when(userRepositoryMock.findByUserId(id)).thenReturn(null);
 
         assertThrows(UserNotFoundException.class, () ->
-                userBusinessService.getUserByAccessTokenAndUserId(accessToken, userId)
-        );
+                userBusinessService.getUserById(id));
     }
 
     @Test
-    void getUserByAccessTokenAndUserIdCorrectly() {
-        long userId = 420;
-        AccessToken accessToken = AccessToken.builder().userId(userId).build();
-        User dummyUser = User.builder().id(userId).build();
+    void getUserByIdWorks(){
+        long id = 420;
         UserEntity dummyEntity = UserEntity.builder().build();
+        User dummyUser = User.builder().build();
 
-        when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
+        when(userRepositoryMock.findByUserId(id)).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
 
-        User actual = userBusinessService.getUserByAccessTokenAndUserId(accessToken, userId);
-
-        assertEquals(dummyUser, actual);
-    }
-
-    // -------------------------------------------------------------------------------------------- //
-
-    @Test
-    void getUserByRefreshTokenAndUserIdWithInvalidToken() {
-        String invalidToken = "";
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userBusinessService.getUserByRefreshTokenAndUserId(invalidToken, 0)
-        );
-    }
-
-    @Test
-    void getUserByRefreshTokenAndUserIdWithoutUser() {
-        String token = "token";
-        long userId = 420;
-
-        when(userRepositoryMock.findByRefreshTokenAndUserId(token, userId)).thenReturn(null);
-
-        assertThrows(UserNotAuthenticatedException.class, () ->
-                userBusinessService.getUserByRefreshTokenAndUserId(token, userId)
-        );
-    }
-
-    @Test
-    void getUserByRefreshTokenAndUserIdCorrectly() {
-        String token = "token";
-        long userId = 420;
-        User dummyUser = User.builder().id(userId).build();
-        UserEntity dummyEntity = UserEntity.builder().refreshToken(token).build();
-
-        when(userRepositoryMock.findByRefreshTokenAndUserId(token, userId)).thenReturn(dummyEntity);
-        when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
-
-        User actual = userBusinessService.getUserByRefreshTokenAndUserId(token, userId);
-
+        User actual = userBusinessService.getUserById(id);
         assertEquals(dummyUser, actual);
     }
 
