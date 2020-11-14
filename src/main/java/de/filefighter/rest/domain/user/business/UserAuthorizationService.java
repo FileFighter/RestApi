@@ -31,14 +31,13 @@ public class UserAuthorizationService {
         this.userDtoService = userDtoService;
     }
 
-    public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPasswordWithHeaderPrefix) {
-        base64encodedUserAndPasswordWithHeaderPrefix = Utils.validateAuthorizationHeader(AUTHORIZATION_BASIC_PREFIX, base64encodedUserAndPasswordWithHeaderPrefix);
+    public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
         String decodedUsernameUndPassword;
         try {
-            byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPasswordWithHeaderPrefix);
+            byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
             decodedUsernameUndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException | IllegalArgumentException ex) {
-            LOG.warn("Found UnsupportedEncodingException in {}", base64encodedUserAndPasswordWithHeaderPrefix);
+            LOG.warn("Found UnsupportedEncodingException in {}", base64encodedUserAndPassword);
             throw new RuntimeException(ex);
         }
 
@@ -58,11 +57,9 @@ public class UserAuthorizationService {
     }
 
     public User authenticateUserWithRefreshToken(String refreshToken) {
-        refreshToken = Utils.validateAuthorizationHeader(AUTHORIZATION_BEARER_PREFIX, refreshToken);
-
         UserEntity userEntity = userRepository.findByRefreshToken(refreshToken);
         if (null == userEntity)
-            throw new UserNotAuthenticatedException("Refresh Token was not valid");
+            throw new UserNotAuthenticatedException("No user found for this Refresh Token.");
 
         return userDtoService.createDto(userEntity);
     }

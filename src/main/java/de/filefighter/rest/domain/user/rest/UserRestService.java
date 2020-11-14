@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 
 
@@ -39,7 +40,8 @@ public class UserRestService implements UserRestServiceInterface {
 
     @Override
     public ResponseEntity<RefreshToken> getRefreshTokenWithUsernameAndPassword(String base64encodedUserAndPassword) {
-        User authenticatedUser = userAuthorizationService.authenticateUserWithUsernameAndPassword(base64encodedUserAndPassword);
+        String cleanValue = Utils.validateAuthorizationHeader(AUTHORIZATION_BASIC_PREFIX, base64encodedUserAndPassword);
+        User authenticatedUser = userAuthorizationService.authenticateUserWithUsernameAndPassword(cleanValue);
         RefreshToken refreshToken = userBusinessService.getRefreshTokenForUser(authenticatedUser);
         return new ResponseEntity<>(refreshToken, HttpStatus.OK);
     }

@@ -66,10 +66,10 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
         executeRestApiCall(HttpMethod.GET, url, authHeader);
     }
 
-    @When("user requests accessToken with refreshToken {string} and userId {long}")
-    public void userRequestsAccessTokenWithRefreshTokenAndUserId(String refreshTokenValue, long userId) {
+    @When("user requests accessToken with refreshToken {string}")
+    public void userRequestsAccessTokenWithRefreshTokenAndUserId(String refreshTokenValue) {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + refreshTokenValue;
-        String url = BASE_API_URI + USER_BASE_URI + userId + "/login";
+        String url = BASE_API_URI + USER_BASE_URI + "auth";
 
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", authHeaderString);
