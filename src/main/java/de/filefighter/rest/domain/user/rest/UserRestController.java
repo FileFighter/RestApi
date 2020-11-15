@@ -15,10 +15,11 @@ import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 @RestController
 @Api(value = "User Rest Controller", tags = {"User"})
+
 @RequestMapping(BASE_API_URI)
 public class UserRestController {
 
-    private final static Logger LOG = LoggerFactory.getLogger(UserRestController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserRestController.class);
 
     private final UserRestServiceInterface userRestService;
 

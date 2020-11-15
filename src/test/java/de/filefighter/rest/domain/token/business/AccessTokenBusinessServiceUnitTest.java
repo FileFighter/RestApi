@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -158,7 +160,6 @@ class AccessTokenBusinessServiceUnitTest {
     void validateAccessTokenValueWithWrongHeader() {
         String header0 = "wrongHeader";
         String header1 = "";
-        String header2 = "Bearer: ";
 
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 accessTokenBusinessService.validateAccessTokenValue(header0)
@@ -167,13 +168,13 @@ class AccessTokenBusinessServiceUnitTest {
                 accessTokenBusinessService.validateAccessTokenValue(header1)
         );
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValue(header2)
+                accessTokenBusinessService.validateAccessTokenValue(AUTHORIZATION_BEARER_PREFIX)
         );
     }
 
     @Test
     void validateAccessTokenValueButTokenDoesNotExist() {
-        String header = "Bearer: something";
+        String header = AUTHORIZATION_BEARER_PREFIX + "something";
 
         when(accessTokenRepositoryMock.findByValue("something")).thenReturn(null);
 
@@ -184,7 +185,7 @@ class AccessTokenBusinessServiceUnitTest {
 
     @Test
     void validateAccessTokenValue() {
-        String header = "Bearer: something";
+        String header = AUTHORIZATION_BEARER_PREFIX + "something";
         AccessToken expected = AccessToken.builder().build();
         AccessTokenEntity accessTokenEntity = AccessTokenEntity.builder().build();
 
@@ -196,7 +197,7 @@ class AccessTokenBusinessServiceUnitTest {
     }
 
     @Test
-    void getAccessTokenCount(){
+    void getAccessTokenCount() {
         long count = 420;
         when(accessTokenRepositoryMock.count()).thenReturn(count);
 
