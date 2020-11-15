@@ -174,6 +174,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         groudIds[0]=groupId;
 
         //userEntity.setGroupIds(groudIds);
+        userRepository.save(userEntity);
 
 
     }
