@@ -59,15 +59,21 @@ public class RestApplicationIntegrationTest {
     protected void executeRestApiCall(HttpMethod httpMethod, String url) {
         final Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
-        executeRequest(httpMethod, url, headers);
+        executeRequest(httpMethod, url, headers,null);
     }
 
     protected void executeRestApiCall(HttpMethod httpMethod, String url, Map<String, String> headers) {
-        executeRequest(httpMethod, url, headers);
+        executeRequest(httpMethod, url, headers,null);
+    }
+    protected void executeRestApiCall(HttpMethod httpMethod, String url, Map<String, String> headers,String postBody) {
+        executeRequest(httpMethod, url, headers, postBody);
     }
 
-    private void executeRequest(HttpMethod httpMethod, String url, Map<String, String> headers) {
+    private void executeRequest(HttpMethod httpMethod, String url, Map<String, String> headers,String postBody) {
         final HeaderSettingRequestCallback requestCallback = new HeaderSettingRequestCallback(headers);
+        if (postBody!=null){
+            requestCallback.setBody(postBody);
+        }
         final ResponseResultErrorHandler errorHandler = new ResponseResultErrorHandler();
 
         restTemplate.setErrorHandler(errorHandler);
