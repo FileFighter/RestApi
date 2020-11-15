@@ -1,4 +1,4 @@
-#Feature:
+#Feature: Edit User Details
 #  As a user
 #  I want to be able to change my username and password
 #
@@ -8,7 +8,7 @@
 #    And accessToken with value "accessToken" exists for user 1234
 #
 #  Scenario: Successful change of username
-#    When user requests change of username with value "kangaroo" and accessToken "accessToken" and id "1234"
+#    When user requests change of username with value "kangaroo" and accessToken "accessToken"
 #    Then response contains key "message" and value "Username successfully changed."
 #    And response status code is 201
 #
@@ -18,14 +18,14 @@
 #    And response status code is 201
 #
 #  Scenario: Failed change of username; new username equals old username
-#    When user requests change of username with value "user" and accessToken "accessToken" and id "1234"
+#    When user requests change of username with value "user" and accessToken "accessToken"
 #    Then response contains key "message" and value "No changes."
 #    And response status code is 409
 #    And response contains key "status" and value "conflict"
 #
 #  Scenario: Failed change of username; new username already assigned
-#    Given user with id 1235 exists and has username "kangaroo"
-#    When user requests change of username with value "kangaroo" and accessToken "accessToken" and id "1234"
+#    Given user with id 1235 exists and has username "kangaroo", password "secure_password"
+#    When user requests change of username with value "kangaroo" and accessToken "accessToken"
 #    Then response contains key "message" and value "Username already assigned."
 #    And response status code is 409
 #    And response contains key "status" and value "conflict"
