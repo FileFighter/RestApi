@@ -1,8 +1,5 @@
 package de.filefighter.rest.configuration;
 
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
 public class RestConfiguration {
 
     //Custom static constants
