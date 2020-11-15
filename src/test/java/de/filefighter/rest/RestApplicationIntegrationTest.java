@@ -47,7 +47,7 @@ public class RestApplicationIntegrationTest {
     PermissionRestController permissionRestController;
 
     @Test
-    public void contextLoads() {
+    void contextLoads() {
         assertThat(healthController).isNotNull();
         assertThat(userController).isNotNull();
         assertThat(fileSystemRestController).isNotNull();
@@ -75,6 +75,8 @@ public class RestApplicationIntegrationTest {
             requestCallback.setBody(postBody);
         }
         final ResponseResultErrorHandler errorHandler = new ResponseResultErrorHandler();
+
+        headers.put("Content-Type", "application/json");
 
         restTemplate.setErrorHandler(errorHandler);
         latestResponse = restTemplate
