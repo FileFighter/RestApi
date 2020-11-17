@@ -16,6 +16,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,4 +109,29 @@ public class RestApplicationIntegrationTest {
             results = new ResponseResults(response);
         }
     }
+
+    protected    static String serializeUser(String confirmationPassword,int[] groupIds, String password, String username){
+        StringBuilder jsonString=new StringBuilder("{");
+
+        if (confirmationPassword != null){
+            jsonString.append("\"confirmationPassword\": \"").append(confirmationPassword).append("\",");
+        }
+        if (groupIds!=null && groupIds.length>0){
+            jsonString.append("\"groupIds\": ").append(Arrays.toString(groupIds)).append(",");
+        }
+        if (password != null){
+            jsonString.append("\"password\": \"").append(password).append("\",");
+        }
+        if (username != null){
+            jsonString.append("\"username\": \"").append(username).append("\",");
+        }
+
+        jsonString.append("}");
+
+        return jsonString.toString();
+    }
+
+
+
+
 }
