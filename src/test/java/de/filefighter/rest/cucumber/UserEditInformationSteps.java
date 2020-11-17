@@ -21,12 +21,8 @@ public class UserEditInformationSteps extends RestApplicationIntegrationTest {
 
 
 
-        String postBody="{" +
-                "  \"groupIds\": [" +
-                "    0" +
-                "  ]," +
-                "  \"username\": \""+newUsername+"\"" +
-                "}";
+        String postBody=serializeUser(null,null,null,newUsername);
+
 
         executeRestApiCall(HttpMethod.PUT, url, authHeader,postBody);
     }
@@ -40,13 +36,8 @@ public class UserEditInformationSteps extends RestApplicationIntegrationTest {
         authHeader.put("Authorization", authHeaderString);
 
 
-        String postBody="{\n" +
-                "  \"confirmationPassword\": \""+newPassword+"\"," +
-                "  \"groupIds\": [" +
-                "    0" +
-                "  ]," +
-                "  \"password\": \""+newPassword+"\"," +
-                "}";
+        String postBody=serializeUser(newPassword,null,newPassword,null);
+
 
         executeRestApiCall(HttpMethod.GET, url, authHeader,postBody);
     }

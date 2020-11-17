@@ -166,4 +166,12 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         assertTrue(actualValue >= value);
     }
+
+    @And("user with id {long} is in group with id {long}")
+    public void userWithIdIsInGroupWithId(long userId, long groupId) {
+        UserEntity userEntity=userRepository.findByUserId(userId);
+
+        userEntity.setGroupIds(new long[]{groupId});
+        userRepository.save(userEntity);
+    }
 }
