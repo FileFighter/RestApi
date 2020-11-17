@@ -1,6 +1,7 @@
 package de.filefighter.rest.cucumber;
 
 import de.filefighter.rest.RestApplicationIntegrationTest;
+import de.filefighter.rest.TestUtils;
 import io.cucumber.java.en.When;
 import org.springframework.http.HttpMethod;
 
@@ -15,17 +16,10 @@ public class UserRegistrationSteps extends RestApplicationIntegrationTest {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;
         String url = BASE_API_URI + USER_BASE_URI + "register";
 
-
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", authHeaderString);
 
-
-
-
-        String postBody=serializeUser(password,null,password,username);
-
+        String postBody= TestUtils.serializeUserRequest(password,null,password,username);
         executeRestApiCall(HttpMethod.POST, url, authHeader,postBody);
-
-
     }
 }
