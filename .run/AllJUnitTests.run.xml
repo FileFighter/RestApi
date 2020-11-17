@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run All Tests" type="JUnit" factoryName="JUnit">
-    <module name="restapi" />
+    <module name="RestApi" />
     <useClassPathOnly />
     <option name="PACKAGE_NAME" value="" />
     <option name="MAIN_CLASS_NAME" value="" />
