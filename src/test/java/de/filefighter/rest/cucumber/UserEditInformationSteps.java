@@ -1,11 +1,13 @@
 package de.filefighter.rest.cucumber;
 
 import de.filefighter.rest.RestApplicationIntegrationTest;
+import de.filefighter.rest.TestUtils;
 import io.cucumber.java.en.When;
 import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
 
+import static de.filefighter.rest.TestUtils.serializeUserRequest;
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 public class UserEditInformationSteps extends RestApplicationIntegrationTest {
@@ -14,16 +16,10 @@ public class UserEditInformationSteps extends RestApplicationIntegrationTest {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;
         String url = BASE_API_URI + USER_BASE_URI + "edit";
 
-
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", authHeaderString);
 
-
-
-
-        String postBody=serializeUser(null,null,null,newUsername);
-
-
+        String postBody= serializeUserRequest(null,null,null,newUsername);
         executeRestApiCall(HttpMethod.PUT, url, authHeader,postBody);
     }
 
@@ -36,7 +32,7 @@ public class UserEditInformationSteps extends RestApplicationIntegrationTest {
         authHeader.put("Authorization", authHeaderString);
 
 
-        String postBody=serializeUser(newPassword,null,newPassword,null);
+        String postBody=serializeUserRequest(newPassword,null,newPassword,null);
 
 
         executeRestApiCall(HttpMethod.GET, url, authHeader,postBody);
