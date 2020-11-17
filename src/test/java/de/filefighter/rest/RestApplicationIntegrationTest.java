@@ -60,19 +60,20 @@ public class RestApplicationIntegrationTest {
     protected void executeRestApiCall(HttpMethod httpMethod, String url) {
         final Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
-        executeRequest(httpMethod, url, headers,null);
+        executeRequest(httpMethod, url, headers, null);
     }
 
     protected void executeRestApiCall(HttpMethod httpMethod, String url, Map<String, String> headers) {
-        executeRequest(httpMethod, url, headers,null);
+        executeRequest(httpMethod, url, headers, null);
     }
-    protected void executeRestApiCall(HttpMethod httpMethod, String url, Map<String, String> headers,String postBody) {
+
+    protected void executeRestApiCall(HttpMethod httpMethod, String url, Map<String, String> headers, String postBody) {
         executeRequest(httpMethod, url, headers, postBody);
     }
 
-    private void executeRequest(HttpMethod httpMethod, String url, Map<String, String> headers,String postBody) {
+    private void executeRequest(HttpMethod httpMethod, String url, Map<String, String> headers, String postBody) {
         final HeaderSettingRequestCallback requestCallback = new HeaderSettingRequestCallback(headers);
-        if (postBody!=null){
+        if (postBody != null) {
             requestCallback.setBody(postBody);
         }
         final ResponseResultErrorHandler errorHandler = new ResponseResultErrorHandler();
@@ -109,29 +110,4 @@ public class RestApplicationIntegrationTest {
             results = new ResponseResults(response);
         }
     }
-
-    protected    static String serializeUser(String confirmationPassword,int[] groupIds, String password, String username){
-        StringBuilder jsonString=new StringBuilder("{");
-
-        if (confirmationPassword != null){
-            jsonString.append("\"confirmationPassword\": \"").append(confirmationPassword).append("\",");
-        }
-        if (groupIds!=null && groupIds.length>0){
-            jsonString.append("\"groupIds\": ").append(Arrays.toString(groupIds)).append(",");
-        }
-        if (password != null){
-            jsonString.append("\"password\": \"").append(password).append("\",");
-        }
-        if (username != null){
-            jsonString.append("\"username\": \"").append(username).append("\",");
-        }
-
-        jsonString.append("}");
-
-        return jsonString.toString();
-    }
-
-
-
-
 }
