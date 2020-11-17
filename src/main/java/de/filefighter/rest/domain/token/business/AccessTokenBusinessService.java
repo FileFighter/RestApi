@@ -3,7 +3,6 @@ package de.filefighter.rest.domain.token.business;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
-import de.filefighter.rest.domain.token.exceptions.AccessTokenNotFoundException;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.UUID;
 
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 import static de.filefighter.rest.domain.common.Utils.stringIsValid;
 import static de.filefighter.rest.domain.common.Utils.validateAuthorizationHeader;
@@ -91,7 +89,7 @@ public class AccessTokenBusinessService {
         return accessTokenDtoService.createDto(accessTokenEntity);
     }
 
-    public String generateRandomTokenValue() {
+    public static String generateRandomTokenValue() {
         return UUID.randomUUID().toString();
     }
 

@@ -4,6 +4,7 @@ import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
+import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ public class UserRestController {
     }
 
     @PostMapping(USER_BASE_URI + "register")
-    public ResponseEntity<User> registerNewUser(
+    public ResponseEntity<ServerResponse> registerNewUser(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "admin-token") String accessToken,
             @RequestBody UserRegisterForm newUser) {
 

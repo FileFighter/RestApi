@@ -1,24 +1,18 @@
 package de.filefighter.rest.domain.user.business;
 
-import de.filefighter.rest.domain.token.data.dto.AccessToken;
+import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
-import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
+import de.filefighter.rest.domain.user.exceptions.UserAlreadyExistsException;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
+import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
+import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.sql.Ref;
-import java.util.Base64;
-import java.util.UUID;
-
-import static de.filefighter.rest.configuration.RestConfiguration.*;
 import static de.filefighter.rest.domain.common.Utils.stringIsValid;
 
 @Service
@@ -26,10 +20,12 @@ public class UserBusinessService {
 
     private final UserRepository userRepository;
     private final UserDtoService userDtoService;
+    private final GroupRepository groupRepository;
 
-    public UserBusinessService(UserRepository userRepository, UserDtoService userDtoService) {
+    public UserBusinessService(UserRepository userRepository, UserDtoService userDtoService, GroupRepository groupRepository) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
+        this.groupRepository = groupRepository;
     }
 
     public long getUserCount() {
@@ -73,5 +69,55 @@ public class UserBusinessService {
             throw new UserNotFoundException("User with username '" + username + "' not found.");
 
         return userDtoService.createDto(entity);
+    }
+
+    public void registerNewUser(UserRegisterForm newUser) {
+        // check username
+        String username = newUser.getUsername();
+
+        User user = null;
+        try {
+            user = this.findUserByUsername(newUser.getUsername());
+        } catch (UserNotFoundException ignored) {
+        }
+
+        if (null != user)
+            throw new UserAlreadyExistsException("Username already taken.");
+
+        // check pws.
+        String password = newUser.getPassword();
+        passwordIsValid(password);
+
+        String confirmationPassword = newUser.getConfirmationPassword();
+        passwordIsValid(confirmationPassword);
+
+        if (!password.contentEquals(confirmationPassword))
+            throw new UserNotRegisteredException("Passwords do not match.");
+
+        //check groups
+        long[] userGroups = newUser.getGroupIds();
+        if (null == userGroups)
+            userGroups = new long[0];
+
+        for (long id : userGroups) {
+            try {
+                groupRepository.getGroupById(id);
+            } catch (IllegalArgumentException exception) {
+                throw new UserNotRegisteredException("One or more groups do not exist.");
+            }
+        }
+
+        //create new user.
+        userRepository.save(UserEntity.builder()
+                .lowercaseUsername(username.toLowerCase())
+                .username(username)
+                .password(password)
+                .refreshToken(AccessTokenBusinessService.generateRandomTokenValue())
+                .userId(getUserCount() + 1)
+                .build());
+    }
+
+    public void passwordIsValid(String password) {
+        //throw new UserNotRegisteredException("Password did not met formal requirements.");
     }
 }

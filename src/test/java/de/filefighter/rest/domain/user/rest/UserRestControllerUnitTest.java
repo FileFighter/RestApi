@@ -4,6 +4,7 @@ import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
+import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 class UserRestControllerUnitTest {
 
@@ -26,14 +28,14 @@ class UserRestControllerUnitTest {
 
     @Test
     void registerNewUser() {
-        User user = User.builder().id(420).groups(null).username("kevin").build();
-        ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
+        ServerResponse expected = new ServerResponse("","");
+        ResponseEntity<ServerResponse> expectedEntity = new ResponseEntity<>(expected, CREATED);
 
-        when(userRestServiceMock.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedUser);
+        when(userRestServiceMock.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedEntity);
 
-        ResponseEntity<User> actualUser = userRestController.registerNewUser("", null);
+        ResponseEntity<ServerResponse> actual = userRestController.registerNewUser("", null);
 
-        assertEquals(expectedUser, actualUser);
+        assertEquals(expectedEntity, actual);
     }
 
     @Test

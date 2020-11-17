@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.user.business;
 
-import de.filefighter.rest.domain.common.Utils;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
@@ -14,9 +13,6 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 
 @Service
 public class UserAuthorizationService {
@@ -32,13 +28,13 @@ public class UserAuthorizationService {
     }
 
     public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
-        String decodedUsernameUndPassword;
+        String decodedUsernameUndPassword = "";
         try {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
             decodedUsernameUndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException | IllegalArgumentException ex) {
+        } catch (UnsupportedEncodingException ex) {
             LOG.warn("Found UnsupportedEncodingException in {}", base64encodedUserAndPassword);
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         }
 
         String[] split = decodedUsernameUndPassword.strip().split(":");
@@ -68,5 +64,25 @@ public class UserAuthorizationService {
         UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
         if (null == userEntity)
             throw new UserNotAuthenticatedException(accessToken.getUserId());
+    }
+
+    public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, long groupId) {
+        UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
+        if (null == userEntity)
+            throw new UserNotAuthenticatedException(accessToken.getUserId());
+
+        boolean authenticated = false;
+
+        if (null != userEntity.getGroupIds()) {
+            for (long group : userEntity.getGroupIds()) {
+                if (group == groupId) {
+                    authenticated = true;
+                    break;
+                }
+            }
+        }
+
+        if (!authenticated)
+            throw new UserNotAuthenticatedException("Not in necessary group.");
     }
 }

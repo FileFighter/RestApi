@@ -8,9 +8,9 @@ import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,4 +100,33 @@ class UserAuthorizationServiceUnitTest {
 
         userAuthorizationService.authenticateUserWithAccessToken(accessToken);
     }
+
+    @Test
+    void authenticateUserWithAccessTokenAndGroupThrows() {
+        long userId = 420;
+        long group = 400;
+        AccessToken accessToken = AccessToken.builder().userId(userId).build();
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
+
+        assertThrows(UserNotAuthenticatedException.class, () ->
+                userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, group));
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{0}).build());
+
+        assertThrows(UserNotAuthenticatedException.class, () ->
+                userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, group));
+    }
+
+    @Test
+    void authenticateUserWithAccessTokenAndGroupWorks() {
+        long userId = 420;
+        long group = 1;
+        AccessToken accessToken = AccessToken.builder().userId(userId).build();
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{1}).build());
+
+        userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, group);
+    }
+
 }
