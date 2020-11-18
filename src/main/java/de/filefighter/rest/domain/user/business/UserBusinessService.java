@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.user.business;
 
+import de.filefighter.rest.domain.common.Utils;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
@@ -11,7 +12,11 @@ import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Pattern;
 
 import static de.filefighter.rest.domain.common.Utils.stringIsValid;
 
@@ -21,6 +26,8 @@ public class UserBusinessService {
     private final UserRepository userRepository;
     private final UserDtoService userDtoService;
     private final GroupRepository groupRepository;
+
+    private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
 
     public UserBusinessService(UserRepository userRepository, UserDtoService userDtoService, GroupRepository groupRepository) {
         this.userRepository = userRepository;
@@ -79,6 +86,7 @@ public class UserBusinessService {
         try {
             user = this.findUserByUsername(newUser.getUsername());
         } catch (UserNotFoundException ignored) {
+            LOG.info("Username '{}' is free to use.", username);
         }
 
         if (null != user)
@@ -118,6 +126,11 @@ public class UserBusinessService {
     }
 
     public void passwordIsValid(String password) {
-        //throw new UserNotRegisteredException("Password did not met formal requirements.");
+        if (!Utils.stringIsValid(password))
+            throw new UserNotRegisteredException("Password was empty.");
+
+        Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,20}$");
+        if (!pattern.matcher(password).matches())
+            throw new UserNotRegisteredException("Password needs to contain at least one uppercase and lowercase letter and a number.");
     }
 }

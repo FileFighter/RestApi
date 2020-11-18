@@ -45,7 +45,7 @@ public class PrepareDataBase {
             System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |   ");
             System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|   ");
             System.out.println("                                     |___/                             ");
-            System.out.println("                  Version v"+version+" Last updated at "+date+"               ");
+            System.out.println("                  Version v" + version + " Last updated at " + date + "               ");
             System.out.println("             Developed by Gimleux, Valentin, Open-Schnick.            ");
             System.out.println("           Development Blog: https://filefighter.github.io            ");
             System.out.println("       The code can be found at: https://www.github.com/filefighter    ");
@@ -102,7 +102,7 @@ public class PrepareDataBase {
                             .lowercaseUsername("user")
                             .password("1234")
                             .refreshToken("rft1234")
-                            .groupIds(new long[]{0})
+                            .groupIds(new long[]{1})
                             .build()) +
                     repository.save(UserEntity
                             .builder()
@@ -155,7 +155,7 @@ public class PrepareDataBase {
                             .name("root")
                             .size(420)
                             .typeId(FileSystemType.FOLDER.getId())
-                            .visibleForGroupIds(new long[]{-1,0,1})
+                            .visibleForGroupIds(new long[]{-1, 0, 1})
                             .build()) +
                     repository.save(FileSystemEntity.builder()
                             .createdByUserId(0)

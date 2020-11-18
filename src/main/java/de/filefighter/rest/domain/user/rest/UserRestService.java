@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
+import static de.filefighter.rest.domain.user.group.Groups.ADMIN;
 
 
 @Service
@@ -62,7 +63,7 @@ public class UserRestService implements UserRestServiceInterface {
     @Override
     public ResponseEntity<ServerResponse> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessToken) {
         AccessToken validAccessToken = accessTokenBusinessService.validateAccessTokenValue(accessToken);
-        userAuthorizationService.authenticateUserWithAccessTokenAndGroup(validAccessToken, 1);
+        userAuthorizationService.authenticateUserWithAccessTokenAndGroup(validAccessToken, ADMIN);
         userBusinessService.registerNewUser(newUser);
         return new ResponseEntity<>(new ServerResponse("created", "User successfully created."), HttpStatus.CREATED);
     }

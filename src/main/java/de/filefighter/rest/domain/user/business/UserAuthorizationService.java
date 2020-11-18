@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
+import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,7 @@ public class UserAuthorizationService {
             throw new UserNotAuthenticatedException(accessToken.getUserId());
     }
 
-    public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, long groupId) {
+    public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, Groups groups) {
         UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
         if (null == userEntity)
             throw new UserNotAuthenticatedException(accessToken.getUserId());
@@ -75,7 +76,7 @@ public class UserAuthorizationService {
 
         if (null != userEntity.getGroupIds()) {
             for (long group : userEntity.getGroupIds()) {
-                if (group == groupId) {
+                if (group == groups.getGroupId()) {
                     authenticated = true;
                     break;
                 }
