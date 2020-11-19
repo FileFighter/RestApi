@@ -15,6 +15,7 @@ public class SystemHealthBusinessService {
     private final UserBusinessService userBusinessService;
     private final AccessTokenBusinessService accessTokenBusinessService;
     private final long serverStartedAt;
+    private DataIntegrity cachedIntegrity = DataIntegrity.STABLE;
 
     @Value("${filefighter.version}")
     String version;
@@ -41,13 +42,19 @@ public class SystemHealthBusinessService {
 
         // Risk / Unstable Cases.
         if(userCount < accessTokenCount){
-            return DataIntegrity.POSSIBLE_RISK;
+            this.triggerIntegrityChange(DataIntegrity.POSSIBLE_RISK);
         }
 
-        return DataIntegrity.STABLE;
+        return cachedIntegrity;
     }
 
     public long getCurrentEpochSeconds(){
         return Instant.now().getEpochSecond();
+    }
+
+    public void triggerIntegrityChange(DataIntegrity integrity) {
+        if(cachedIntegrity.getCode() < integrity.getCode()){
+            this.cachedIntegrity = integrity;
+        }
     }
 }

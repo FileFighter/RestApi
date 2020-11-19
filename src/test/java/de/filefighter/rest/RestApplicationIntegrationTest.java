@@ -4,19 +4,21 @@ import de.filefighter.rest.domain.filesystem.rest.FileSystemRestController;
 import de.filefighter.rest.domain.health.rest.SystemHealthRestController;
 import de.filefighter.rest.domain.permission.rest.PermissionRestController;
 import de.filefighter.rest.domain.user.rest.UserRestController;
+import org.apache.http.impl.client.HttpClients;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,9 +33,6 @@ public class RestApplicationIntegrationTest {
 
     @LocalServerPort
     private int port;
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     SystemHealthRestController healthController;
@@ -79,6 +78,14 @@ public class RestApplicationIntegrationTest {
         final ResponseResultErrorHandler errorHandler = new ResponseResultErrorHandler();
 
         headers.put("Content-Type", "application/json");
+
+        // pls dont ask why. -> https://stackoverflow.com/questions/11178937/spring-resttemplate-gives-500-error-but-same-url-credentails-works-in-restcli/29467839#29467839
+        // posting a request that returns 4** code throws exception instead of being handled.
+
+        ClientHttpRequestFactory requestFactory = new
+                HttpComponentsClientHttpRequestFactory(HttpClients.createDefault());
+
+        RestTemplate restTemplate = new RestTemplate(requestFactory);
 
         restTemplate.setErrorHandler(errorHandler);
         latestResponse = restTemplate

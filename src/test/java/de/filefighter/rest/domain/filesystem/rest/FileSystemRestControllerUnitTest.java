@@ -4,13 +4,13 @@ import de.filefighter.rest.domain.filesystem.data.dto.*;
 import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 class FileSystemRestControllerUnitTest {
 
@@ -98,7 +98,7 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void deleteFileOrFolder() {
-        ServerResponse response = new ServerResponse("denied", "not authorized");
+        ServerResponse response = new ServerResponse(UNAUTHORIZED, "not authorized");
         ResponseEntity<ServerResponse> expectedModel = new ResponseEntity<>(response, OK);
 
         long id = 420;

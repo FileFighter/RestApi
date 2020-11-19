@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-public class UserAlreadyExistsAdvise {
-    @ResponseBody
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+class UserNotRegisteredAdvise {
 
-    ResponseEntity<ServerResponse> userAlreadyExistsAdvise(UserAlreadyExistsException ex) {
-        LoggerFactory.getLogger(UserAlreadyExistsException.class).warn(ex.getMessage());
-        return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
+    @ResponseBody
+    @ExceptionHandler(UserNotRegisteredException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    ResponseEntity<ServerResponse> userNotRegisteredHandler(UserNotRegisteredException ex) {
+        LoggerFactory.getLogger(UserNotRegisteredException.class).warn(ex.getMessage());
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.CONFLICT, ex.getMessage()), HttpStatus.CONFLICT);
     }
 }

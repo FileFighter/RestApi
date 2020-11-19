@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.token.exceptions;
 
-import de.filefighter.rest.domain.user.exceptions.UserAlreadyExistsAdvise;
 import de.filefighter.rest.rest.ServerResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,6 +17,6 @@ public class AccessTokenNotFoundAdvise {
 
     ResponseEntity<ServerResponse> tokenNotFoundAdvise(AccessTokenNotFoundException ex) {
         LoggerFactory.getLogger(AccessTokenNotFoundException.class).warn(ex.getMessage());
-        return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.BAD_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

@@ -7,15 +7,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import static de.filefighter.rest.configuration.RestConfiguration.DEFAULT_ERROR_PATH;
+
 @ApiIgnore
 @RestController
 public class RestErrorController implements ErrorController {
 
-    public static final String DEFAULT_ERROR_PATH = "/error";
-
     @RequestMapping(value = DEFAULT_ERROR_PATH)
     public ResponseEntity<ServerResponse> error() {
-        return new ResponseEntity<>(new ServerResponse("denied", "This endpoint does not exist."), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.NOT_FOUND, "This endpoint does not exist."), HttpStatus.NOT_FOUND);
     }
 
     @Override
