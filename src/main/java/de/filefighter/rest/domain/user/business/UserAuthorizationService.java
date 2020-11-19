@@ -29,16 +29,16 @@ public class UserAuthorizationService {
     }
 
     public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
-        String decodedUsernameUndPassword = "";
+        String decodedUsernameAndPassword = "";
         try {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
-            decodedUsernameUndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
+            decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException ex) {
             LOG.warn("Found UnsupportedEncodingException in {}", base64encodedUserAndPassword);
             ex.printStackTrace();
         }
 
-        String[] split = decodedUsernameUndPassword.strip().split(":");
+        String[] split = decodedUsernameAndPassword.strip().split(":");
 
         if (split.length != 2)
             throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");

@@ -100,7 +100,6 @@ public class UserBusinessService {
         passwordIsValid(password);
 
         String confirmationPassword = newUser.getConfirmationPassword();
-        passwordIsValid(confirmationPassword);
 
         if (!password.contentEquals(confirmationPassword))
             throw new UserNotRegisteredException("Passwords do not match.");
