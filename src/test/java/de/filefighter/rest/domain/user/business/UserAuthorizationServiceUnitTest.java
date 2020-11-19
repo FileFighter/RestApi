@@ -5,10 +5,10 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
+import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -98,6 +98,33 @@ class UserAuthorizationServiceUnitTest {
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntity);
 
-        userAuthorizationService.authenticateUserWithAccessToken(accessToken);
+        assertDoesNotThrow(() -> userAuthorizationService.authenticateUserWithAccessToken(accessToken));
+    }
+
+    @Test
+    void authenticateUserWithAccessTokenAndGroupThrows() {
+        long userId = 420;
+        AccessToken accessToken = AccessToken.builder().userId(userId).build();
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
+
+        assertThrows(UserNotAuthenticatedException.class, () ->
+                userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{0}).build());
+
+        assertThrows(UserNotAuthenticatedException.class, () ->
+                userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
+    }
+
+    @Test
+    void authenticateUserWithAccessTokenAndGroupWorks() {
+        long userId = 420;
+        long group = 1;
+        AccessToken accessToken = AccessToken.builder().userId(userId).build();
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{1}).build());
+
+        assertDoesNotThrow(() -> userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
     }
 }

@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-class UserNotFoundAdvice {
+class UserNotFoundAdvise {
 
 	@ResponseBody
 	@ExceptionHandler(UserNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	ResponseEntity<ServerResponse> userNotFoundHandler(UserNotFoundException ex) {
 		LoggerFactory.getLogger(UserNotFoundException.class).warn(ex.getMessage());
-		return new ResponseEntity<>(new ServerResponse("not found", ex.getMessage()), HttpStatus.NOT_FOUND);
+		return new ResponseEntity<>(new ServerResponse(HttpStatus.NOT_FOUND, ex.getMessage()), HttpStatus.NOT_FOUND);
 	}
 }

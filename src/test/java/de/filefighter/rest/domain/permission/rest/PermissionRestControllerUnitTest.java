@@ -8,10 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
-import java.security.Permission;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
@@ -44,7 +41,7 @@ class PermissionRestControllerUnitTest {
     void addUsersOrGroupsToPermissionSetForFileOrFolder() {
         String token = "token";
         long id = 420;
-        ServerResponse dummyResponse = new ServerResponse("ok", "baum");
+        ServerResponse dummyResponse = new ServerResponse(OK, "baum");
         PermissionRequest dummyRequest = new PermissionRequest();
 
         ResponseEntity<ServerResponse> expected = new ResponseEntity<>(dummyResponse, OK);
@@ -61,7 +58,7 @@ class PermissionRestControllerUnitTest {
     void removeUsersOrGroupsFromPermissionSetForFileOrFolder() {
         String token = "token";
         long id = 420;
-        ServerResponse dummyResponse = new ServerResponse("ok", "baum");
+        ServerResponse dummyResponse = new ServerResponse(OK, "baum");
         PermissionRequest dummyRequest = new PermissionRequest();
 
         ResponseEntity<ServerResponse> expected = new ResponseEntity<>(dummyResponse, OK);

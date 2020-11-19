@@ -3,7 +3,9 @@ package de.filefighter.rest.domain.common;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
+import java.io.File;
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings(value = "ConstantConditions")
@@ -17,24 +19,14 @@ class UtilsUnitTest {
     }
 
     @Test
-    void stringIsNull() {
-        String string = null;
-        boolean actual = Utils.stringIsValid(string);
-        assertFalse(actual);
-    }
+    void stringIsNotValid() {
+        String nullString = null;
+        String empty = "";
 
-    @Test
-    void stringIsEmpty() {
-        String string = "";
-        boolean actual = Utils.stringIsValid(string);
+        boolean actual = Utils.stringIsValid(nullString);
+        boolean actual1 = Utils.stringIsValid(empty);
         assertFalse(actual);
-    }
-
-    @Test
-    void stringIsBlank() {
-        String string = "";
-        boolean actual = Utils.stringIsValid(string);
-        assertFalse(actual);
+        assertFalse(actual1);
     }
 
     @Test
@@ -64,6 +56,15 @@ class UtilsUnitTest {
 
         String actual = Utils.validateAuthorizationHeader(dummyHeaderPrefix, valid);
 
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void readLinesFromFilesThrows() throws IOException {
+        File dummyFile = File.createTempFile("test", "txt");
+        int expected = 0;
+
+        int actual = Utils.getLinesFromFile(dummyFile).size();
         assertEquals(expected, actual);
     }
 }

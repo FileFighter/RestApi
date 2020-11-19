@@ -15,7 +15,7 @@ Scenario: Successful login with username and password.
 Scenario: Failed login with wrong username or password.
   When user requests login with username "user" and password "wrong_password"
   Then response contains key "message" and value "User could not be authenticated. No User found with this username and password."
-  And response contains key "status" and value "denied"
+  And response contains key "status" and value "Unauthorized"
   And response status code is 401
 
 Scenario: Successful creation of new accessToken with refreshToken.
@@ -42,7 +42,7 @@ Scenario: Successful retrieval of overwritten accessToken with refreshToken
   Scenario: Failed retrieval of accessToken with wrong refreshToken.
   When user requests accessToken with refreshToken "not_the_token"
   Then response contains key "message" and value "User could not be authenticated. No user found for this Refresh Token."
-  And response contains key "status" and value "denied"
+  And response contains key "status" and value "Unauthorized"
   And response status code is 401
 
 Scenario: Successful UserInfo request with valid accessToken.
@@ -54,5 +54,5 @@ Scenario: Successful UserInfo request with valid accessToken.
 Scenario: Failed UserInfo request with invalid accessToken.
   When user requests userInfo with accessToken "tokenInWrongFormat" and userId 1234
   Then response contains key "message" and value "User could not be authenticated. AccessToken not found."
-  And response contains key "status" and value "denied"
+  And response contains key "status" and value "Unauthorized"
   And response status code is 401

@@ -16,6 +16,16 @@ public class SystemHealth {
     private final String version;
 
     public enum DataIntegrity {
-        STABLE, POSSIBLE_RISK, UNSTABLE
+        STABLE(0), POSSIBLE_RISK(1), UNSTABLE(2);
+
+        private final int code;
+
+        DataIntegrity(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
     }
 }

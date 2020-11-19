@@ -16,15 +16,15 @@ public class GroupRepository {
     }
 
     public Groups[] getGroupsByIds(long... ids){
-        Groups[] groups;
+        Groups[] groupArray;
         if(null == ids || ids.length == 0){
             return new Groups[0];
         }
-        groups = new Groups[ids.length];
+        groupArray = new Groups[ids.length];
 
         for (int i = 0; i < ids.length; i++) {
-            groups[i] = this.getGroupById(ids[i]);
+            groupArray[i] = this.getGroupById(ids[i]);
         }
-        return groups;
+        return groupArray;
     }
 }
