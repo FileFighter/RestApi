@@ -28,7 +28,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void registerNewUser() {
-        ServerResponse expected = new ServerResponse("","");
+        ServerResponse expected = new ServerResponse(OK,"");
         ResponseEntity<ServerResponse> expectedEntity = new ResponseEntity<>(expected, CREATED);
 
         when(userRestServiceMock.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedEntity);

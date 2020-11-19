@@ -29,7 +29,7 @@ public class DataBaseExceptionAdvise {
     ResponseEntity<ServerResponse> requestDidntMeetFormalRequirements(DataAccessException ex) {
         LoggerFactory.getLogger(DataAccessException.class).warn(ex.getMessage());
         systemHealthBusinessService.triggerIntegrityChange(SystemHealth.DataIntegrity.UNSTABLE);
-        return new ResponseEntity<>(new ServerResponse("error", "Internal Error occurred."), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Error occurred."), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

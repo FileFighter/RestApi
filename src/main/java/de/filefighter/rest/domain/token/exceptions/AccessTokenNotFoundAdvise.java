@@ -17,6 +17,6 @@ public class AccessTokenNotFoundAdvise {
 
     ResponseEntity<ServerResponse> tokenNotFoundAdvise(AccessTokenNotFoundException ex) {
         LoggerFactory.getLogger(AccessTokenNotFoundException.class).warn(ex.getMessage());
-        return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.BAD_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

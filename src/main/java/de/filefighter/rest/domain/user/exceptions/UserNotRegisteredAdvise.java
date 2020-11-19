@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-class UserNotRegisteredAdvice {
+class UserNotRegisteredAdvise {
 
     @ResponseBody
     @ExceptionHandler(UserNotRegisteredException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     ResponseEntity<ServerResponse> userNotRegisteredHandler(UserNotRegisteredException ex) {
         LoggerFactory.getLogger(UserNotRegisteredException.class).warn(ex.getMessage());
-        return new ResponseEntity<>(new ServerResponse("conflict", ex.getMessage()), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.CONFLICT, ex.getMessage()), HttpStatus.CONFLICT);
     }
 }

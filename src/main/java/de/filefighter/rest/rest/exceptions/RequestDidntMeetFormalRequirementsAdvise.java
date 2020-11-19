@@ -17,6 +17,6 @@ public class RequestDidntMeetFormalRequirementsAdvise {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     ResponseEntity<ServerResponse> requestDidntMeetFormalRequirements(RequestDidntMeetFormalRequirementsException ex) {
         LoggerFactory.getLogger(RequestDidntMeetFormalRequirementsException.class).warn(ex.getMessage());
-        return new ResponseEntity<>(new ServerResponse("denied", ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.BAD_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 }

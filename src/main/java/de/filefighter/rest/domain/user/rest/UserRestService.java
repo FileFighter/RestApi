@@ -65,7 +65,7 @@ public class UserRestService implements UserRestServiceInterface {
         AccessToken validAccessToken = accessTokenBusinessService.validateAccessTokenValue(accessToken);
         userAuthorizationService.authenticateUserWithAccessTokenAndGroup(validAccessToken, ADMIN);
         userBusinessService.registerNewUser(newUser);
-        return new ResponseEntity<>(new ServerResponse("created", "User successfully created."), HttpStatus.CREATED);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.CREATED, "User successfully created."), HttpStatus.CREATED);
     }
 
     @Override
