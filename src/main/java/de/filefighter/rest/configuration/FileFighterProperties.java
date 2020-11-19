@@ -12,6 +12,7 @@ public class FileFighterProperties {
      */
     private String version = "undefined";
     private String date = "undefined";
+    private boolean disablePasswordCheck = false;
 
     public String getVersion() {
         return version;
@@ -27,5 +28,13 @@ public class FileFighterProperties {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public boolean isDisablePasswordCheck() {
+        return disablePasswordCheck;
+    }
+
+    public void setDisablePasswordCheck(boolean disablePasswordCheck) {
+        this.disablePasswordCheck = disablePasswordCheck;
     }
 }
