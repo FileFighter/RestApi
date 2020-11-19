@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.token.exceptions;
 
-import de.filefighter.rest.domain.user.exceptions.UserAlreadyExistsAdvise;
 import de.filefighter.rest.rest.ServerResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

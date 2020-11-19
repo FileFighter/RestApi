@@ -15,6 +15,10 @@ import io.cucumber.java.en.Then;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -167,11 +171,15 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         assertTrue(actualValue >= value);
     }
 
+    @Autowired
+    MongoTemplate mongoTemplate;
+
     @And("user with id {long} is in group with id {long}")
     public void userWithIdIsInGroupWithId(long userId, long groupId) {
-        UserEntity userEntity=userRepository.findByUserId(userId);
+        Query query = new Query();
+        Update newUpdate = new Update().set("groupIds", new long[]{groupId});
+        query.addCriteria(Criteria.where("userId").is(userId));
 
-        userEntity.setGroupIds(new long[]{groupId});
-        userRepository.save(userEntity);
+        mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 }

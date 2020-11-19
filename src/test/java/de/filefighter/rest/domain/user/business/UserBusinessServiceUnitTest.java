@@ -5,7 +5,6 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
-import de.filefighter.rest.domain.user.exceptions.UserAlreadyExistsException;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
@@ -182,7 +181,7 @@ class UserBusinessServiceUnitTest {
         when(userRepositoryMock.findByLowercaseUsername(username.toLowerCase())).thenReturn(UserEntity.builder().build());
         when(userDtoServiceMock.createDto(any())).thenReturn(User.builder().build());
 
-        assertThrows(UserAlreadyExistsException.class, () ->
+        assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
 
         //Passwords do not match.

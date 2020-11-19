@@ -7,13 +7,13 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
-import de.filefighter.rest.domain.user.exceptions.UserAlreadyExistsException;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
@@ -28,6 +28,9 @@ public class UserBusinessService {
     private final GroupRepository groupRepository;
 
     private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
+
+    @Value("${filefighter.disable-password-check}")
+    public boolean passwordCheckDisabled;
 
     public UserBusinessService(UserRepository userRepository, UserDtoService userDtoService, GroupRepository groupRepository) {
         this.userRepository = userRepository;
@@ -90,7 +93,7 @@ public class UserBusinessService {
         }
 
         if (null != user)
-            throw new UserAlreadyExistsException("Username already taken.");
+            throw new UserNotRegisteredException("Username already taken.");
 
         // check pws.
         String password = newUser.getPassword();
@@ -101,6 +104,9 @@ public class UserBusinessService {
 
         if (!password.contentEquals(confirmationPassword))
             throw new UserNotRegisteredException("Passwords do not match.");
+
+        if(password.toLowerCase().contains(username.toLowerCase()))
+            throw new UserNotRegisteredException("Username must not appear in password.");
 
         //check groups
         long[] userGroups = newUser.getGroupIds();
@@ -129,8 +135,10 @@ public class UserBusinessService {
         if (!Utils.stringIsValid(password))
             throw new UserNotRegisteredException("Password was empty.");
 
+        if(this.passwordCheckDisabled) return;
+
         Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{8,20}$");
         if (!pattern.matcher(password).matches())
-            throw new UserNotRegisteredException("Password needs to contain at least one uppercase and lowercase letter and a number.");
+            throw new UserNotRegisteredException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
     }
 }
