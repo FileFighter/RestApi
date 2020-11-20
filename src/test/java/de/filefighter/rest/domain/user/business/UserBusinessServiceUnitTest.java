@@ -11,6 +11,7 @@ import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,11 +23,12 @@ class UserBusinessServiceUnitTest {
     private final UserRepository userRepositoryMock = mock(UserRepository.class);
     private final UserDtoService userDtoServiceMock = mock(UserDtoService.class);
     private final GroupRepository groupRepositoryMock = mock(GroupRepository.class);
+    private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private UserBusinessService userBusinessService;
 
     @BeforeEach
     void setUp() {
-        userBusinessService = new UserBusinessService(userRepositoryMock, userDtoServiceMock, groupRepositoryMock);
+        userBusinessService = new UserBusinessService(userRepositoryMock, userDtoServiceMock, groupRepositoryMock, mongoTemplateMock);
     }
 
     @Test

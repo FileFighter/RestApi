@@ -70,7 +70,7 @@ public class UserRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestBody UserRegisterForm updatedUser) {
 
-        LOG.info("Updated User and Token {}, with form {}.", accessToken, updatedUser);
+        LOG.info("Updated User {} and Token {}, with form {}.", userId, accessToken, updatedUser);
         return userRestService.updateUserByUserIdAuthenticateWithAccessToken(updatedUser, userId, accessToken);
     }
 

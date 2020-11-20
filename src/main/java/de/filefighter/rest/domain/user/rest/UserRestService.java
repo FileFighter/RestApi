@@ -54,8 +54,8 @@ public class UserRestService implements UserRestServiceInterface {
     public ResponseEntity<ServerResponse> updateUserByUserIdAuthenticateWithAccessToken(UserRegisterForm updatedUser, long userId, String accessTokenValue) {
         AccessToken accessToken = accessTokenBusinessService.validateAccessTokenValueWithHeader(accessTokenValue);
         User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
-        String message = userBusinessService.updateUser(userId, updatedUser, authenticatedUser);
-        ServerResponse response = new ServerResponse(HttpStatus.CREATED, message);
+        userBusinessService.updateUser(userId, updatedUser, authenticatedUser);
+        ServerResponse response = new ServerResponse(HttpStatus.CREATED, "User successfully updated.");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
