@@ -151,30 +151,51 @@ public class UserBusinessService {
         return pattern.matcher(password).matches();
     }
 
-    public void updateUser(long userId, UserRegisterForm updatedUser, User authenticatedUser) {
+    public void updateUser(long userId, UserRegisterForm userToUpdate, User authenticatedUser) {
+        if (null == userToUpdate)
+            throw new UserNotUpdatedException("No updates specified.");
+
         if (userId != authenticatedUser.getId() && Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Groups.ADMIN))
             throw new UserNotUpdatedException("Only Admins are allowed to update other users.");
 
         UserEntity userEntityToUpdate = userRepository.findByUserId(userId);
-        boolean userToUpdateIsAdmin = Arrays.stream(userEntityToUpdate.getGroupIds()).anyMatch(g -> groupRepository.getGroupById(g) == Groups.ADMIN);
+        boolean userToUpdateIsAdmin = false;
+
+        for (Groups group : groupRepository.getGroupsByIds(userToUpdate.getGroupIds())) {
+            if (group == Groups.ADMIN) {
+                userToUpdateIsAdmin = true;
+                break;
+            }
+        }
 
         Update newUpdate = new Update();
 
         // username
-        if (null != updatedUser.getUsername()) {
-            if (!stringIsValid(updatedUser.getUsername()))
+        String username = userToUpdate.getUsername();
+        if (null != username) {
+            if (!stringIsValid(username))
                 throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
 
-            newUpdate.set("username", updatedUser.getUsername());
+            User user = null;
+            try {
+                user = this.findUserByUsername(username);
+            } catch (UserNotFoundException ignored) {
+                LOG.info("Username '{}' is free to use.", username);
+            }
+
+            if (null != user)
+                throw new UserNotUpdatedException("Username already taken.");
+
+            newUpdate.set("username", username);
         }
 
         // pw
-        if (null != updatedUser.getPassword()) {
-            if (!stringIsValid(updatedUser.getPassword()))
+        if (null != userToUpdate.getPassword()) {
+            if (!stringIsValid(userToUpdate.getPassword()))
                 throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
 
-            String password = updatedUser.getPassword();
-            String confirmation = updatedUser.getConfirmationPassword();
+            String password = userToUpdate.getPassword();
+            String confirmation = userToUpdate.getConfirmationPassword();
 
             if (passwordIsValid(password))
                 throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
@@ -189,9 +210,9 @@ public class UserBusinessService {
         }
 
         // groups
-        if (null != updatedUser.getGroupIds()) {
+        if (null != userToUpdate.getGroupIds()) {
             try {
-                for (Groups group : groupRepository.getGroupsByIds(updatedUser.getGroupIds())) {
+                for (Groups group : groupRepository.getGroupsByIds(userToUpdate.getGroupIds())) {
                     if (group == Groups.ADMIN && !userToUpdateIsAdmin)
                         throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName());
                 }
@@ -199,7 +220,7 @@ public class UserBusinessService {
                 throw new UserNotUpdatedException("One or more groups do not exist.");
             }
 
-            newUpdate.set("groupIds", updatedUser.getGroupIds());
+            newUpdate.set("groupIds", userToUpdate.getGroupIds());
         }
 
         Query query = new Query();

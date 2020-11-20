@@ -24,17 +24,14 @@ public class UserEditInformationSteps extends RestApplicationIntegrationTest {
     }
 
     @When("user requests change of password with value {string} userId {long} and accessToken {string}")
-    public void userRequestsChangeOfPasswordWithValueAndAccessTokenAndId(String newPassword, String accessToken, String userId) {
+    public void userRequestsChangeOfPasswordWithValueAndAccessTokenAndId(String newPassword, long userId, String accessToken) {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;
         String url = BASE_API_URI + USER_BASE_URI + userId + "/edit";
 
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", authHeaderString);
-
-
         String postBody = serializeUserRequest(newPassword, null, newPassword, null);
 
-
-        executeRestApiCall(HttpMethod.GET, url, authHeader, postBody);
+        executeRestApiCall(HttpMethod.PUT, url, authHeader, postBody);
     }
 }
