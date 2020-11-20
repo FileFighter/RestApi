@@ -75,14 +75,13 @@ class UserRestControllerUnitTest {
 
     @Test
     void updateUserWithAccessToken() {
-        User user = User.builder().id(420).groups(null).username("kevin").build();
-        ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
+        ResponseEntity<ServerResponse> expectedResponse = new ResponseEntity<>(new ServerResponse(CREATED, "uga"), CREATED);
         UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
 
-        when(userRestServiceMock.updateUserWithAccessToken(userRegisterForm, "token")).thenReturn(expectedUser);
-        ResponseEntity<User> actualUser = userRestController.updateUser("token", userRegisterForm);
+        when(userRestServiceMock.updateUserByUserIdAuthenticateWithAccessToken(userRegisterForm, 0, "token")).thenReturn(expectedResponse);
+        ResponseEntity<ServerResponse> actualResponse = userRestController.updateUser(0, "token", userRegisterForm);
 
-        assertEquals(expectedUser, actualUser);
+        assertEquals(expectedResponse, actualResponse);
     }
 
     @Test

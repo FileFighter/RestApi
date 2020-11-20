@@ -140,4 +140,8 @@ public class UserBusinessService {
         if (!pattern.matcher(password).matches())
             throw new UserNotRegisteredException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
     }
+
+    public String updateUser(long userId, UserRegisterForm updatedUser, User authenticatedUser) {
+        return null;
+    }
 }

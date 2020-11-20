@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.user.business;
 
+import de.filefighter.rest.domain.common.Utils;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
@@ -15,6 +16,9 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
+
 @Service
 public class UserAuthorizationService {
 
@@ -28,7 +32,9 @@ public class UserAuthorizationService {
         this.userDtoService = userDtoService;
     }
 
-    public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
+    public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPasswordWithHeader) {
+        String base64encodedUserAndPassword = Utils.validateAuthorizationHeader(AUTHORIZATION_BASIC_PREFIX, base64encodedUserAndPasswordWithHeader);
+
         String decodedUsernameAndPassword = "";
         try {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
@@ -54,17 +60,20 @@ public class UserAuthorizationService {
     }
 
     public User authenticateUserWithRefreshToken(String refreshToken) {
-        UserEntity userEntity = userRepository.findByRefreshToken(refreshToken);
+        String cleanValue = Utils.validateAuthorizationHeader(AUTHORIZATION_BEARER_PREFIX, refreshToken);
+        UserEntity userEntity = userRepository.findByRefreshToken(cleanValue);
         if (null == userEntity)
             throw new UserNotAuthenticatedException("No user found for this Refresh Token.");
 
         return userDtoService.createDto(userEntity);
     }
 
-    public void authenticateUserWithAccessToken(AccessToken accessToken) {
+    public User authenticateUserWithAccessToken(AccessToken accessToken) {
         UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
         if (null == userEntity)
             throw new UserNotAuthenticatedException(accessToken.getUserId());
+
+        return userDtoService.createDto(userEntity);
     }
 
     public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, Groups groups) {

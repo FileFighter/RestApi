@@ -10,6 +10,7 @@
 #  Scenario: Successful change of username
 #    When user requests change of username with value "kangaroo" and accessToken "accessToken"
 #    Then response contains key "message" and value "Username successfully changed."
+#    And response contains key "status" and value ""
 #    And response status code is 201
 #
 #  Scenario: Successful change of password
