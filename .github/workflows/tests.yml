@@ -26,4 +26,7 @@ jobs:
           docker start FileFighterDB
       -
         name: Run Tests and update Sonar
-        run: mvn clean test sonar:sonar -X -s ./settings.xml
+        run: mvn clean test sonar:sonar -s ./settings.xml
+        env:
+          SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
+          SONAR_PASSWORD: ${{ secrets.SONAR_PASSWORD }}
