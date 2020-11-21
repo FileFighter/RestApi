@@ -14,7 +14,7 @@ public class TestUtils {
             jsonString.append("\"groupIds\": ").append(Arrays.toString(groupIds)).append(",");
         }
         if (password != null) {
-            jsonString.append("\"password\": \"").append(password).append(username != null?"\",":"");
+            jsonString.append("\"password\": \"").append(password).append(username != null ? "\"," : "\"");
         }
         if (username != null) {
             jsonString.append("\"username\": \"").append(username).append("\"");

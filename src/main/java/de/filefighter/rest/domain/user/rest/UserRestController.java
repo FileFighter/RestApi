@@ -64,13 +64,14 @@ public class UserRestController {
         return userRestService.getUserByUserIdAuthenticateWithAccessToken(accessToken, userId);
     }
 
-    @PutMapping(USER_BASE_URI + "edit")
-    public ResponseEntity<User> updateUser(
+    @PutMapping(USER_BASE_URI + "{userId}/edit")
+    public ResponseEntity<ServerResponse> updateUser(
+            @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestBody UserRegisterForm updatedUser) {
 
-        LOG.info("Updated User and Token {}, with form {}.", accessToken, updatedUser);
-        return userRestService.updateUserWithAccessToken(updatedUser, accessToken);
+        LOG.info("Updated User {} and Token {}, with form {}.", userId, accessToken, updatedUser);
+        return userRestService.updateUserByUserIdAuthenticateWithAccessToken(updatedUser, userId, accessToken);
     }
 
     @GetMapping(USER_BASE_URI + "find")
@@ -78,7 +79,7 @@ public class UserRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestParam(name = "username", value = "username") String username
     ) {
-        LOG.info("Requested finding User with the username {} and Token {}", username,  accessToken);
+        LOG.info("Requested finding User with the username {} and Token {}", username, accessToken);
         return userRestService.findUserByUsernameAndAccessToken(username, accessToken);
     }
 }

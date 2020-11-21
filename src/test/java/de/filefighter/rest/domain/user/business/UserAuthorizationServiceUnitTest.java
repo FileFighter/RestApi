@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.user.business;
 
+import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
@@ -9,6 +10,7 @@ import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -24,9 +26,9 @@ class UserAuthorizationServiceUnitTest {
 
     @Test
     void authenticateUserWithUsernameAndPasswordThrows() {
-        String matchesButIsNotSupportedEncoding = "���";
-        String matchesButDoesNotMeetRequirements = "dWdhYnVnYQ==";
-        String matchesButUserWasNotFound = "dXNlcjp1c2Vy";
+        String matchesButIsNotSupportedEncoding = AUTHORIZATION_BASIC_PREFIX + "���";
+        String matchesButDoesNotMeetRequirements = AUTHORIZATION_BASIC_PREFIX + "dWdhYnVnYQ==";
+        String matchesButUserWasNotFound = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA==";
 
         assertThrows(RuntimeException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding)
@@ -35,7 +37,7 @@ class UserAuthorizationServiceUnitTest {
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButDoesNotMeetRequirements)
         );
 
-        when(userRepositoryMock.findByUsernameAndPassword("user", "user")).thenReturn(null);
+        when(userRepositoryMock.findByUsernameAndPassword("user", "password")).thenReturn(null);
 
         assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButUserWasNotFound));
@@ -43,7 +45,7 @@ class UserAuthorizationServiceUnitTest {
 
     @Test
     void authenticateUserWithUsernameAndPasswordWorksCorrectly() {
-        String header = "dXNlcjpwYXNzd29yZA=="; // user:password
+        String header = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA=="; // user:password
         User dummyUser = User.builder().build();
         UserEntity dummyEntity = UserEntity.builder().build();
 
@@ -68,13 +70,14 @@ class UserAuthorizationServiceUnitTest {
     @Test
     void authenticateUserWithRefreshTokenWorksCorrectly() {
         String refreshToken = "Something";
+        String authString = AUTHORIZATION_BEARER_PREFIX + refreshToken;
         UserEntity dummyEntity = UserEntity.builder().build();
         User dummyUser = User.builder().build();
 
         when(userRepositoryMock.findByRefreshToken(refreshToken)).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
 
-        User actualUser = userAuthorizationService.authenticateUserWithRefreshToken(refreshToken);
+        User actualUser = userAuthorizationService.authenticateUserWithRefreshToken(authString);
         assertEquals(dummyUser, actualUser);
     }
 
