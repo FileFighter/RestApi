@@ -31,3 +31,9 @@ Feature: Edit User Details
     Then response contains key "message" and value "User could not get updated. Username must not appear in password."
     And response status code is 409
     And response contains key "status" and value "Conflict"
+
+  Scenario: Failed change of user. No Changes
+    When user requests change of password with no changes, userId 1234 and accessToken "accessToken"
+    Then response contains key "message" and value "User could not get updated. No changes were made."
+    And response contains key "status" and value "Conflict"
+    And response status code is 409

@@ -34,4 +34,16 @@ public class UserEditInformationSteps extends RestApplicationIntegrationTest {
 
         executeRestApiCall(HttpMethod.PUT, url, authHeader, postBody);
     }
+
+    @When("user requests change of password with no changes, userId {long} and accessToken {string}")
+    public void userRequestsChangeOfPasswordWithNoChangesUserIdLongAndAccessTokenString(long userId, String accessToken) {
+        String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;
+        String url = BASE_API_URI + USER_BASE_URI + userId + "/edit";
+
+        HashMap<String, String> authHeader = new HashMap<>();
+        authHeader.put("Authorization", authHeaderString);
+        String postBody = serializeUserRequest(null, null, null, null);
+
+        executeRestApiCall(HttpMethod.PUT, url, authHeader, postBody);
+    }
 }
