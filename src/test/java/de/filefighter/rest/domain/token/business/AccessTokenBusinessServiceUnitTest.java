@@ -152,7 +152,7 @@ class AccessTokenBusinessServiceUnitTest {
 
     @Test
     void generateRandomTokenValue() {
-        String generatedToken = accessTokenBusinessService.generateRandomTokenValue();
+        String generatedToken = AccessTokenBusinessService.generateRandomTokenValue();
         assertEquals(36, generatedToken.length());
     }
 
@@ -162,13 +162,13 @@ class AccessTokenBusinessServiceUnitTest {
         String header1 = "";
 
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValue(header0)
+                accessTokenBusinessService.validateAccessTokenValueWithHeader(header0)
         );
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValue(header1)
+                accessTokenBusinessService.validateAccessTokenValueWithHeader(header1)
         );
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValue(AUTHORIZATION_BEARER_PREFIX)
+                accessTokenBusinessService.validateAccessTokenValueWithHeader(AUTHORIZATION_BEARER_PREFIX)
         );
     }
 
@@ -179,7 +179,7 @@ class AccessTokenBusinessServiceUnitTest {
         when(accessTokenRepositoryMock.findByValue("something")).thenReturn(null);
 
         assertThrows(UserNotAuthenticatedException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValue(header)
+                accessTokenBusinessService.validateAccessTokenValueWithHeader(header)
         );
     }
 
@@ -192,7 +192,7 @@ class AccessTokenBusinessServiceUnitTest {
         when(accessTokenRepositoryMock.findByValue("something")).thenReturn(accessTokenEntity);
         when(accessTokenDtoServiceMock.createDto(accessTokenEntity)).thenReturn(expected);
 
-        AccessToken actual = accessTokenBusinessService.validateAccessTokenValue(header);
+        AccessToken actual = accessTokenBusinessService.validateAccessTokenValueWithHeader(header);
         assertEquals(expected, actual);
     }
 

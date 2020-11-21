@@ -37,7 +37,7 @@ public class AccessTokenBusinessService {
             accessTokenEntity = AccessTokenEntity
                     .builder()
                     .validUntil(currentTimeSeconds + ACCESS_TOKEN_DURATION_IN_SECONDS)
-                    .value(this.generateRandomTokenValue())
+                    .value(generateRandomTokenValue())
                     .userId(user.getId())
                     .build();
             accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
@@ -47,7 +47,7 @@ public class AccessTokenBusinessService {
                 accessTokenEntity = AccessTokenEntity
                         .builder()
                         .validUntil(currentTimeSeconds + ACCESS_TOKEN_DURATION_IN_SECONDS)
-                        .value(this.generateRandomTokenValue())
+                        .value(generateRandomTokenValue())
                         .userId(user.getId())
                         .build();
                 accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
@@ -80,7 +80,7 @@ public class AccessTokenBusinessService {
     }
 
 
-    public AccessToken validateAccessTokenValue(String accessTokenValue) {
+    public AccessToken validateAccessTokenValueWithHeader(String accessTokenValue) {
         String cleanValue = validateAuthorizationHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByValue(cleanValue);
         if (null == accessTokenEntity)

@@ -11,7 +11,7 @@ public interface UserRestServiceInterface {
     ResponseEntity<User> getUserByUserIdAuthenticateWithAccessToken(String accessToken, long userId);
     ResponseEntity<RefreshToken> getRefreshTokenWithUsernameAndPassword(String base64encodedUserAndPassword);
     ResponseEntity<AccessToken> getAccessTokenByRefreshToken(String refreshToken);
-    ResponseEntity<User> updateUserWithAccessToken(UserRegisterForm updatedUser, String accessToken);
+    ResponseEntity<ServerResponse> updateUserByUserIdAuthenticateWithAccessToken(UserRegisterForm updatedUser, long userId, String accessToken);
     ResponseEntity<ServerResponse> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessToken);
     ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessToken);
 }
