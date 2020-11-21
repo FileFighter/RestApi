@@ -188,13 +188,13 @@ public class UserBusinessService {
 
         // pw
         if (null != userToUpdate.getPassword()) {
-            if (!stringIsValid(userToUpdate.getPassword()))
-                throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
-
             String password = userToUpdate.getPassword();
             String confirmation = userToUpdate.getConfirmationPassword();
 
-            if (passwordIsValid(password))
+            if (!stringIsValid(password) || !stringIsValid(confirmation))
+                throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
+
+            if (!passwordIsValid(password))
                 throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
 
             if (!password.contentEquals(confirmation))
