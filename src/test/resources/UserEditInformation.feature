@@ -14,7 +14,7 @@ Feature: Edit User Details
     And response status code is 201
 
   Scenario: Successful change of password
-    When user requests change of password with value "pig-system" userId 1234 and accessToken "accessToken"
+    When user requests change of password with value "pigSystem1234" userId 1234 and accessToken "accessToken"
     Then response contains key "message" and value "User successfully updated."
     And response contains key "status" and value "Created"
     And response status code is 201
@@ -27,7 +27,7 @@ Feature: Edit User Details
     And response contains key "status" and value "Conflict"
 
   Scenario: Failed change of password; new password contains username
-    When user requests change of password with value "user123" userId 1234 and accessToken "accessToken"
+    When user requests change of password with value "User123asd" userId 1234 and accessToken "accessToken"
     Then response contains key "message" and value "User could not get updated. Username must not appear in password."
     And response status code is 409
     And response contains key "status" and value "Conflict"
