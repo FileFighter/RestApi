@@ -10,7 +10,7 @@
     </parent>
     <groupId>de.filefighter</groupId>
     <artifactId>rest</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <name>RestApi</name>
     <description>RestApi for FileFighter</description>
 
