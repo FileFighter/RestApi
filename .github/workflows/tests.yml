@@ -26,4 +26,3 @@ jobs:
       -
         name: Run Tests and update Sonar
         run: mvn clean test sonar:sonar -s ./settings.xml
-      -
