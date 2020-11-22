@@ -49,8 +49,9 @@ public class AccessTokenBusinessService {
         } else {
             if (currentTimeSeconds + ACCESS_TOKEN_SAFETY_MARGIN > accessTokenEntity.getValidUntil()) {
                 LOG.info("Deleting AccessToken for UserId {}, because its invalid now.", userId);
-                if (userId != accessTokenRepository.deleteByUserId(userId))
-                    throw new FileFighterDataException("AccessToken with userId " + userId + " could not be deleted.");
+                long deletedTokenAmount = accessTokenRepository.deleteByUserId(userId);
+                if (1L != deletedTokenAmount)
+                    throw new FileFighterDataException("AccessToken for userId " + userId + " could not be deleted.");
 
                 accessTokenEntity = AccessTokenEntity
                         .builder()
