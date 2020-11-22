@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
+import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,12 +75,29 @@ class AccessTokenBusinessServiceUnitTest {
 
         when(accessTokenRepositoryMock.findByUserId(dummyId)).thenReturn(dummyAccessTokenEntity);
         when(accessTokenRepositoryMock.save(any())).thenReturn(dummyAccessTokenEntity);
+        when(accessTokenRepositoryMock.deleteByUserId(dummyId)).thenReturn(1L);
         when(accessTokenDtoServiceMock.createDto(dummyAccessTokenEntity)).thenReturn(dummyAccessToken);
 
         AccessToken accessToken = accessTokenBusinessService.getValidAccessTokenForUser(dummyUser);
 
         assertEquals(dummyAccessToken, accessToken);
         verify(accessTokenRepositoryMock, times(0)).save(dummyAccessTokenEntity); // the newly saved token is different.
+    }
+
+    @Test
+    void getValidAccessTokenForUserWhenTokenDeletionFails() {
+        long dummyId = 1234;
+        User dummyUser = User.builder().id(dummyId).build();
+        AccessTokenEntity dummyAccessTokenEntity = AccessTokenEntity
+                .builder()
+                .userId(dummyId)
+                .validUntil(Instant.now().getEpochSecond())
+                .build();
+
+        when(accessTokenRepositoryMock.findByUserId(dummyId)).thenReturn(dummyAccessTokenEntity);
+        when(accessTokenRepositoryMock.deleteByUserId(dummyId)).thenReturn(dummyId - 1);
+
+        assertThrows(FileFighterDataException.class, () -> accessTokenBusinessService.getValidAccessTokenForUser(dummyUser));
     }
 
     @Test

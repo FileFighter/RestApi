@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 public class AccessTokenEntity {
 
     @MongoId
-    private String _id;
+    private String mongoId;
     private String value;
     private long userId;
     private long validUntil;

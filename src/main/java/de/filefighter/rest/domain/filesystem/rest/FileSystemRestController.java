@@ -17,7 +17,7 @@ import static de.filefighter.rest.configuration.RestConfiguration.*;
 @RequestMapping(BASE_API_URI)
 public class FileSystemRestController {
 
-    private final static Logger LOG = LoggerFactory.getLogger(FileSystemRestController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileSystemRestController.class);
 
     private final FileSystemRestServiceInterface fileSystemRestService;
 

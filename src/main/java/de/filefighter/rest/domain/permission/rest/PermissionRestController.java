@@ -16,7 +16,7 @@ import static de.filefighter.rest.configuration.RestConfiguration.*;
 @RequestMapping(BASE_API_URI)
 public class PermissionRestController {
 
-    private final Logger LOG = LoggerFactory.getLogger(PermissionRestController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PermissionRestController.class);
     private final PermissionRestServiceInterface permissionsRestService;
 
     public PermissionRestController(PermissionRestServiceInterface permissionsRestService) {

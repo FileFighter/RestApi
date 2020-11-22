@@ -73,7 +73,7 @@ public class UserBusinessService {
 
         return RefreshToken
                 .builder()
-                .refreshToken(refreshTokenValue)
+                .tokenValue(refreshTokenValue)
                 .user(user)
                 .build();
     }

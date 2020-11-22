@@ -91,7 +91,7 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
     @And("response contains valid accessToken for user {long}")
     public void responseContainsValidAccessTokenForUser(long userId) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
-        String tokenValue = rootNode.get("token").asText();
+        String tokenValue = rootNode.get("tokenValue").asText();
         long actualUserId = rootNode.get("userId").asLong();
         long validUntil = rootNode.get("validUntil").asLong();
 
@@ -107,7 +107,7 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
     @And("response contains refreshToken {string} and the user with id {long}")
     public void responseContainsRefreshTokenAndTheUserWithId(String refreshToken, long userId) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
-        String actualRefreshToken = rootNode.get("refreshToken").asText();
+        String actualRefreshToken = rootNode.get("tokenValue").asText();
         JsonNode userNode = rootNode.get("user");
         long actualUserId = userNode.get("id").asLong();
 
@@ -118,7 +118,7 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
     @And("response contains valid accessToken for user {long} with a different value than {string}")
     public void responseContainsValidAccessTokenForUserWithADifferentValueThan(long userId, String differentTokenValue) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
-        String actualTokenValue = rootNode.get("token").asText();
+        String actualTokenValue = rootNode.get("tokenValue").asText();
         long actualUserId = rootNode.get("userId").asLong();
 
         assertEquals(userId, actualUserId);
