@@ -13,7 +13,7 @@
                   http://filefighter.ddns.net:9000
                 </sonar.host.url>
                 <sonar.login>${env.SONAR_LOGIN}</sonar.login>
-                <sonar.password>${SONAR_PASSWORD}</sonar.password>
+                <sonar.password>${env.SONAR_PASSWORD}</sonar.password>
             </properties>
         </profile>
      </profiles>
