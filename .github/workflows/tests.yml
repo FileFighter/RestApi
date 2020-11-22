@@ -25,8 +25,8 @@ jobs:
           docker create -p 27017:27017 --name FileFighterDB mongo:latest
           docker start FileFighterDB
       -
-        name: Run all Tests
-        run: mvn clean test -f pom.xml
-      -
-        name: Upload CodeCov.
-        run: bash <(curl -s https://codecov.io/bash) -Z
+        name: Run Tests and update Sonar
+        run: mvn clean test sonar:sonar -s ./settings.xml
+        env:
+          SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
+          SONAR_PASSWORD: ${{ secrets.SONAR_PASSWORD }}
