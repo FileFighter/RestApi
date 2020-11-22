@@ -41,7 +41,7 @@ class UserRestControllerUnitTest {
     @Test
     void loginUserWithUsernameAndPassword() {
         User user = User.builder().id(420).groups(null).username("kevin").build();
-        RefreshToken refreshToken = RefreshToken.builder().refreshToken("token").user(user).build();
+        RefreshToken refreshToken = RefreshToken.builder().tokenValue("token").user(user).build();
         ResponseEntity<RefreshToken> expectedRefreshToken = new ResponseEntity<>(refreshToken, OK);
 
         when(userRestServiceMock.getRefreshTokenWithUsernameAndPassword(any())).thenReturn(expectedRefreshToken);

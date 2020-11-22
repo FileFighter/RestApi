@@ -81,7 +81,7 @@ class UserBusinessServiceUnitTest {
         String refreshToken = "someToken";
         User dummyUser = User.builder().id(userId).username(username).build();
         UserEntity dummyEntity = UserEntity.builder().refreshToken(refreshToken).build();
-        RefreshToken expected = RefreshToken.builder().refreshToken(refreshToken).user(dummyUser).build();
+        RefreshToken expected = RefreshToken.builder().tokenValue(refreshToken).user(dummyUser).build();
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(dummyEntity);
 

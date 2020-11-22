@@ -28,16 +28,4 @@ public class Utils {
         String[] split = testString.split(header);
         return split[1];
     }
-
-    public static List<String> getLinesFromFile(File file) {
-        ArrayList<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            while (br.ready()) {
-                lines.add(br.readLine().replace(" ",""));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return lines;
-    }
 }

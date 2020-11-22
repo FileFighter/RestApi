@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 public class FileSystemEntity {
 
     @MongoId
-    private String _id;
+    private String mongoId;
     private long id;
     private String name;
     private String path;

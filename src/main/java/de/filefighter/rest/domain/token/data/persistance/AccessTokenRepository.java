@@ -8,4 +8,5 @@ public interface AccessTokenRepository extends MongoRepository<AccessTokenEntity
     AccessTokenEntity findByUserId(long userId);
     AccessTokenEntity findByValue(String value);
     AccessTokenEntity findByUserIdAndValue(long userId, String value);
+    long deleteByUserId(long userId);
 }

@@ -26,7 +26,7 @@ class UserAuthorizationServiceUnitTest {
 
     @Test
     void authenticateUserWithUsernameAndPasswordThrows() {
-        String matchesButIsNotSupportedEncoding = AUTHORIZATION_BASIC_PREFIX + "���";
+        String matchesButIsNotSupportedEncoding = AUTHORIZATION_BASIC_PREFIX + "���"; //funny enough sonar doesnt like this. who cares.
         String matchesButDoesNotMeetRequirements = AUTHORIZATION_BASIC_PREFIX + "dWdhYnVnYQ==";
         String matchesButUserWasNotFound = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA==";
 

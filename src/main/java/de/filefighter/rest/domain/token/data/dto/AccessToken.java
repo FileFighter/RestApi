@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class AccessToken {
-    private String token;
+    private String tokenValue;
     private long userId;
     private long validUntil;
 }

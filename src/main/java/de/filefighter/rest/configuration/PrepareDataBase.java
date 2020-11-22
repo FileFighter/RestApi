@@ -144,7 +144,7 @@ public class PrepareDataBase {
     CommandLineRunner initFileSystemDataBaseDev(FileSystemRepository repository) {
 
         return args -> {
-            LOG.info("Preloading default tokens: " +
+            LOG.info("Preloading default fsItems: " +
                     repository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .id(0)

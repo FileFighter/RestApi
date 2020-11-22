@@ -5,7 +5,10 @@ import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
+import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,6 +26,7 @@ public class AccessTokenBusinessService {
 
     public static final long ACCESS_TOKEN_DURATION_IN_SECONDS = 3600L;
     public static final long ACCESS_TOKEN_SAFETY_MARGIN = 5L;
+    private static final Logger LOG = LoggerFactory.getLogger(AccessTokenBusinessService.class);
 
     public AccessTokenBusinessService(AccessTokenRepository accessTokenRepository, AccessTokenDtoService accessTokenDtoService) {
         this.accessTokenRepository = accessTokenRepository;
@@ -30,7 +34,8 @@ public class AccessTokenBusinessService {
     }
 
     public AccessToken getValidAccessTokenForUser(User user) {
-        AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserId(user.getId());
+        long userId = user.getId();
+        AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserId(userId);
         long currentTimeSeconds = Instant.now().getEpochSecond();
 
         if (null == accessTokenEntity) {
@@ -38,17 +43,21 @@ public class AccessTokenBusinessService {
                     .builder()
                     .validUntil(currentTimeSeconds + ACCESS_TOKEN_DURATION_IN_SECONDS)
                     .value(generateRandomTokenValue())
-                    .userId(user.getId())
+                    .userId(userId)
                     .build();
             accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
         } else {
             if (currentTimeSeconds + ACCESS_TOKEN_SAFETY_MARGIN > accessTokenEntity.getValidUntil()) {
-                accessTokenRepository.delete(accessTokenEntity);
+                LOG.info("Deleting AccessToken for UserId {}, because its invalid now.", userId);
+                long deletedTokenAmount = accessTokenRepository.deleteByUserId(userId);
+                if (1L != deletedTokenAmount)
+                    throw new FileFighterDataException("AccessToken for userId " + userId + " could not be deleted.");
+
                 accessTokenEntity = AccessTokenEntity
                         .builder()
                         .validUntil(currentTimeSeconds + ACCESS_TOKEN_DURATION_IN_SECONDS)
                         .value(generateRandomTokenValue())
-                        .userId(user.getId())
+                        .userId(userId)
                         .build();
                 accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
             }

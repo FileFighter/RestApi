@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 @Builder
 public class RefreshToken {
-    private final String refreshToken;
+    private final String tokenValue;
     private final User user;
 }
