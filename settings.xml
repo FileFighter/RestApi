@@ -1,0 +1,20 @@
+<settings>
+    <pluginGroups>
+        <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+    </pluginGroups>
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <sonar.host.url>
+                  http://filefighter.ddns.net:9000
+                </sonar.host.url>
+                <sonar.login>${env.SONAR_LOGIN}</sonar.login>
+                <sonar.password>${SONAR_PASSWORD}</sonar.password>
+            </properties>
+        </profile>
+     </profiles>
+</settings>
