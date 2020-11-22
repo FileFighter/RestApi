@@ -75,7 +75,7 @@ class AccessTokenBusinessServiceUnitTest {
 
         when(accessTokenRepositoryMock.findByUserId(dummyId)).thenReturn(dummyAccessTokenEntity);
         when(accessTokenRepositoryMock.save(any())).thenReturn(dummyAccessTokenEntity);
-        when(accessTokenRepositoryMock.deleteByUserId(dummyId)).thenReturn(dummyId);
+        when(accessTokenRepositoryMock.deleteByUserId(dummyId)).thenReturn(1L);
         when(accessTokenDtoServiceMock.createDto(dummyAccessTokenEntity)).thenReturn(dummyAccessToken);
 
         AccessToken accessToken = accessTokenBusinessService.getValidAccessTokenForUser(dummyUser);

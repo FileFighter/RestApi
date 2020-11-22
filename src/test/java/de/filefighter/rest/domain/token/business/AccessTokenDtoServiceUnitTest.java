@@ -33,14 +33,14 @@ class AccessTokenDtoServiceUnitTest {
 
         assertEquals(dummyEntity.getUserId(), actual.getUserId());
         assertEquals(dummyEntity.getValidUntil(), actual.getValidUntil());
-        assertEquals(dummyEntity.getValue(), actual.getToken());
+        assertEquals(dummyEntity.getValue(), actual.getTokenValue());
     }
 
     @Test
     void findEntityNotSuccessfully() {
         long userId = 420;
         String token = "token";
-        AccessToken dummyToken = AccessToken.builder().userId(userId).token(token).build();
+        AccessToken dummyToken = AccessToken.builder().userId(userId).tokenValue(token).build();
 
         when(accessTokenRepository.findByUserIdAndValue(userId, token)).thenReturn(null);
 
@@ -53,7 +53,7 @@ class AccessTokenDtoServiceUnitTest {
     void findEntitySuccessfully() {
         long userId = 420;
         String token = "token";
-        AccessToken dummyToken = AccessToken.builder().userId(userId).token(token).build();
+        AccessToken dummyToken = AccessToken.builder().userId(userId).tokenValue(token).build();
         AccessTokenEntity expected = AccessTokenEntity.builder().userId(userId).value(token).build();
 
         when(accessTokenRepository.findByUserIdAndValue(userId, token)).thenReturn(expected);
