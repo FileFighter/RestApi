@@ -40,8 +40,7 @@ public class UserAuthorizationService {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
             decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException ex) {
-            LOG.warn("Found UnsupportedEncodingException in {}", base64encodedUserAndPassword);
-            ex.printStackTrace();
+            LOG.warn("Found UnsupportedEncodingException {} in {}",ex.getMessage(), base64encodedUserAndPassword);
         }
 
         String[] split = decodedUsernameAndPassword.strip().split(":");

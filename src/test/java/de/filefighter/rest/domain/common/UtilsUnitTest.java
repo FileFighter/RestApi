@@ -58,13 +58,4 @@ class UtilsUnitTest {
 
         assertEquals(expected, actual);
     }
-
-    @Test
-    void readLinesFromFilesThrows() throws IOException {
-        File dummyFile = File.createTempFile("test", "txt");
-        int expected = 0;
-
-        int actual = Utils.getLinesFromFile(dummyFile).size();
-        assertEquals(expected, actual);
-    }
 }
