@@ -1,10 +1,13 @@
 package de.filefighter.rest.configuration;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Configuration
 public class RestConfiguration {
@@ -19,14 +22,16 @@ public class RestConfiguration {
     public static final String DEFAULT_ERROR_PATH = "/error";
 
     @Bean
-    public WebMvcConfigurer configurer(){
-
-        return new WebMvcConfigurer(){
-            @Override
-            public void addCorsMappings(@NotNull CorsRegistry registry) {
-                registry.addMapping("/*")
-                        .allowedOrigins("*");
-            }
-        };
+    public CorsFilter corsFilter(){
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        final CorsConfiguration config = new CorsConfiguration();
+        // Don't do this in production, use a proper list  of allowed origins
+        ArrayList<String> allowedOrigins = new ArrayList<>();
+        allowedOrigins.add("http://localhost:3000");
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }
