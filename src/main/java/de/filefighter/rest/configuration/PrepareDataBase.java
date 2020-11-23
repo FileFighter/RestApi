@@ -82,7 +82,7 @@ public class PrepareDataBase {
             LOG.info("Preloading default admin user: {}.", repository.save(UserEntity
                     .builder()
                     .userId(0L)
-                    .username("admin")
+                    .username("Admin")
                     .lowercaseUsername("admin")
                     .password("admin")
                     .refreshToken("refreshToken1234")
