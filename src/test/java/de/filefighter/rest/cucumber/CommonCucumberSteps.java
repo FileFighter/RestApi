@@ -23,8 +23,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
@@ -78,6 +77,18 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .lowercaseUsername(username.toLowerCase())
                 .password(password)
                 .build()));
+    }
+
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    @And("user with id {long} is in group with id {long}")
+    public void userWithIdIsInGroupWithId(long userId, long groupId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("groupIds", new long[]{groupId});
+        query.addCriteria(Criteria.where("userId").is(userId));
+
+        mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 
     // This step almost needs a unit test.
@@ -171,15 +182,11 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         assertTrue(actualValue >= value);
     }
 
-    @Autowired
-    MongoTemplate mongoTemplate;
+    @And("response contains key {string} and a different value than {string}")
+    public void responseContainsKeyAndADifferentValueThan(String key, String differentValue) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        String actualValue = rootNode.get(key).asText();
 
-    @And("user with id {long} is in group with id {long}")
-    public void userWithIdIsInGroupWithId(long userId, long groupId) {
-        Query query = new Query();
-        Update newUpdate = new Update().set("groupIds", new long[]{groupId});
-        query.addCriteria(Criteria.where("userId").is(userId));
-
-        mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
+        assertNotEquals(differentValue, actualValue);
     }
 }
