@@ -23,15 +23,8 @@ public class RestConfiguration {
 
     @Bean
     public CorsFilter corsFilter(){
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        final CorsConfiguration config = new CorsConfiguration();
-        // Don't do this in production, use a proper list  of allowed origins
-        ArrayList<String> allowedOrigins = new ArrayList<>();
-        allowedOrigins.add("http://localhost:3000");
-        config.setAllowedOrigins(allowedOrigins);
-        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
-        source.registerCorsConfiguration("/**", config);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
         return new CorsFilter(source);
     }
 }
