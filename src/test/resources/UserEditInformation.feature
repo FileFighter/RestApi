@@ -4,7 +4,7 @@ Feature: Edit User Details
 
   Background:
     Given database is empty
-    And user with id 1234 exists and has username "user", password "secure_password"
+    And user with id 1234 exists and has username "user", password "secure_password" and refreshToken "refreshToken1234"
     And accessToken with value "accessToken" exists for user 1234
 
   Scenario: Successful change of username
@@ -37,3 +37,12 @@ Feature: Edit User Details
     Then response contains key "message" and value "User could not get updated. No changes were made."
     And response contains key "status" and value "Conflict"
     And response status code is 409
+
+  Scenario: RefreshToken of user is different after password change.
+    When user requests change of password with value "newValidPassword123" userId 1234 and accessToken "accessToken"
+    Then response contains key "message" and value "User successfully updated."
+    And response contains key "status" and value "Created"
+    And response status code is 201
+    When user requests login with username "user" and password "newValidPassword123"
+    And response contains key "tokenValue" and a different value than "refreshToken1234"
+    Then response status code is 200
