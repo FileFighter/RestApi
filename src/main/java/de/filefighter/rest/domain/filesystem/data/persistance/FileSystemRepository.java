@@ -5,5 +5,5 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface FileSystemRepository extends MongoRepository<FileSystemEntity, String> {
-    FileSystemEntity findById(long Id);
+    FileSystemEntity findById(long id);
 }
