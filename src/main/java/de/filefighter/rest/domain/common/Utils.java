@@ -2,13 +2,6 @@ package de.filefighter.rest.domain.common;
 
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 public class Utils {
 
     private Utils() {

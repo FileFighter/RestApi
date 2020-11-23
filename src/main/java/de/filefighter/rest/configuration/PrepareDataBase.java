@@ -21,6 +21,9 @@ import java.time.Instant;
 @Configuration
 public class PrepareDataBase {
 
+    private final String messageOnSuccess = " was successful.";
+    private final String messageOnFailure = " failed.";
+
     @Value("${server.port}")
     int serverPort;
 
@@ -76,7 +79,7 @@ public class PrepareDataBase {
 
         //Note: when the admin user changes his/her password, a new refreshToken will be created.
         return args -> {
-            LOG.info("Preloading default admin user: " + repository.save(UserEntity
+            LOG.info("Preloading default admin user: {}.", repository.save(UserEntity
                     .builder()
                     .userId(0L)
                     .username("admin")
@@ -85,7 +88,7 @@ public class PrepareDataBase {
                     .refreshToken("refreshToken1234")
                     .groupIds(new long[]{0, 1})
                     .build()));
-            LOG.info("Inserting Users" + (repository.findAll().size() == 1 ? " was successful." : " failed."));
+            LOG.info("Inserting Users {}", (repository.findAll().size() == 1 ? messageOnSuccess : messageOnFailure));
         };
     }
 
@@ -94,7 +97,7 @@ public class PrepareDataBase {
     CommandLineRunner initUserDataBaseDev(UserRepository repository) {
 
         return args -> {
-            LOG.info("Preloading default users: " +
+            LOG.info("Preloading default users: {} {}.",
                     repository.save(UserEntity
                             .builder()
                             .userId(0)
@@ -103,7 +106,7 @@ public class PrepareDataBase {
                             .password("1234")
                             .refreshToken("rft1234")
                             .groupIds(new long[]{1})
-                            .build()) +
+                            .build()),
                     repository.save(UserEntity
                             .builder()
                             .userId(1)
@@ -113,7 +116,7 @@ public class PrepareDataBase {
                             .refreshToken("rft")
                             .groupIds(new long[]{-1})
                             .build()));
-            LOG.info("Inserting Users" + (repository.findAll().size() == 2 ? " was successful." : " failed."));
+            LOG.info("Inserting Users {}", (repository.findAll().size() == 2 ? messageOnSuccess : messageOnFailure));
         };
     }
 
@@ -122,20 +125,20 @@ public class PrepareDataBase {
     CommandLineRunner initAccessTokenDataBaseDev(AccessTokenRepository repository) {
 
         return args -> {
-            LOG.info("Preloading default tokens: " +
+            LOG.info("Preloading default tokens: {} {}",
                     repository.save(AccessTokenEntity
                             .builder()
                             .userId(0)
                             .value("token")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
-                            .build()) +
+                            .build()),
                     repository.save(AccessTokenEntity
                             .builder()
                             .userId(1)
                             .value("token1234")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
-            LOG.info("Inserting token" + (repository.findAll().size() == 2 ? " was successful." : " failed."));
+            LOG.info("Inserting token {}", (repository.findAll().size() == 2 ? messageOnSuccess : messageOnFailure));
         };
     }
 
@@ -144,7 +147,7 @@ public class PrepareDataBase {
     CommandLineRunner initFileSystemDataBaseDev(FileSystemRepository repository) {
 
         return args -> {
-            LOG.info("Preloading default fsItems: " +
+            LOG.info("Preloading default fsItems: {} {}.",
                     repository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .id(0)
@@ -156,7 +159,7 @@ public class PrepareDataBase {
                             .size(420)
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{-1, 0, 1})
-                            .build()) +
+                            .build()),
                     repository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .id(1)
@@ -168,7 +171,7 @@ public class PrepareDataBase {
                             .editableFoGroupIds(new long[]{0})
                             .visibleForGroupIds(new long[]{0})
                             .build()));
-            LOG.info("Inserting FileSystemItems" + (repository.findAll().size() == 2 ? " was successful." : " failed."));
+            LOG.info("Inserting FileSystemItems {}", (repository.findAll().size() == 2 ? messageOnSuccess : messageOnFailure));
         };
     }
 }
