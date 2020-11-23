@@ -155,7 +155,7 @@ public class UserBusinessService {
         if (null == userToUpdate)
             throw new UserNotUpdatedException("No updates specified.");
 
-        if(null == authenticatedUser.getGroups())
+        if (null == authenticatedUser.getGroups())
             throw new UserNotUpdatedException("Authenticated User is not allowed");
 
         boolean authenticatedUserIsAdmin = Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Groups.ADMIN);
@@ -205,6 +205,10 @@ public class UserBusinessService {
 
             changesWereMade = true;
             newUpdate.set("password", password);
+
+            //update refreshToken
+            String newRefreshToken = AccessTokenBusinessService.generateRandomTokenValue();
+            newUpdate.set("refreshToken", newRefreshToken);
         }
 
         // groups
@@ -222,7 +226,7 @@ public class UserBusinessService {
             newUpdate.set("groupIds", userToUpdate.getGroupIds());
         }
 
-        if(!changesWereMade)
+        if (!changesWereMade)
             throw new UserNotUpdatedException("No changes were made.");
 
         Query query = new Query();
