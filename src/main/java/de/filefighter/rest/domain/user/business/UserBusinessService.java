@@ -38,6 +38,9 @@ public class UserBusinessService {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
+    public static final long USER_ID_MIN = 10000000;
+    public static final long USER_ID_MAX = 99999999;
+
 
     @Value("${filefighter.disable-password-check}")
     public boolean passwordCheckDisabled;
@@ -138,7 +141,7 @@ public class UserBusinessService {
                 .username(username)
                 .password(password)
                 .refreshToken(AccessTokenBusinessService.generateRandomTokenValue())
-                .userId(getUserCount() + 1)
+                .userId(generateRandomUserId())
                 .build());
     }
 
@@ -233,6 +236,20 @@ public class UserBusinessService {
         Query query = new Query();
         query.addCriteria(Criteria.where("userId").is(userId));
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
+    }
+
+    public long generateRandomUserId(){
+        long possibleUserId = 0L;
+        boolean userIdIsFree = false;
+
+        while(!userIdIsFree){
+            possibleUserId = (long) Math.floor(Math.random() * (USER_ID_MAX - USER_ID_MIN ))+ USER_ID_MIN;
+            UserEntity userEntity = userRepository.findByUserId(possibleUserId);
+            if(null == userEntity)
+                userIdIsFree = true;
+        }
+
+        return possibleUserId;
     }
 }
 
