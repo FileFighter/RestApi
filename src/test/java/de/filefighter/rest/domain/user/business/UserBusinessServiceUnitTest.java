@@ -350,6 +350,6 @@ class UserBusinessServiceUnitTest {
     @Test
     void generateRandomUserIdWorks() {
         long actualValue = userBusinessService.generateRandomUserId();
-        assertTrue(UserBusinessService.USER_ID_MIN <= actualValue && actualValue <= UserBusinessService.USER_ID_MAX);
+        assertTrue(0 <= actualValue && actualValue <= UserBusinessService.USER_ID_MAX);
     }
 }
