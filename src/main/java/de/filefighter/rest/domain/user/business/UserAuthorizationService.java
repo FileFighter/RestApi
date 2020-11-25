@@ -18,6 +18,7 @@ import java.util.Base64;
 
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
+import static de.filefighter.rest.domain.common.Utils.removeWhiteSpaces;
 
 @Service
 public class UserAuthorizationService {
@@ -43,15 +44,15 @@ public class UserAuthorizationService {
             LOG.warn("Found UnsupportedEncodingException {} in {}",ex.getMessage(), base64encodedUserAndPassword);
         }
 
-        String[] split = decodedUsernameAndPassword.strip().split(":");
+        String[] split = decodedUsernameAndPassword.split(":");
 
         if (split.length != 2)
             throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");
 
-        String username = split[0];
+        String lowerCaseUsername = removeWhiteSpaces(split[0].toLowerCase()); //no nullPointerException possible here.
         String password = split[1];
 
-        UserEntity userEntity = userRepository.findByUsernameAndPassword(username, password);
+        UserEntity userEntity = userRepository.findByLowercaseUsernameAndPassword(lowerCaseUsername, password);
         if (null == userEntity)
             throw new UserNotAuthenticatedException("No User found with this username and password.");
 

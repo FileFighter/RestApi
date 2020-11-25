@@ -21,8 +21,8 @@ import java.time.Instant;
 @Configuration
 public class PrepareDataBase {
 
-    private final String messageOnSuccess = " was successful.";
-    private final String messageOnFailure = " failed.";
+    private static final String MESSAGE_ON_SUCCESS = " was successful.";
+    private static final String MESSAGE_ON_FAILURE = " failed.";
 
     @Value("${server.port}")
     int serverPort;
@@ -61,8 +61,6 @@ public class PrepareDataBase {
 
     @Bean
     CommandLineRunner cleanDataBase(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
-
-        //Note: when the admin user changes his/her password, a new refreshToken will be created.
         return args -> {
             LOG.info("Starting with clean user collection.");
             userRepository.deleteAll();
@@ -76,8 +74,6 @@ public class PrepareDataBase {
     @Bean
     @Profile("prod")
     CommandLineRunner initUserDataBaseProd(UserRepository repository) {
-
-        //Note: when the admin user changes his/her password, a new refreshToken will be created.
         return args -> {
             LOG.info("Preloading default admin user: {}.", repository.save(UserEntity
                     .builder()
@@ -88,14 +84,13 @@ public class PrepareDataBase {
                     .refreshToken("refreshToken1234")
                     .groupIds(new long[]{0, 1})
                     .build()));
-            LOG.info("Inserting Users {}", (repository.findAll().size() == 1 ? messageOnSuccess : messageOnFailure));
+            LOG.info("Inserting Users {}", (repository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 
     @Bean
     @Profile("dev")
     CommandLineRunner initUserDataBaseDev(UserRepository repository) {
-
         return args -> {
             LOG.info("Preloading default users: {} {}.",
                     repository.save(UserEntity
@@ -116,7 +111,7 @@ public class PrepareDataBase {
                             .refreshToken("rft")
                             .groupIds(new long[]{-1})
                             .build()));
-            LOG.info("Inserting Users {}", (repository.findAll().size() == 2 ? messageOnSuccess : messageOnFailure));
+            LOG.info("Inserting Users {}", (repository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 
@@ -138,7 +133,7 @@ public class PrepareDataBase {
                             .value("token1234")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
-            LOG.info("Inserting token {}", (repository.findAll().size() == 2 ? messageOnSuccess : messageOnFailure));
+            LOG.info("Inserting token {}", (repository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 
@@ -171,7 +166,7 @@ public class PrepareDataBase {
                             .editableFoGroupIds(new long[]{0})
                             .visibleForGroupIds(new long[]{0})
                             .build()));
-            LOG.info("Inserting FileSystemItems {}", (repository.findAll().size() == 2 ? messageOnSuccess : messageOnFailure));
+            LOG.info("Inserting FileSystemItems {}", (repository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 }

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import static de.filefighter.rest.domain.common.Utils.removeWhiteSpaces;
 import static de.filefighter.rest.domain.common.Utils.stringIsValid;
 
 @Service
@@ -82,7 +83,7 @@ public class UserBusinessService {
         if (!stringIsValid(username))
             throw new RequestDidntMeetFormalRequirementsException("Username was not valid.");
 
-        String lowercaseUsername = username.toLowerCase().replace(" ", "");
+        String lowercaseUsername = removeWhiteSpaces(username.toLowerCase());
 
         UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
         if (null == entity)
