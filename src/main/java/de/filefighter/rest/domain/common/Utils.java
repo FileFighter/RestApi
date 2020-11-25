@@ -21,4 +21,8 @@ public class Utils {
         String[] split = testString.split(header);
         return split[1];
     }
+
+    public static String removeWhiteSpaces(String string) {
+        return string.replaceAll("\\s", "");
+    }
 }
