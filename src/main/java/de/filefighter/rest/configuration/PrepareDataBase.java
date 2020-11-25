@@ -73,9 +73,9 @@ public class PrepareDataBase {
 
     @Bean
     @Profile("prod")
-    CommandLineRunner initUserDataBaseProd(UserRepository repository) {
+    CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
-            LOG.info("Preloading default admin user: {}.", repository.save(UserEntity
+            LOG.info("Preloading default admin user: {}.", userRepository.save(UserEntity
                     .builder()
                     .userId(0L)
                     .username("Admin")
@@ -84,16 +84,32 @@ public class PrepareDataBase {
                     .refreshToken("refreshToken1234")
                     .groupIds(new long[]{0, 1})
                     .build()));
-            LOG.info("Inserting Users {}", (repository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+
+            LOG.info("Preloading default fsStructure: {}.", fileSystemRepository.save(FileSystemEntity
+                    .builder()
+                    .createdByUserId(0)
+                    .id(0)
+                    .isFile(false)
+                    .path("/")
+                    .itemIds(new long[0])
+                    .lastUpdated(Instant.now().getEpochSecond())
+                    .name("root")
+                    .size(0)
+                    .typeId(FileSystemType.FOLDER.getId())
+                    .visibleForGroupIds(new long[]{-1, 0, 1})
+                    .build()));
+
+            LOG.info("Inserting Users {}", (userRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            LOG.info("Inserting fsItems {}", (fileSystemRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 
     @Bean
     @Profile("dev")
-    CommandLineRunner initUserDataBaseDev(UserRepository repository) {
+    CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
             LOG.info("Preloading default users: {} {}.",
-                    repository.save(UserEntity
+                    userRepository.save(UserEntity
                             .builder()
                             .userId(0)
                             .username("user")
@@ -102,7 +118,7 @@ public class PrepareDataBase {
                             .refreshToken("rft1234")
                             .groupIds(new long[]{1})
                             .build()),
-                    repository.save(UserEntity
+                    userRepository.save(UserEntity
                             .builder()
                             .userId(1)
                             .username("user1")
@@ -111,39 +127,23 @@ public class PrepareDataBase {
                             .refreshToken("rft")
                             .groupIds(new long[]{-1})
                             .build()));
-            LOG.info("Inserting Users {}", (repository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
-        };
-    }
 
-    @Bean
-    @Profile("dev")
-    CommandLineRunner initAccessTokenDataBaseDev(AccessTokenRepository repository) {
-
-        return args -> {
             LOG.info("Preloading default tokens: {} {}",
-                    repository.save(AccessTokenEntity
+                    accessTokenRepository.save(AccessTokenEntity
                             .builder()
                             .userId(0)
                             .value("token")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()),
-                    repository.save(AccessTokenEntity
+                    accessTokenRepository.save(AccessTokenEntity
                             .builder()
                             .userId(1)
                             .value("token1234")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
-            LOG.info("Inserting token {}", (repository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
-        };
-    }
 
-    @Bean
-    @Profile("dev")
-    CommandLineRunner initFileSystemDataBaseDev(FileSystemRepository repository) {
-
-        return args -> {
             LOG.info("Preloading default fsItems: {} {}.",
-                    repository.save(FileSystemEntity.builder()
+                    fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .id(0)
                             .isFile(false)
@@ -155,7 +155,7 @@ public class PrepareDataBase {
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{-1, 0, 1})
                             .build()),
-                    repository.save(FileSystemEntity.builder()
+                    fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .id(1)
                             .isFile(true)
@@ -166,7 +166,10 @@ public class PrepareDataBase {
                             .editableFoGroupIds(new long[]{0})
                             .visibleForGroupIds(new long[]{0})
                             .build()));
-            LOG.info("Inserting FileSystemItems {}", (repository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+
+            LOG.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            LOG.info("Inserting token {}", (accessTokenRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            LOG.info("Inserting Users {}", (userRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 }
