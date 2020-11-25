@@ -3,9 +3,6 @@ package de.filefighter.rest.domain.common;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SuppressWarnings(value = "ConstantConditions")
@@ -57,5 +54,14 @@ class UtilsUnitTest {
         String actual = Utils.validateAuthorizationHeader(dummyHeaderPrefix, valid);
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void removeAllWhiteSpaces(){
+        String dummyString = " a d s dd   ds d s  \n sd \r";
+        String expectedString = "adsdddsdssd";
+        String actual = Utils.removeWhiteSpaces(dummyString);
+
+        assertEquals(expectedString, actual);
     }
 }

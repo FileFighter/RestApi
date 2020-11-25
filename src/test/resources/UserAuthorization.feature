@@ -12,6 +12,16 @@ Scenario: Successful login with username and password.
   Then response status code is 200
   And response contains refreshToken "token" and the user with id 1234
 
+Scenario: Successful login with username in different Case and password.
+  When user requests login with username "UsEr" and password "secure_password"
+  Then response status code is 200
+  And response contains refreshToken "token" and the user with id 1234
+
+Scenario: Successful login with username in different Case, whiteSpaces and password.
+  When user requests login with username "U  s E r" and password "secure_password"
+  Then response status code is 200
+  And response contains refreshToken "token" and the user with id 1234
+
 Scenario: Failed login with wrong username or password.
   When user requests login with username "user" and password "wrong_password"
   Then response contains key "message" and value "User could not be authenticated. No User found with this username and password."

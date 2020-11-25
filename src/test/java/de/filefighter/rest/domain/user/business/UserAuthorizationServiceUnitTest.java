@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.user.business;
 
-import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
@@ -37,7 +36,7 @@ class UserAuthorizationServiceUnitTest {
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButDoesNotMeetRequirements)
         );
 
-        when(userRepositoryMock.findByUsernameAndPassword("user", "password")).thenReturn(null);
+        when(userRepositoryMock.findByLowercaseUsernameAndPassword("user", "password")).thenReturn(null);
 
         assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButUserWasNotFound));
@@ -49,7 +48,7 @@ class UserAuthorizationServiceUnitTest {
         User dummyUser = User.builder().build();
         UserEntity dummyEntity = UserEntity.builder().build();
 
-        when(userRepositoryMock.findByUsernameAndPassword("user", "password")).thenReturn(dummyEntity);
+        when(userRepositoryMock.findByLowercaseUsernameAndPassword("user", "password")).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
 
         User actual = userAuthorizationService.authenticateUserWithUsernameAndPassword(header);
@@ -123,7 +122,6 @@ class UserAuthorizationServiceUnitTest {
     @Test
     void authenticateUserWithAccessTokenAndGroupWorks() {
         long userId = 420;
-        long group = 1;
         AccessToken accessToken = AccessToken.builder().userId(userId).build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{1}).build());
