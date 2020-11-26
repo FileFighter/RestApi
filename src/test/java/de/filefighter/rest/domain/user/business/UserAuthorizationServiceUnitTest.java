@@ -26,7 +26,7 @@ class UserAuthorizationServiceUnitTest {
         String matchesButIsNotSupportedEncoding = "���"; //funny enough sonar doesnt like this. who cares.
         String matchesButUserWasNotFound = "dXNlcjpwYXNzd29yZA==";
 
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding)
         );
 

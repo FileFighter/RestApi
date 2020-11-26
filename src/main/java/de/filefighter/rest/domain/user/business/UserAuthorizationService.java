@@ -34,7 +34,8 @@ public class UserAuthorizationService {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
             decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
-            LOG.warn("Found UnsupportedEncodingException {} in {}",ex.getMessage(), base64encodedUserAndPassword);
+            LOG.warn("Found {} in {}", ex.getMessage(), base64encodedUserAndPassword);
+            throw new RequestDidntMeetFormalRequirementsException("Found unsupported character in header.");
         }
 
         String[] split = decodedUsernameAndPassword.split(":");

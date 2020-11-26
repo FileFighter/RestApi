@@ -208,7 +208,7 @@ class UserBusinessServiceUnitTest {
         String username = "username";
         String password = "validPassword1234";
         String confPassword = "validPassword1234";
-        long[] groups = null;
+        long[] groups = new long[]{0};
 
         UserRegisterForm userRegisterForm = UserRegisterForm.builder()
                 .username(username)
@@ -291,7 +291,7 @@ class UserBusinessServiceUnitTest {
         assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser), "Passwords do not match.");
 
-        String validPassword ="ValidPassword1234!=";
+        String validPassword = "ValidPassword1234!=";
         userRegisterForm.setPassword(validPassword);
         userRegisterForm.setConfirmationPassword(validPassword);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
@@ -325,7 +325,7 @@ class UserBusinessServiceUnitTest {
         assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
 
-        groups = new long[]{123032,1230213};
+        groups = new long[]{123032, 1230213};
         userRegisterForm.setGroupIds(groups);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
         when(groupRepositoryMock.getGroupsByIds(groups)).thenThrow(new IllegalArgumentException("id doesnt belong to a group"));
@@ -345,5 +345,11 @@ class UserBusinessServiceUnitTest {
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
         when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Groups[]{Groups.FAMILY});
         assertDoesNotThrow(() -> userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+    }
+
+    @Test
+    void generateRandomUserIdWorks() {
+        long actualValue = userBusinessService.generateRandomUserId();
+        assertTrue(0 <= actualValue && actualValue <= UserBusinessService.USER_ID_MAX);
     }
 }
