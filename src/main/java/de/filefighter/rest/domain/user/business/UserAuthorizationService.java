@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -39,9 +38,10 @@ public class UserAuthorizationService {
         String decodedUsernameAndPassword = "";
         try {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
-            decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException ex) {
-            LOG.warn("Found UnsupportedEncodingException {} in {}",ex.getMessage(), base64encodedUserAndPassword);
+            decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException ex) {
+            LOG.warn("Found {} in {}", ex.getMessage(), base64encodedUserAndPassword);
+            throw new RequestDidntMeetFormalRequirementsException("Found unsupported character in header.");
         }
 
         String[] split = decodedUsernameAndPassword.split(":");
