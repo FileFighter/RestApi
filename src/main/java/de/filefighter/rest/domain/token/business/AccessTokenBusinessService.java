@@ -6,17 +6,12 @@ import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
-
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
-import static de.filefighter.rest.domain.common.Utils.stringIsValid;
-import static de.filefighter.rest.domain.common.Utils.validateAuthorizationHeader;
 
 @Service
 public class AccessTokenBusinessService {
@@ -67,9 +62,6 @@ public class AccessTokenBusinessService {
     }
 
     public AccessToken findAccessTokenByValueAndUserId(String accessTokenValue, long userId) {
-        if (!stringIsValid(accessTokenValue))
-            throw new RequestDidntMeetFormalRequirementsException("Value of AccessToken was not valid.");
-
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserIdAndValue(userId, accessTokenValue);
         if (null == accessTokenEntity)
             throw new UserNotAuthenticatedException(userId);
@@ -78,20 +70,7 @@ public class AccessTokenBusinessService {
     }
 
     public AccessToken findAccessTokenByValue(String accessTokenValue) {
-        if (!stringIsValid(accessTokenValue))
-            throw new RequestDidntMeetFormalRequirementsException("Value of AccessToken was not valid.");
-
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByValue(accessTokenValue);
-        if (null == accessTokenEntity)
-            throw new UserNotAuthenticatedException("AccessToken not found.");
-
-        return accessTokenDtoService.createDto(accessTokenEntity);
-    }
-
-
-    public AccessToken validateAccessTokenValueWithHeader(String accessTokenValue) {
-        String cleanValue = validateAuthorizationHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
-        AccessTokenEntity accessTokenEntity = accessTokenRepository.findByValue(cleanValue);
         if (null == accessTokenEntity)
             throw new UserNotAuthenticatedException("AccessToken not found.");
 

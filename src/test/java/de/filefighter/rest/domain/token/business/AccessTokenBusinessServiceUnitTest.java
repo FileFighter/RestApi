@@ -6,13 +6,11 @@ import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -101,16 +99,6 @@ class AccessTokenBusinessServiceUnitTest {
     }
 
     @Test
-    void findAccessTokenByValueAndUserIdWithInvalidToken() {
-        String tokenValue = "";
-        long userId = 1234;
-
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.findAccessTokenByValueAndUserId(tokenValue, userId)
-        );
-    }
-
-    @Test
     void findAccessTokenByValueAndUserIdWithTokenNotFound() {
         String tokenValue = "value";
         long userId = 1234;
@@ -142,12 +130,6 @@ class AccessTokenBusinessServiceUnitTest {
         String invalidFormat = "";
         String validFormat = "ugabuga";
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.findAccessTokenByValue(invalidFormat)
-        );
-
-        when(accessTokenRepositoryMock.findByValue(validFormat)).thenReturn(null);
-
         assertThrows(UserNotAuthenticatedException.class, () ->
                 accessTokenBusinessService.findAccessTokenByValue(validFormat)
         );
@@ -172,46 +154,6 @@ class AccessTokenBusinessServiceUnitTest {
     void generateRandomTokenValue() {
         String generatedToken = AccessTokenBusinessService.generateRandomTokenValue();
         assertEquals(36, generatedToken.length());
-    }
-
-    @Test
-    void validateAccessTokenValueWithWrongHeader() {
-        String header0 = "wrongHeader";
-        String header1 = "";
-
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValueWithHeader(header0)
-        );
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValueWithHeader(header1)
-        );
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValueWithHeader(AUTHORIZATION_BEARER_PREFIX)
-        );
-    }
-
-    @Test
-    void validateAccessTokenValueButTokenDoesNotExist() {
-        String header = AUTHORIZATION_BEARER_PREFIX + "something";
-
-        when(accessTokenRepositoryMock.findByValue("something")).thenReturn(null);
-
-        assertThrows(UserNotAuthenticatedException.class, () ->
-                accessTokenBusinessService.validateAccessTokenValueWithHeader(header)
-        );
-    }
-
-    @Test
-    void validateAccessTokenValue() {
-        String header = AUTHORIZATION_BEARER_PREFIX + "something";
-        AccessToken expected = AccessToken.builder().build();
-        AccessTokenEntity accessTokenEntity = AccessTokenEntity.builder().build();
-
-        when(accessTokenRepositoryMock.findByValue("something")).thenReturn(accessTokenEntity);
-        when(accessTokenDtoServiceMock.createDto(accessTokenEntity)).thenReturn(expected);
-
-        AccessToken actual = accessTokenBusinessService.validateAccessTokenValueWithHeader(header);
-        assertEquals(expected, actual);
     }
 
     @Test
