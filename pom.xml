@@ -153,6 +153,38 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
+                    <!-- attached to Maven verify phase -->
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>*BusinessService</include>
+                                        <include>*Controller</include>
+                                        <include>*Service</include>
+                                    </includes>
+                                    <excludes>
+                                        <!-- NOT IMPLEMENTED YET -->
+                                        <exclude>*FileSystemRestService</exclude>
+                                        <exclude>*PermissionRestService</exclude>
+                                    </excludes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>95%</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>
