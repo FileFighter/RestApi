@@ -22,6 +22,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,8 @@ public class UserBusinessService {
 
 
     private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
+    public static final int USER_ID_MAX = 99999999;
+
 
     @Value("${filefighter.disable-password-check}")
     public boolean passwordCheckDisabled;
@@ -138,7 +141,7 @@ public class UserBusinessService {
                 .username(username)
                 .password(password)
                 .refreshToken(AccessTokenBusinessService.generateRandomTokenValue())
-                .userId(getUserCount() + 1)
+                .userId(generateRandomUserId())
                 .build());
     }
 
@@ -233,6 +236,20 @@ public class UserBusinessService {
         Query query = new Query();
         query.addCriteria(Criteria.where("userId").is(userId));
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
+    }
+
+    public long generateRandomUserId(){
+        long possibleUserId = 0L;
+        boolean userIdIsFree = false;
+
+        while(!userIdIsFree){
+            possibleUserId = new SecureRandom().nextInt(UserBusinessService.USER_ID_MAX);
+            UserEntity userEntity = userRepository.findByUserId(possibleUserId);
+            if(null == userEntity && possibleUserId > 0)
+                userIdIsFree = true;
+        }
+
+        return possibleUserId;
     }
 }
 

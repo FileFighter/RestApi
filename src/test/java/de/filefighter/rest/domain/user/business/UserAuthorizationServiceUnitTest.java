@@ -29,9 +29,10 @@ class UserAuthorizationServiceUnitTest {
         String matchesButDoesNotMeetRequirements = AUTHORIZATION_BASIC_PREFIX + "dWdhYnVnYQ==";
         String matchesButUserWasNotFound = AUTHORIZATION_BASIC_PREFIX + "dXNlcjpwYXNzd29yZA==";
 
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding)
         );
+
         assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButDoesNotMeetRequirements)
         );
