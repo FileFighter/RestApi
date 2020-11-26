@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.user.business;
 
-import de.filefighter.rest.domain.common.Utils;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
@@ -25,8 +24,8 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import static de.filefighter.rest.domain.common.Utils.removeWhiteSpaces;
-import static de.filefighter.rest.domain.common.Utils.stringIsValid;
+import static de.filefighter.rest.domain.common.InputSanitizerService.sanitizeString;
+import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
 
 @Service
 public class UserBusinessService {
@@ -35,7 +34,6 @@ public class UserBusinessService {
     private final UserDtoService userDtoService;
     private final GroupRepository groupRepository;
     private final MongoTemplate mongoTemplate;
-
 
     private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
 
@@ -83,7 +81,7 @@ public class UserBusinessService {
         if (!stringIsValid(username))
             throw new RequestDidntMeetFormalRequirementsException("Username was not valid.");
 
-        String lowercaseUsername = removeWhiteSpaces(username.toLowerCase());
+        String lowercaseUsername = sanitizeString(username.toLowerCase());
 
         UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
         if (null == entity)
@@ -143,7 +141,7 @@ public class UserBusinessService {
     }
 
     public boolean passwordIsValid(String password) {
-        if (!Utils.stringIsValid(password))
+        if (!stringIsValid(password))
             return false;
 
         if (this.passwordCheckDisabled) return true;
