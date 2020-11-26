@@ -43,8 +43,8 @@ public class UserAuthorizationService {
         if (split.length != 2)
             throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");
 
-        String lowerCaseUsername = InputSanitizerService.sanitizeString(split[0].toLowerCase()); //no nullPointerException possible here.
-        String password = split[1];
+        String lowerCaseUsername = InputSanitizerService.sanitizeString(split[0].toLowerCase());
+        String password = InputSanitizerService.sanitizeString(split[1]);
 
         UserEntity userEntity = userRepository.findByLowercaseUsernameAndPassword(lowerCaseUsername, password);
         if (null == userEntity)
