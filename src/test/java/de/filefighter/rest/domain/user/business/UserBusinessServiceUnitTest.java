@@ -10,7 +10,6 @@ import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.domain.user.group.Groups;
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -53,9 +52,10 @@ class UserBusinessServiceUnitTest {
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(null);
 
-        assertThrows(UserNotFoundException.class, () ->
+        UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getRefreshTokenForUser(dummyUser)
         );
+        assertEquals("Could not find user " + userId, ex.getMessage());
     }
 
     @Test
@@ -69,9 +69,11 @@ class UserBusinessServiceUnitTest {
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(dummyEntity);
 
-        assertThrows(IllegalStateException.class, () ->
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
                 userBusinessService.getRefreshTokenForUser(dummyUser)
         );
+        assertEquals("RefreshToken was invalid or empty in db.", ex.getMessage());
+
     }
 
     @Test
@@ -94,8 +96,10 @@ class UserBusinessServiceUnitTest {
         long id = 420;
         when(userRepositoryMock.findByUserId(id)).thenReturn(null);
 
-        assertThrows(UserNotFoundException.class, () ->
+        UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getUserById(id));
+
+        assertEquals("Could not find user " + id, ex.getMessage());
     }
 
     @Test
@@ -113,27 +117,23 @@ class UserBusinessServiceUnitTest {
 
     @Test
     void findUserByUsernameThrowsExceptions() {
-        String invalidFormat = "";
         String validFormat = "ugabuga";
-
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userBusinessService.findUserByUsername(invalidFormat)
-        );
 
         when(userRepositoryMock.findByLowercaseUsername(validFormat)).thenReturn(null);
 
-        assertThrows(UserNotFoundException.class, () ->
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.findUserByUsername(validFormat)
         );
+        assertEquals("User with username '" + validFormat + "' not found.", exception.getMessage());
     }
 
     @Test
     void findUserByUsernameWorksCorrectly() {
-        String username = "some str ing w i th white spaces";
+        String username = "someusername";
         UserEntity userEntity = UserEntity.builder().build();
         User user = User.builder().build();
 
-        when(userRepositoryMock.findByLowercaseUsername("somestringwithwhitespaces")).thenReturn(userEntity);
+        when(userRepositoryMock.findByLowercaseUsername(username)).thenReturn(userEntity);
         when(userDtoServiceMock.createDto(userEntity)).thenReturn(user);
 
         User actual = userBusinessService.findUserByUsername(username);
@@ -163,7 +163,8 @@ class UserBusinessServiceUnitTest {
 
     @Test
     void registerNewUserThrows() {
-        String username = "";
+        String username = "ValidUserName";
+        String notValidPassword = "password";
         String password = "validPassword1234";
         String confPassword = "validPassword123";
         long[] groups = new long[]{420};
@@ -175,32 +176,46 @@ class UserBusinessServiceUnitTest {
                 .groupIds(groups)
                 .build();
 
-        //Username not valid.
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userBusinessService.registerNewUser(userRegisterForm));
-
-        //Username already taken.
-        username = "ValidUserName";
-        userRegisterForm.setUsername(username);
+        // username taken
         when(userRepositoryMock.findByLowercaseUsername(username.toLowerCase())).thenReturn(UserEntity.builder().build());
         when(userDtoServiceMock.createDto(any())).thenReturn(User.builder().build());
 
-        assertThrows(UserNotRegisteredException.class, () ->
+        UserNotRegisteredException ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Username already taken.", ex.getMessage());
 
-        //Passwords do not match.
+        //Passwords not valid
         when(userRepositoryMock.findByLowercaseUsername(username.toLowerCase())).thenReturn(null);
         when(userDtoServiceMock.createDto(any())).thenReturn(null);
+        userRegisterForm.setPassword(notValidPassword);
 
-        assertThrows(UserNotRegisteredException.class, () ->
+        ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.", ex.getMessage());
+
+        //Passwords do not match.
+        userRegisterForm.setPassword(password);
+
+        ex = assertThrows(UserNotRegisteredException.class, () ->
+                userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Passwords do not match.", ex.getMessage());
+
+        //Username exists in password.
+        userRegisterForm.setUsername("Password123");
+        userRegisterForm.setConfirmationPassword(userRegisterForm.getPassword());
+
+        ex = assertThrows(UserNotRegisteredException.class, () ->
+                userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Username must not appear in password.", ex.getMessage());
 
         // group does not exist
+        userRegisterForm.setUsername(username);
         userRegisterForm.setConfirmationPassword(userRegisterForm.getPassword());
         when(groupRepositoryMock.getGroupById(420)).thenThrow(IllegalArgumentException.class);
 
-        assertThrows(UserNotRegisteredException.class, () ->
+        ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. One or more groups do not exist.", ex.getMessage());
     }
 
     @Test
@@ -225,20 +240,25 @@ class UserBusinessServiceUnitTest {
         final UserRegisterForm userRegisterForm = null;
         long userId = 420;
         User authenticatedUser = User.builder().build();
-        assertThrows(UserNotUpdatedException.class, () ->
+
+        UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. No updates specified.", ex.getMessage());
 
         UserRegisterForm userRegisterForm1 = UserRegisterForm.builder().build();
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+        assertEquals("User could not get updated. Authenticated User is not allowed.", ex.getMessage());
 
         authenticatedUser.setGroups(new Groups[]{Groups.UNDEFINED});
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+        assertEquals("User could not get updated. Only Admins are allowed to update other users.", ex.getMessage());
 
         authenticatedUser.setGroups(new Groups[]{Groups.ADMIN});
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+        assertEquals("User could not get updated. No changes were made.", ex.getMessage());
     }
 
     @Test
@@ -249,17 +269,18 @@ class UserBusinessServiceUnitTest {
         UserEntity dummyEntity = UserEntity.builder().build();
 
         userRegisterForm.setUsername("");
-        assertThrows(UserNotUpdatedException.class, () ->
+        UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. Wanted to change username, but username was not valid.", ex.getMessage());
 
         String validUserName = "ValidUserNameButExists.";
         userRegisterForm.setUsername(validUserName);
         when(userRepositoryMock.findByLowercaseUsername(validUserName.toLowerCase())).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(User.builder().build());
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. Username already taken.", ex.getMessage());
     }
-
 
     @Test
     void updateUserNameWorks() {
@@ -278,25 +299,30 @@ class UserBusinessServiceUnitTest {
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         userRegisterForm.setPassword("");
-        assertThrows(UserNotUpdatedException.class, () ->
-                userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser), "Wanted to change password, but password was not valid.");
+        UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
+                userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. Wanted to change password, but password was not valid.", ex.getMessage());
+
 
         userRegisterForm.setPassword("somepw");
         userRegisterForm.setConfirmationPassword("somepw");
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser), "Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
+        assertEquals("User could not get updated. Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.", ex.getMessage());
 
         userRegisterForm.setPassword("Somepw12345");
         userRegisterForm.setConfirmationPassword("Somepw1234");
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser), "Passwords do not match.");
+        assertEquals("User could not get updated. Passwords do not match.", ex.getMessage());
 
         String validPassword = "ValidPassword1234!=";
         userRegisterForm.setPassword(validPassword);
         userRegisterForm.setConfirmationPassword(validPassword);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser), "Username must not appear in password.");
+        assertEquals("User could not get updated. Username must not appear in password.", ex.getMessage());
     }
 
     @Test
@@ -322,15 +348,17 @@ class UserBusinessServiceUnitTest {
         userRegisterForm.setGroupIds(groups);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
         when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Groups[]{Groups.ADMIN});
-        assertThrows(UserNotUpdatedException.class, () ->
+        UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. Only admins can add users to group Admin.", ex.getMessage());
 
         groups = new long[]{123032, 1230213};
         userRegisterForm.setGroupIds(groups);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
         when(groupRepositoryMock.getGroupsByIds(groups)).thenThrow(new IllegalArgumentException("id doesnt belong to a group"));
-        assertThrows(UserNotUpdatedException.class, () ->
+        ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. One or more groups do not exist.", ex.getMessage());
     }
 
     @Test
