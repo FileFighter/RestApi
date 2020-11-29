@@ -71,7 +71,7 @@ public class UserBusinessService {
         String refreshTokenValue = userEntity.getRefreshToken();
 
         if (!stringIsValid(refreshTokenValue))
-            throw new IllegalStateException("RefreshToken was empty in db.");
+            throw new IllegalStateException("RefreshToken was invalid or empty in db.");
 
         return RefreshToken
                 .builder()
