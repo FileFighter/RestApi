@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static de.filefighter.rest.configuration.RestConfiguration.DEFAULT_ERROR_PATH;
+import static de.filefighter.rest.configuration.RestConfiguration.DEFAULT_ERROR_URI;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,7 +25,7 @@ class RestErrorControllerUnitTest {
     @Test
     void errorHandlingDoesWork() {
         assertDoesNotThrow(() ->
-                mockMvc.perform(get(DEFAULT_ERROR_PATH))
+                mockMvc.perform(get(DEFAULT_ERROR_URI))
                         .andExpect(status().is(404))
                         .andReturn());
     }
@@ -34,6 +34,6 @@ class RestErrorControllerUnitTest {
     void getErrorPath() {
         String actualPath = restErrorController.getErrorPath();
 
-        assertEquals(DEFAULT_ERROR_PATH, actualPath);
+        assertEquals(DEFAULT_ERROR_URI, actualPath);
     }
 }
