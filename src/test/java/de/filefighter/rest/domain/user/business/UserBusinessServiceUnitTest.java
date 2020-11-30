@@ -159,6 +159,10 @@ class UserBusinessServiceUnitTest {
     void passwordIsValidWorks() {
         String works = "Password1234?!";
         assertDoesNotThrow(() -> userBusinessService.passwordIsValid(works));
+
+        userBusinessService.passwordCheckDisabled = true;  //remember to reset it if beforeEach is removed.
+        String doesWork = "pw";
+        assertDoesNotThrow(() -> userBusinessService.passwordIsValid(doesWork));
     }
 
     @Test
@@ -184,11 +188,23 @@ class UserBusinessServiceUnitTest {
                 userBusinessService.registerNewUser(userRegisterForm));
         assertEquals("User could not be registered. Username already taken.", ex.getMessage());
 
-        //Passwords not valid
+        //passwords empty
         when(userRepositoryMock.findByLowercaseUsername(username.toLowerCase())).thenReturn(null);
         when(userDtoServiceMock.createDto(any())).thenReturn(null);
-        userRegisterForm.setPassword(notValidPassword);
+        userRegisterForm.setPassword("");
+        ex = assertThrows(UserNotRegisteredException.class, () ->
+                userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Wanted to change password, but password was not valid.", ex.getMessage());
 
+        userRegisterForm.setPassword("somepassword");
+        userRegisterForm.setConfirmationPassword("");
+        ex = assertThrows(UserNotRegisteredException.class, () ->
+                userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Wanted to change password, but password was not valid.", ex.getMessage());
+
+        //Passwords not valid
+        userRegisterForm.setConfirmationPassword(notValidPassword);
+        userRegisterForm.setPassword(notValidPassword);
         ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
         assertEquals("User could not be registered. Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.", ex.getMessage());
@@ -232,6 +248,9 @@ class UserBusinessServiceUnitTest {
                 .groupIds(groups)
                 .build();
 
+        assertDoesNotThrow(() -> userBusinessService.registerNewUser(userRegisterForm));
+
+        userRegisterForm.setGroupIds(null);
         assertDoesNotThrow(() -> userBusinessService.registerNewUser(userRegisterForm));
     }
 
@@ -303,6 +322,10 @@ class UserBusinessServiceUnitTest {
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
         assertEquals("User could not get updated. Wanted to change password, but password was not valid.", ex.getMessage());
 
+        userRegisterForm.setConfirmationPassword("");
+        ex = assertThrows(UserNotUpdatedException.class, () ->
+                userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. Wanted to change password, but password was not valid.", ex.getMessage());
 
         userRegisterForm.setPassword("somepw");
         userRegisterForm.setConfirmationPassword("somepw");
