@@ -26,10 +26,15 @@ class UserAuthorizationServiceUnitTest {
     void authenticateUserWithUsernameAndPasswordThrows() {
         String matchesButIsNotSupportedEncoding = "���"; //funny enough sonar doesnt like this. who cares.
         String matchesButUserWasNotFound = "dXNlcjpwYXNzd29yZA==";
+        String onlyContainsUsername = "dXNlcm5hbWU=";
 
         RuntimeException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding));
         assertEquals("Request didnt meet formal requirements. Found unsupported character in header.", ex.getMessage());
+
+        ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+                userAuthorizationService.authenticateUserWithUsernameAndPassword(onlyContainsUsername));
+        assertEquals("Request didnt meet formal requirements. Credentials didnt meet formal requirements.", ex.getMessage());
 
         when(userRepositoryMock.findByLowercaseUsernameAndPassword("user", "password")).thenReturn(null);
 

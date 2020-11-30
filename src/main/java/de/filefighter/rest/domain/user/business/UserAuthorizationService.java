@@ -29,7 +29,7 @@ public class UserAuthorizationService {
     }
 
     public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
-        String decodedUsernameAndPassword = "";
+        String decodedUsernameAndPassword;
         try {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
             decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8);
