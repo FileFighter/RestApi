@@ -9,7 +9,7 @@ public class RestConfiguration {
     public static final String FS_BASE_URI = "/filesystem/";
     public static final String FS_PATH_HEADER = "X-FF-PATH";
     public static final String USER_BASE_URI = "/users/";
-    public static final String DEFAULT_ERROR_PATH = "/error";
+    public static final String DEFAULT_ERROR_URI = "/error";
 
     private RestConfiguration(){
         // Cannot be inst
