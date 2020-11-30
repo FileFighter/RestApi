@@ -161,11 +161,72 @@ public class UserBusinessService {
             throw new UserNotUpdatedException("Only Admins are allowed to update other users.");
 
         UserEntity userEntityToUpdate = userRepository.findByUserId(userId);
-        Update newUpdate = new Update();
-        boolean changesWereMade = false;
+        if (null == userEntityToUpdate)
+            throw new UserNotUpdatedException("User does not exist, use register endpoint.");
 
-        // username
-        String username = userToUpdate.getUsername();
+        Update newUpdate = new Update();
+
+        boolean changesWereMade = updateUserName(newUpdate, userToUpdate.getUsername());
+
+        boolean usernameIsValid = stringIsValid(userToUpdate.getUsername());
+        String lowerCaseUsername = usernameIsValid ? userToUpdate.getUsername().toLowerCase() : userEntityToUpdate.getLowercaseUsername();
+        boolean passwordWasUpdated = updatePassword(newUpdate, userToUpdate.getPassword(), userToUpdate.getConfirmationPassword(), lowerCaseUsername);
+        changesWereMade = passwordWasUpdated || changesWereMade;
+
+        boolean userGroupsWereUpdated = updateGroups(newUpdate, userToUpdate.getGroupIds(), authenticatedUserIsAdmin);
+        changesWereMade = userGroupsWereUpdated || changesWereMade;
+
+        if (!changesWereMade)
+            throw new UserNotUpdatedException("No changes were made.");
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("userId").is(userId));
+        mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
+    }
+
+    private boolean updateGroups(Update newUpdate, long[] groupIds, boolean authenticatedUserIsAdmin) {
+        if (null != groupIds) {
+            try {
+                for (Groups group : groupRepository.getGroupsByIds(groupIds)) {
+                    if (group == Groups.ADMIN && !authenticatedUserIsAdmin)
+                        throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName() + ".");
+                }
+            } catch (IllegalArgumentException exception) {
+                throw new UserNotUpdatedException("One or more groups do not exist.");
+            }
+
+            newUpdate.set("groupIds", groupIds);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean updatePassword(Update newUpdate, String password, String confirmationPassword, String lowercaseUserName) {
+        if (null != password) {
+
+            if (!stringIsValid(password) || !stringIsValid(confirmationPassword))
+                throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
+
+            if (!passwordIsValid(password))
+                throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
+
+            if (!password.contentEquals(confirmationPassword))
+                throw new UserNotUpdatedException("Passwords do not match.");
+
+            if (password.toLowerCase().contains(lowercaseUserName))
+                throw new UserNotUpdatedException("Username must not appear in password.");
+
+            newUpdate.set("password", password);
+            //update refreshToken
+            String newRefreshToken = AccessTokenBusinessService.generateRandomTokenValue();
+            newUpdate.set("refreshToken", newRefreshToken);
+
+            return true;
+        }
+        return false;
+    }
+
+    private boolean updateUserName(Update update, String username) {
         if (null != username) {
             if (!stringIsValid(username))
                 throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
@@ -180,56 +241,10 @@ public class UserBusinessService {
             if (null != user)
                 throw new UserNotUpdatedException("Username already taken.");
 
-            changesWereMade = true;
-            newUpdate.set("username", username);
+            update.set("username", username);
+            return true;
         }
-
-        // pw
-        if (null != userToUpdate.getPassword()) {
-            String password = userToUpdate.getPassword();
-            String confirmation = userToUpdate.getConfirmationPassword();
-
-            if (!stringIsValid(password) || !stringIsValid(confirmation))
-                throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
-
-            if (!passwordIsValid(password))
-                throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
-
-            if (!password.contentEquals(confirmation))
-                throw new UserNotUpdatedException("Passwords do not match.");
-
-            if (password.toLowerCase().contains(userEntityToUpdate.getLowercaseUsername()))
-                throw new UserNotUpdatedException("Username must not appear in password.");
-
-            changesWereMade = true;
-            newUpdate.set("password", password);
-
-            //update refreshToken
-            String newRefreshToken = AccessTokenBusinessService.generateRandomTokenValue();
-            newUpdate.set("refreshToken", newRefreshToken);
-        }
-
-        // groups
-        if (null != userToUpdate.getGroupIds()) {
-            try {
-                for (Groups group : groupRepository.getGroupsByIds(userToUpdate.getGroupIds())) {
-                    if (group == Groups.ADMIN && !authenticatedUserIsAdmin)
-                        throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName() + ".");
-                }
-            } catch (IllegalArgumentException exception) {
-                throw new UserNotUpdatedException("One or more groups do not exist.");
-            }
-
-            changesWereMade = true;
-            newUpdate.set("groupIds", userToUpdate.getGroupIds());
-        }
-
-        if (!changesWereMade)
-            throw new UserNotUpdatedException("No changes were made.");
-
-        Query query = new Query();
-        query.addCriteria(Criteria.where("userId").is(userId));
-        mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
+        return false;
     }
 
     public long generateRandomUserId() {

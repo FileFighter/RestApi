@@ -27,9 +27,19 @@ class UserBusinessServiceUnitTest {
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private UserBusinessService userBusinessService;
 
+    private static UserEntity userEntityMock;
+
     @BeforeEach
     void setUp() {
         userBusinessService = new UserBusinessService(userRepositoryMock, userDtoServiceMock, groupRepositoryMock, mongoTemplateMock);
+        userEntityMock = UserEntity.builder()
+                .lowercaseUsername("username")
+                .userId(420)
+                .username("Username")
+                .password("password")
+                .refreshToken("refreshToken")
+                .groupIds(new long[0])
+                .build();
     }
 
     @Test
@@ -55,7 +65,7 @@ class UserBusinessServiceUnitTest {
         UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getRefreshTokenForUser(dummyUser)
         );
-        assertEquals("Could not find user with userId " + userId+".", ex.getMessage());
+        assertEquals("Could not find user with userId " + userId + ".", ex.getMessage());
     }
 
     @Test
@@ -99,7 +109,7 @@ class UserBusinessServiceUnitTest {
         UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getUserById(id));
 
-        assertEquals("Could not find user with userId " + id+".", ex.getMessage());
+        assertEquals("Could not find user with userId " + id + ".", ex.getMessage());
     }
 
     @Test
@@ -274,7 +284,13 @@ class UserBusinessServiceUnitTest {
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
         assertEquals("User could not get updated. Only Admins are allowed to update other users.", ex.getMessage());
 
+        //user not found with id.
         authenticatedUser.setGroups(new Groups[]{Groups.ADMIN});
+        ex = assertThrows(UserNotUpdatedException.class, () ->
+                userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+        assertEquals("User could not get updated. User does not exist, use register endpoint.", ex.getMessage());
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
         assertEquals("User could not get updated. No changes were made.", ex.getMessage());
@@ -286,6 +302,8 @@ class UserBusinessServiceUnitTest {
         long userId = 420;
         User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().build();
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
 
         userRegisterForm.setUsername("");
         UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
@@ -307,6 +325,8 @@ class UserBusinessServiceUnitTest {
         long userId = 420;
         User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
 
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
+
         assertDoesNotThrow(() -> userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
     }
 
@@ -317,11 +337,14 @@ class UserBusinessServiceUnitTest {
         User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
+
         userRegisterForm.setPassword("");
         UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
         assertEquals("User could not get updated. Wanted to change password, but password was not valid.", ex.getMessage());
 
+        userRegisterForm.setPassword("somepw");
         userRegisterForm.setConfirmationPassword("");
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
