@@ -104,10 +104,13 @@ public class UserBusinessService {
 
         // check pws.
         String password = newUser.getPassword();
+        String confirmationPassword = newUser.getConfirmationPassword();
+
+        if (!stringIsValid(password) || !stringIsValid(confirmationPassword))
+            throw new UserNotRegisteredException("Wanted to change password, but password was not valid.");
+
         if (!passwordIsValid(password))
             throw new UserNotRegisteredException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
-
-        String confirmationPassword = newUser.getConfirmationPassword();
 
         if (!password.contentEquals(confirmationPassword))
             throw new UserNotRegisteredException("Passwords do not match.");
@@ -139,10 +142,8 @@ public class UserBusinessService {
     }
 
     public boolean passwordIsValid(String password) {
-        if (!stringIsValid(password))
-            return false;
-
-        if (this.passwordCheckDisabled) return true;
+        if (this.passwordCheckDisabled)
+            return true;
 
         Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+).{8,20}$");
         return pattern.matcher(password).matches();
