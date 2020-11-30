@@ -55,7 +55,7 @@ class UserBusinessServiceUnitTest {
         UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getRefreshTokenForUser(dummyUser)
         );
-        assertEquals("Could not find user " + userId, ex.getMessage());
+        assertEquals("Could not find user with userId " + userId+".", ex.getMessage());
     }
 
     @Test
@@ -99,7 +99,7 @@ class UserBusinessServiceUnitTest {
         UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userBusinessService.getUserById(id));
 
-        assertEquals("Could not find user " + id, ex.getMessage());
+        assertEquals("Could not find user with userId " + id+".", ex.getMessage());
     }
 
     @Test

@@ -27,14 +27,15 @@ class UserAuthorizationServiceUnitTest {
         String matchesButIsNotSupportedEncoding = "���"; //funny enough sonar doesnt like this. who cares.
         String matchesButUserWasNotFound = "dXNlcjpwYXNzd29yZA==";
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
-                userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding)
-        );
+        RuntimeException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+                userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding));
+        assertEquals("Request didnt meet formal requirements. Found unsupported character in header.", ex.getMessage());
 
         when(userRepositoryMock.findByLowercaseUsernameAndPassword("user", "password")).thenReturn(null);
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButUserWasNotFound));
+        assertEquals("User could not be authenticated. No User found with this username and password.", ex.getMessage());
     }
 
     @Test
@@ -57,8 +58,9 @@ class UserAuthorizationServiceUnitTest {
 
         when(userRepositoryMock.findByRefreshToken(refreshToken)).thenReturn(null);
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithRefreshToken(authString));
+        assertEquals("User could not be authenticated. No user found for this Refresh Token.", ex.getMessage());
     }
 
     @Test
@@ -82,8 +84,9 @@ class UserAuthorizationServiceUnitTest {
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithAccessToken(accessToken));
+        assertEquals("User with the id " + userId + " could not be authenticated.", ex.getMessage());
     }
 
     @Test
@@ -104,13 +107,15 @@ class UserAuthorizationServiceUnitTest {
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
+        assertEquals("User with the id " + userId + " could not be authenticated.", ex.getMessage());
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{0}).build());
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
+        assertEquals("User could not be authenticated. Not in necessary group.", ex.getMessage());
     }
 
     @Test

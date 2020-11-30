@@ -19,7 +19,7 @@ public class InputSanitizerService {
      */
     public static String sanitizeString(String string) {
         if(!InputSanitizerService.stringIsValid(string))
-            throw new RequestDidntMeetFormalRequirementsException("String was empty");
+            throw new RequestDidntMeetFormalRequirementsException("String was empty.");
         return string.replaceAll("\\s", "");
     }
 
