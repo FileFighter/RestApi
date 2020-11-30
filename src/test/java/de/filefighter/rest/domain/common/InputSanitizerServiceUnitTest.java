@@ -23,11 +23,13 @@ class InputSanitizerServiceUnitTest {
         String string0 = "";
         String string1 = null;
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        RequestDidntMeetFormalRequirementsException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 InputSanitizerService.sanitizeString(string0));
+        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 InputSanitizerService.sanitizeString(string1));
+        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
     }
 
     @Test
@@ -49,17 +51,21 @@ class InputSanitizerServiceUnitTest {
         String string2 = header + "";
         String string3 = header + " as a a s d d  d ";
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        RequestDidntMeetFormalRequirementsException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string0));
+        assertEquals("Request didnt meet formal requirements. Header does not contain a valid String.", ex.getMessage());
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string1));
+        assertEquals("Request didnt meet formal requirements. Header does not contain a valid String.", ex.getMessage());
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string2));
+        assertEquals("Request didnt meet formal requirements. Header does not contain '" + header + "', or format is invalid.", ex.getMessage());
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string3));
+        assertEquals("Request didnt meet formal requirements. Header does not contain '" + header + "', or format is invalid.", ex.getMessage());
     }
 
 
@@ -79,10 +85,14 @@ class InputSanitizerServiceUnitTest {
         String string0 = "";
         String string1 = null;
 
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        RequestDidntMeetFormalRequirementsException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeTokenValue(string0));
-        assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
+        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
+
+        ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeTokenValue(string1));
+        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
+
     }
 
     @Test

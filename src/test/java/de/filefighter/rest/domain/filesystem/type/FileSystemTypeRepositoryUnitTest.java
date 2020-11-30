@@ -11,8 +11,10 @@ class FileSystemTypeRepositoryUnitTest {
 
     @Test
     void findFileSystemTypeByIdThrows() {
-        assertThrows(IllegalArgumentException.class, () ->
-                fileSystemTypeRepository.findFileSystemTypeById(900));
+        long id = 900;
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                fileSystemTypeRepository.findFileSystemTypeById(id));
+        assertEquals("No FileSystemType found for id: " + id, ex.getMessage());
     }
 
     @Test

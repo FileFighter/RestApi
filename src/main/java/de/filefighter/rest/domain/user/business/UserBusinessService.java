@@ -11,7 +11,6 @@ import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.domain.user.group.Groups;
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +24,6 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import static de.filefighter.rest.domain.common.InputSanitizerService.sanitizeString;
 import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
 
 @Service
@@ -71,7 +69,7 @@ public class UserBusinessService {
         String refreshTokenValue = userEntity.getRefreshToken();
 
         if (!stringIsValid(refreshTokenValue))
-            throw new IllegalStateException("RefreshToken was empty in db.");
+            throw new IllegalStateException("RefreshToken was invalid or empty in db.");
 
         return RefreshToken
                 .builder()
@@ -81,10 +79,7 @@ public class UserBusinessService {
     }
 
     public User findUserByUsername(String username) {
-        if (!stringIsValid(username))
-            throw new RequestDidntMeetFormalRequirementsException("Username was not valid.");
-
-        String lowercaseUsername = sanitizeString(username.toLowerCase());
+        String lowercaseUsername = username.toLowerCase();
 
         UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
         if (null == entity)
@@ -158,7 +153,7 @@ public class UserBusinessService {
             throw new UserNotUpdatedException("No updates specified.");
 
         if (null == authenticatedUser.getGroups())
-            throw new UserNotUpdatedException("Authenticated User is not allowed");
+            throw new UserNotUpdatedException("Authenticated User is not allowed.");
 
         boolean authenticatedUserIsAdmin = Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Groups.ADMIN);
         if (userId != authenticatedUser.getId() && !authenticatedUserIsAdmin)
@@ -218,7 +213,7 @@ public class UserBusinessService {
             try {
                 for (Groups group : groupRepository.getGroupsByIds(userToUpdate.getGroupIds())) {
                     if (group == Groups.ADMIN && !authenticatedUserIsAdmin)
-                        throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName());
+                        throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName() + ".");
                 }
             } catch (IllegalArgumentException exception) {
                 throw new UserNotUpdatedException("One or more groups do not exist.");
@@ -236,14 +231,14 @@ public class UserBusinessService {
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 
-    public long generateRandomUserId(){
+    public long generateRandomUserId() {
         long possibleUserId = 0L;
         boolean userIdIsFree = false;
 
-        while(!userIdIsFree){
+        while (!userIdIsFree) {
             possibleUserId = new SecureRandom().nextInt(UserBusinessService.USER_ID_MAX);
             UserEntity userEntity = userRepository.findByUserId(possibleUserId);
-            if(null == userEntity && possibleUserId > 0)
+            if (null == userEntity && possibleUserId > 0)
                 userIdIsFree = true;
         }
 

@@ -90,10 +90,11 @@ public class UserRestService implements UserRestServiceInterface {
     public ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessTokenHeader) {
         String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenHeader);
         String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
+        String sanitizedUserName = InputSanitizerService.sanitizeString(username);
 
         AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
         userAuthorizationService.authenticateUserWithAccessToken(accessToken);
-        User foundUser = userBusinessService.findUserByUsername(username);
+        User foundUser = userBusinessService.findUserByUsername(sanitizedUserName);
         return new ResponseEntity<>(foundUser, HttpStatus.OK);
     }
 }

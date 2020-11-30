@@ -95,7 +95,9 @@ class AccessTokenBusinessServiceUnitTest {
         when(accessTokenRepositoryMock.findByUserId(dummyId)).thenReturn(dummyAccessTokenEntity);
         when(accessTokenRepositoryMock.deleteByUserId(dummyId)).thenReturn(dummyId - 1);
 
-        assertThrows(FileFighterDataException.class, () -> accessTokenBusinessService.getValidAccessTokenForUser(dummyUser));
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
+                accessTokenBusinessService.getValidAccessTokenForUser(dummyUser));
+        assertEquals("Internal Error occurred. AccessToken for userId " + dummyId + " could not be deleted.", ex.getMessage());
     }
 
     @Test
@@ -105,9 +107,10 @@ class AccessTokenBusinessServiceUnitTest {
 
         when(accessTokenRepositoryMock.findByUserIdAndValue(userId, tokenValue)).thenReturn(null);
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 accessTokenBusinessService.findAccessTokenByValueAndUserId(tokenValue, userId)
         );
+        assertEquals("User with the id " + userId + " could not be authenticated.", ex.getMessage());
     }
 
     @Test
@@ -127,12 +130,14 @@ class AccessTokenBusinessServiceUnitTest {
 
     @Test
     void findAccessTokenByValueThrowsException() {
-        String invalidFormat = "";
         String validFormat = "ugabuga";
 
-        assertThrows(UserNotAuthenticatedException.class, () ->
+        when(accessTokenRepositoryMock.findByValue(validFormat)).thenReturn(null);
+
+        UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 accessTokenBusinessService.findAccessTokenByValue(validFormat)
         );
+        assertEquals("User could not be authenticated. AccessToken not found.", ex.getMessage());
     }
 
     @Test
