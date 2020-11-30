@@ -13,8 +13,10 @@ class GroupRepositoryUnitTest {
 
     @Test
     void getGroupByIdThrows() {
-        assertThrows(IllegalArgumentException.class, () ->
-                groupRepository.getGroupById(900));
+        long id = 900;
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                groupRepository.getGroupById(id));
+        assertEquals("id " + id + " doesnt belong to a group.", ex.getMessage());
     }
 
     @Test

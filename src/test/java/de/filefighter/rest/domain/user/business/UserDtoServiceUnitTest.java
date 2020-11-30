@@ -9,7 +9,8 @@ import de.filefighter.rest.domain.user.group.Groups;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,9 +48,9 @@ class UserDtoServiceUnitTest {
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(null);
 
-        assertThrows(UserNotFoundException.class, () ->
-                userDtoService.findEntity(user)
-        );
+        UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
+                userDtoService.findEntity(user));
+        assertEquals("Could not find user with userId 0.", ex.getMessage());
     }
 
     @Test

@@ -7,7 +7,8 @@ import de.filefighter.rest.domain.token.exceptions.AccessTokenNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,9 +45,10 @@ class AccessTokenDtoServiceUnitTest {
 
         when(accessTokenRepository.findByUserIdAndValue(userId, token)).thenReturn(null);
 
-        assertThrows(AccessTokenNotFoundException.class, () ->
+        AccessTokenNotFoundException ex = assertThrows(AccessTokenNotFoundException.class, () ->
                 accessTokenDtoService.findEntity(dummyToken)
         );
+        assertEquals("AccessTokenEntity does not exist for AccessToken with userId "+userId+".", ex.getMessage());
     }
 
     @Test
