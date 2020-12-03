@@ -126,14 +126,14 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                         fileSystemRepository.save(FileSystemEntity
                                 .builder()
                                 .isFile(true)
-                                .id(fsItemId)
+                                .fileSystemId(fsItemId)
                                 .build());
                     } else if (fileOrFolder.equals("folder")) {
                         completeFilePath.append(names[i]).append("/");
                         fileSystemRepository.save(FileSystemEntity
                                 .builder()
                                 .isFile(false)
-                                .id(fsItemId)
+                                .fileSystemId(fsItemId)
                                 .path(completeFilePath.toString())
                                 .build());
                     } else {

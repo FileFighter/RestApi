@@ -88,7 +88,7 @@ public class PrepareDataBase {
             LOG.info("Preloading default fsStructure: {}.", fileSystemRepository.save(FileSystemEntity
                     .builder()
                     .createdByUserId(0)
-                    .id(0)
+                    .fileSystemId(0)
                     .isFile(false)
                     .path("/")
                     .itemIds(new long[0])
@@ -145,7 +145,7 @@ public class PrepareDataBase {
             LOG.info("Preloading default fsItems: {} {}.",
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
-                            .id(0)
+                            .fileSystemId(0)
                             .isFile(false)
                             .path("/")
                             .itemIds(new long[]{1})
@@ -157,7 +157,7 @@ public class PrepareDataBase {
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
-                            .id(1)
+                            .fileSystemId(1)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("dummyFile.txt")

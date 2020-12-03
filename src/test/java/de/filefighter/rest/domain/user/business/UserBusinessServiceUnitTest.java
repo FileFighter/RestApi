@@ -58,7 +58,7 @@ class UserBusinessServiceUnitTest {
         long userId = 420;
         String username = "someString";
 
-        User dummyUser = User.builder().id(userId).username(username).build();
+        User dummyUser = User.builder().userId(userId).username(username).build();
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(null);
 
@@ -74,7 +74,7 @@ class UserBusinessServiceUnitTest {
         long userId = 420;
         String username = "someString";
 
-        User dummyUser = User.builder().id(userId).username(username).build();
+        User dummyUser = User.builder().userId(userId).username(username).build();
         UserEntity dummyEntity = UserEntity.builder().refreshToken(invalidString).build();
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(dummyEntity);
@@ -91,7 +91,7 @@ class UserBusinessServiceUnitTest {
         long userId = 420;
         String username = "someString";
         String refreshToken = "someToken";
-        User dummyUser = User.builder().id(userId).username(username).build();
+        User dummyUser = User.builder().userId(userId).username(username).build();
         UserEntity dummyEntity = UserEntity.builder().refreshToken(refreshToken).build();
         RefreshToken expected = RefreshToken.builder().tokenValue(refreshToken).user(dummyUser).build();
 
@@ -300,7 +300,7 @@ class UserBusinessServiceUnitTest {
     void updateUserNameThrows() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
@@ -323,7 +323,7 @@ class UserBusinessServiceUnitTest {
     void updateUserNameWorks() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().username("newUserName").build();
         long userId = 420;
-        User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
 
@@ -334,7 +334,7 @@ class UserBusinessServiceUnitTest {
     void updatePasswordThrows() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
@@ -376,7 +376,7 @@ class UserBusinessServiceUnitTest {
         String password = "validPassword1234";
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().password(password).confirmationPassword(password).build();
         long userId = 420;
-        User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("UGABUGA").build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
@@ -387,7 +387,7 @@ class UserBusinessServiceUnitTest {
     void updateGroupsThrows() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         long[] groups = new long[]{0};
@@ -411,7 +411,7 @@ class UserBusinessServiceUnitTest {
     void updateGroupsWorks() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().id(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         long[] groups = new long[]{0};

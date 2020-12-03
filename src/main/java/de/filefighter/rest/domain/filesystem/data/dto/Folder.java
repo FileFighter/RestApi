@@ -9,8 +9,8 @@ public class Folder extends FileSystemItem {
     public Folder() {
     }
 
-    public Folder(long id, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type, PermissionSet permissionSet, String path) {
-        super(id, name, size, createdByUserId, lastUpdated, type, permissionSet);
+    public Folder(long fileSystemId, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type, PermissionSet permissionSet, String path) {
+        super(fileSystemId, name, size, createdByUserId, lastUpdated, type, permissionSet);
         this.path = path;
     }
 

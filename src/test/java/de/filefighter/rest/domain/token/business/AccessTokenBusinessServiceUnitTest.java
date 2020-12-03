@@ -30,7 +30,7 @@ class AccessTokenBusinessServiceUnitTest {
     @Test
     void getValidAccessTokenForUserWhenNoTokenExists() {
         long dummyId = 1234;
-        User dummyUser = User.builder().id(dummyId).build();
+        User dummyUser = User.builder().userId(dummyId).build();
         AccessToken dummyAccessToken = AccessToken.builder().userId(dummyId).build();
         AccessTokenEntity dummyAccessTokenEntity = AccessTokenEntity.builder().userId(dummyId).build();
 
@@ -45,7 +45,7 @@ class AccessTokenBusinessServiceUnitTest {
     @Test
     void getValidAccessTokenForUserWhenTokenExists() {
         long dummyId = 1234;
-        User dummyUser = User.builder().id(dummyId).build();
+        User dummyUser = User.builder().userId(dummyId).build();
         AccessToken dummyAccessToken = AccessToken.builder().userId(dummyId).build();
         AccessTokenEntity dummyAccessTokenEntity = AccessTokenEntity
                 .builder()
@@ -63,7 +63,7 @@ class AccessTokenBusinessServiceUnitTest {
     @Test
     void getValidAccessTokenForUserWhenTokenExistsButIsInvalid() {
         long dummyId = 1234;
-        User dummyUser = User.builder().id(dummyId).build();
+        User dummyUser = User.builder().userId(dummyId).build();
         AccessToken dummyAccessToken = AccessToken.builder().userId(dummyId).build();
         AccessTokenEntity dummyAccessTokenEntity = AccessTokenEntity
                 .builder()
@@ -85,7 +85,7 @@ class AccessTokenBusinessServiceUnitTest {
     @Test
     void getValidAccessTokenForUserWhenTokenDeletionFails() {
         long dummyId = 1234;
-        User dummyUser = User.builder().id(dummyId).build();
+        User dummyUser = User.builder().userId(dummyId).build();
         AccessTokenEntity dummyAccessTokenEntity = AccessTokenEntity
                 .builder()
                 .userId(dummyId)
