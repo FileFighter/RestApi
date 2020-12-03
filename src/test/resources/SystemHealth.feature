@@ -23,8 +23,8 @@ Scenario: SystemHealth is requested with users in db
 
 Scenario: SystemHealth is Unstable
   Given accessToken with value "token" exists for user 1234
-  And user with id 1234 exists and has username "user", password "pw"
-  And user with id 1234 exists and has username "user", password "pw"
+  And user with userId 1234 exists and has username "user", password "pw"
+  And user with userId 1234 exists and has username "user", password "pw"
   When user with accessToken "token" searches user with search-value "user"
   And response status code is 500
   And the systemHealth endpoint is requested

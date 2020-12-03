@@ -56,7 +56,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .build()));
     }
 
-    @And("user with id {long} exists and has username {string}, password {string} and refreshToken {string}")
+    @And("user with userId {long} exists and has username {string}, password {string} and refreshToken {string}")
     public void userWithIdExistsAndHasUsernamePasswordAndRefreshToken(long userId, String username, String password, String refreshTokenValue) {
         LOG.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
@@ -68,7 +68,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .build()));
     }
 
-    @And("user with id {long} exists and has username {string}, password {string}")
+    @And("user with userId {long} exists and has username {string}, password {string}")
     public void userWithIdExistsAndHasUsernamePassword(long userId, String username, String password) {
         LOG.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
@@ -82,7 +82,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     @Autowired
     MongoTemplate mongoTemplate;
 
-    @And("user with id {long} is in group with id {long}")
+    @And("user with userId {long} is in group with groupId {long}")
     public void userWithIdIsInGroupWithId(long userId, long groupId) {
         Query query = new Query();
         Update newUpdate = new Update().set("groupIds", new long[]{groupId});
@@ -92,7 +92,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     }
 
     // This step almost needs a unit test.
-    @Given("{string} exists with id {long} and path {string}")
+    @Given("{string} exists with fileSystemId {long} and path {string}")
     public void fileOrFolderExistsWithIdAndPath(String fileOrFolder, long fsItemId, String path) {
         String[] names = path.split("/");
         StringBuilder completeFilePath = new StringBuilder("/");
@@ -144,9 +144,9 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         }
     }
 
-    @And("user {long} is owner of file or folder with id {long}")
+    @And("user {long} is owner of file or folder with fileSystemId {long}")
     public void userIsOwnerOfFileOrFolderWithId(long userId, long fsItemId) {
-        FileSystemEntity fileSystemEntity = fileSystemRepository.findById(fsItemId);
+        FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
 
         fileSystemEntity.setCreatedByUserId(userId);
         fileSystemRepository.save(fileSystemEntity);
@@ -161,10 +161,10 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         assertEquals(value, actualValue);
     }
 
-    @And("response contains the user with id {long}")
+    @And("response contains the user with userId {long}")
     public void responseContainsTheUserWithId(long userId) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
-        long actualValue = rootNode.get("id").asLong();
+        long actualValue = rootNode.get("userId").asLong();
 
         assertEquals(userId, actualValue);
     }
