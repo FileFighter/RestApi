@@ -171,8 +171,10 @@
                                     </includes>
                                     <excludes>
                                         <!-- NOT IMPLEMENTED YET -->
+                                        <!-- TODO: remove fs -->
                                         <exclude>*FileSystemRestService</exclude>
                                         <exclude>*PermissionRestService</exclude>
+                                        <exclude>*FileSystemBusinessService</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
