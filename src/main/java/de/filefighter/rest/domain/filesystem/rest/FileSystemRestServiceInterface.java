@@ -7,7 +7,7 @@ import de.filefighter.rest.rest.ServerResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface FileSystemRestServiceInterface {
-    ResponseEntity<FolderContents> getContentsOfFolderByIdAndAccessToken(String path, String accessToken);
+    ResponseEntity<FolderContents> getContentsOfFolderByPathAndAccessToken(String path, String accessToken);
     ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, String accessToken);
     ResponseEntity<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken);
     ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(FileSystemItemUpdate fileSystemItemUpdate, String accessToken);

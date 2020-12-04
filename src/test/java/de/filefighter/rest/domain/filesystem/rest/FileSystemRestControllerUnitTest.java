@@ -33,7 +33,7 @@ class FileSystemRestControllerUnitTest {
         String path= "/root/data.txt";
         String token = "token";
 
-        when(fileSystemRestServiceMock.getContentsOfFolderByIdAndAccessToken(path, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.getContentsOfFolderByPathAndAccessToken(path, token)).thenReturn(expectedModel);
 
         ResponseEntity<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
         assertEquals(expectedModel, actualModel);
