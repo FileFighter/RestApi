@@ -40,7 +40,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void loginUserWithUsernameAndPassword() {
-        User user = User.builder().id(420).groups(null).username("kevin").build();
+        User user = User.builder().userId(420).groups(null).username("kevin").build();
         RefreshToken refreshToken = RefreshToken.builder().tokenValue("token").user(user).build();
         ResponseEntity<RefreshToken> expectedRefreshToken = new ResponseEntity<>(refreshToken, OK);
 
@@ -64,7 +64,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void getUserInfoWithAccessToken() {
-        User user = User.builder().id(420).groups(null).username("kevin").build();
+        User user = User.builder().userId(420).groups(null).username("kevin").build();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
         when(userRestServiceMock.getUserByUserIdAuthenticateWithAccessToken("token", 420)).thenReturn(expectedUser);
@@ -86,7 +86,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void findUserByUsername(){
-        User user = User.builder().id(420).groups(null).username("kevin").build();
+        User user = User.builder().userId(420).groups(null).username("kevin").build();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
         String username="kevin";
