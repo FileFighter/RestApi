@@ -11,7 +11,7 @@
           <option name="goals">
             <list>
               <option value="clean" />
-              <option value="test" />
+              <option value="verify" />
             </list>
           </option>
           <option name="pomFileName" value="pom.xml" />

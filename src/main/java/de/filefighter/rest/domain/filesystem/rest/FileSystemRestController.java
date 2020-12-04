@@ -32,7 +32,7 @@ public class FileSystemRestController {
     ) {
 
         LOG.info("Requested Folder contents of folder with path {}.", path);
-        return fileSystemRestService.getContentsOfFolderByIdAndAccessToken(path, accessToken);
+        return fileSystemRestService.getContentsOfFolderByPathAndAccessToken(path, accessToken);
     }
 
     @GetMapping(FS_BASE_URI + "{fsItemId}/info")
