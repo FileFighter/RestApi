@@ -4,25 +4,25 @@ Feature: Find User with Username
 
   Background:
     Given database is empty
-    And user with id 1234 exists and has username "kangaroo", password "pig-system"
+    And user with userId 1234 exists and has username "kangaroo", password "pig-system"
     And accessToken with value "accessToken1" exists for user 1234
-    And user with id 1235 exists and has username "penguin", password "i-love-capitalism"
+    And user with userId 1235 exists and has username "penguin", password "i-love-capitalism"
     And accessToken with value "accessToken2" exists for user 1235
 
   Scenario: Successful find another user
     When user with accessToken "accessToken1" searches user with search-value "penguin"
     Then response status code is 200
-    And response contains the user with id 1235
+    And response contains the user with userId 1235
 
   Scenario: Successful find another user with username in wrong case
     When user with accessToken "accessToken1" searches user with search-value "PeNgUiN"
     Then response status code is 200
-    And response contains the user with id 1235
+    And response contains the user with userId 1235
 
   Scenario: Successful find another user with username including some spaces
     When user with accessToken "accessToken1" searches user with search-value " pen guin "
     Then response status code is 200
-    And response contains the user with id 1235
+    And response contains the user with userId 1235
 
   Scenario: Failed to find another user because username has spelling errors
     When user with accessToken "accessToken1" searches user with search-value "benguin"

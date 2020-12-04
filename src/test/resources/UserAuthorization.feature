@@ -5,22 +5,22 @@ Feature: User Authorization
 
 Background:
   Given database is empty
-  And user with id 1234 exists and has username "user", password "secure_password" and refreshToken "token"
+  And user with userId 1234 exists and has username "user", password "secure_password" and refreshToken "token"
 
 Scenario: Successful login with username and password.
   When user requests login with username "user" and password "secure_password"
   Then response status code is 200
-  And response contains refreshToken "token" and the user with id 1234
+  And response contains refreshToken "token" and the user with userId 1234
 
 Scenario: Successful login with username in different Case and password.
   When user requests login with username "UsEr" and password "secure_password"
   Then response status code is 200
-  And response contains refreshToken "token" and the user with id 1234
+  And response contains refreshToken "token" and the user with userId 1234
 
 Scenario: Successful login with username in different Case, whiteSpaces and password.
   When user requests login with username "U  s E r" and password "secure_password"
   Then response status code is 200
-  And response contains refreshToken "token" and the user with id 1234
+  And response contains refreshToken "token" and the user with userId 1234
 
 Scenario: Failed login with wrong username or password.
   When user requests login with username "user" and password "wrong_password"
@@ -58,7 +58,7 @@ Scenario: Successful retrieval of overwritten accessToken with refreshToken
 Scenario: Successful UserInfo request with valid accessToken.
   Given accessToken with value "6bb9cb4f-7b51-4c0a-8013-ed7a34e56282" exists for user 1234
   When user requests userInfo with accessToken "6bb9cb4f-7b51-4c0a-8013-ed7a34e56282" and userId 1234
-  Then response contains the user with id 1234
+  Then response contains the user with userId 1234
   And response status code is 200
 
 Scenario: Failed UserInfo request with invalid accessToken.

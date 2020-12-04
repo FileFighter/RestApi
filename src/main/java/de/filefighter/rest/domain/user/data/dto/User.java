@@ -7,12 +7,12 @@ import lombok.Data;
 @Data
 @Builder
 public class User {
-    private long id;
+    private long userId;
     private String username;
     private Groups[] groups;
 
-    public User(long id, String username, Groups... groups) {
-        this.id = id;
+    public User(long userId, String username, Groups... groups) {
+        this.userId = userId;
         this.username = username;
         this.groups = groups;
     }

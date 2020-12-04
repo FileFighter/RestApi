@@ -62,9 +62,9 @@ public class UserBusinessService {
     }
 
     public RefreshToken getRefreshTokenForUser(User user) {
-        UserEntity userEntity = userRepository.findByUserIdAndUsername(user.getId(), user.getUsername());
+        UserEntity userEntity = userRepository.findByUserIdAndUsername(user.getUserId(), user.getUsername());
         if (null == userEntity)
-            throw new UserNotFoundException(user.getId());
+            throw new UserNotFoundException(user.getUserId());
 
         String refreshTokenValue = userEntity.getRefreshToken();
 
@@ -157,7 +157,7 @@ public class UserBusinessService {
             throw new UserNotUpdatedException("Authenticated User is not allowed.");
 
         boolean authenticatedUserIsAdmin = Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Groups.ADMIN);
-        if (userId != authenticatedUser.getId() && !authenticatedUserIsAdmin)
+        if (userId != authenticatedUser.getUserId() && !authenticatedUserIsAdmin)
             throw new UserNotUpdatedException("Only Admins are allowed to update other users.");
 
         UserEntity userEntityToUpdate = userRepository.findByUserId(userId);
