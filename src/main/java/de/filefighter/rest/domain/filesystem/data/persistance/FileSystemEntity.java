@@ -12,7 +12,7 @@ public class FileSystemEntity {
 
     @MongoId
     private String mongoId;
-    private long id;
+    private long fileSystemId;
     private String name;
     private String path;
     private long typeId;

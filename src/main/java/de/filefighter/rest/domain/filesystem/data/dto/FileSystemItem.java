@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FileSystemItem {
-    private long id;
+    private long fileSystemId;
     private String name;
     private double size;
     private long createdByUserId; //uploadedBy
@@ -19,8 +19,8 @@ public class FileSystemItem {
     protected FileSystemItem() {
     }
 
-    public FileSystemItem(long id, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type, PermissionSet permissionSet) {
-        this.id = id;
+    public FileSystemItem(long fileSystemId, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type, PermissionSet permissionSet) {
+        this.fileSystemId = fileSystemId;
         this.name = name;
         this.size = size;
         this.createdByUserId = createdByUserId;

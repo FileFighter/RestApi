@@ -29,7 +29,7 @@ public class AccessTokenBusinessService {
     }
 
     public AccessToken getValidAccessTokenForUser(User user) {
-        long userId = user.getId();
+        long userId = user.getUserId();
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserId(userId);
         long currentTimeSeconds = Instant.now().getEpochSecond();
 

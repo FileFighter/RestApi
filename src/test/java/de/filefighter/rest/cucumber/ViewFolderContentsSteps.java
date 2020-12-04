@@ -5,11 +5,12 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 
 public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
+
     @When("user with token {string} wants to see the content of folder with path {string}")
     public void userWithTokenWantsToSeeTheContentOfFolderWithPath(String accessTokenValue, String path) {
     }
 
-    @And("the response contains the file with id {long} and name {string}")
+    @And("the response contains the file with fileSystemId {long} and name {string}")
     public void theResponseContainsTheFileWithIdAndName(long fsItemId , String name) {
     }
 

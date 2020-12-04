@@ -104,12 +104,12 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
         assertEquals(userId, actualUserId);
     }
 
-    @And("response contains refreshToken {string} and the user with id {long}")
+    @And("response contains refreshToken {string} and the user with userId {long}")
     public void responseContainsRefreshTokenAndTheUserWithId(String refreshToken, long userId) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
         String actualRefreshToken = rootNode.get("tokenValue").asText();
         JsonNode userNode = rootNode.get("user");
-        long actualUserId = userNode.get("id").asLong();
+        long actualUserId = userNode.get("userId").asLong();
 
         assertEquals(userId, actualUserId);
         assertEquals(refreshToken, actualRefreshToken);

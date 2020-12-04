@@ -1,7 +1,6 @@
 package de.filefighter.rest.cucumber;
 
 import de.filefighter.rest.RestApplicationIntegrationTest;
-import de.filefighter.rest.TestUtils;
 import io.cucumber.java.en.When;
 import org.springframework.http.HttpMethod;
 
@@ -11,6 +10,7 @@ import static de.filefighter.rest.TestUtils.serializeUserRequest;
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 public class UserEditInformationSteps extends RestApplicationIntegrationTest {
+
     @When("user requests change of username with value {string} userId {long} and accessToken {string}")
     public void userRequestsChangeOfUsernameWithValueAndAccessTokenAndId(String newUsername, long userId, String accessToken) {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;

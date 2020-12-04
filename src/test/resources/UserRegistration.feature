@@ -4,9 +4,9 @@ Feature: User Registration
 
   Background:
     Given database is empty
-    And user with id 1234 exists and has username "user", password "Secure_password1"
+    And user with userId 1234 exists and has username "user", password "Secure_password1"
     And accessToken with value "accessToken" exists for user 1234
-    And user with id 1234 is in group with id 1
+    And user with userId 1234 is in group with groupId 1
 
   Scenario: Failed registration because password does not match requirements.
     When user requests registration with username "kangaroo", password "short" and password confirmation "short" with accessToken "accessToken"
@@ -52,7 +52,7 @@ Feature: User Registration
 
   Scenario: Failed registration with username, password and password confirmation; not in group ADMIN
     Given user 1236 exists
-    And user with id 1236 is in group with id -1
+    And user with userId 1236 is in group with groupId -1
     And accessToken with value "wrongAccessToken" exists for user 1236
     When user requests registration with username "kangaroo", password "Pig-system12" and password confirmation "Pig-system12" with accessToken "wrongAccessToken"
     Then response status code is 401

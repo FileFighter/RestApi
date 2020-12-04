@@ -4,7 +4,7 @@ Feature: Edit User Details
 
   Background:
     Given database is empty
-    And user with id 1234 exists and has username "user", password "secure_password" and refreshToken "refreshToken1234"
+    And user with userId 1234 exists and has username "user", password "secure_password" and refreshToken "refreshToken1234"
     And accessToken with value "accessToken" exists for user 1234
 
   Scenario: Successful change of username
@@ -20,7 +20,7 @@ Feature: Edit User Details
     And response status code is 201
 
   Scenario: Failed change of username; new username already assigned
-    Given user with id 1235 exists and has username "kangaroo", password "secure_password"
+    Given user with userId 1235 exists and has username "kangaroo", password "secure_password"
     When user requests change of username with value "kangaroo" userId 1234 and accessToken "accessToken"
     Then response contains key "message" and value "User could not get updated. Username already taken."
     And response status code is 409

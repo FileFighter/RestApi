@@ -23,7 +23,7 @@ public class UserDtoService implements DtoServiceInterface<User, UserEntity> {
     public User createDto(UserEntity entity) {
         return User
                 .builder()
-                .id(entity.getUserId())
+                .userId(entity.getUserId())
                 .username(entity.getUsername())
                 .groups(groupRepository.getGroupsByIds(entity.getGroupIds()))
                 .build();
@@ -31,9 +31,9 @@ public class UserDtoService implements DtoServiceInterface<User, UserEntity> {
 
     @Override
     public UserEntity findEntity(User dto) {
-        UserEntity userEntity = userRepository.findByUserIdAndUsername(dto.getId(), dto.getUsername());
+        UserEntity userEntity = userRepository.findByUserIdAndUsername(dto.getUserId(), dto.getUsername());
         if (null == userEntity)
-            throw new UserNotFoundException(dto.getId());
+            throw new UserNotFoundException(dto.getUserId());
 
         return userEntity;
     }

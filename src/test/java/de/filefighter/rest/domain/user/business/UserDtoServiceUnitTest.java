@@ -35,7 +35,7 @@ class UserDtoServiceUnitTest {
         when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Groups[]{Groups.FAMILY});
 
         User actualUser = userDtoService.createDto(dummyEntity);
-        assertEquals(userId, actualUser.getId());
+        assertEquals(userId, actualUser.getUserId());
         assertEquals(username, actualUser.getUsername());
         assertEquals(groups[0], actualUser.getGroups()[0].getGroupId());
     }
@@ -44,7 +44,7 @@ class UserDtoServiceUnitTest {
     void findEntityThrowsException() {
         long userId = 0;
         String username = "kevin";
-        User user = User.builder().username(username).id(userId).build();
+        User user = User.builder().username(username).userId(userId).build();
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(null);
 
@@ -57,7 +57,7 @@ class UserDtoServiceUnitTest {
     void findEntityWorksCorrectly() {
         long userId = 0;
         String username = "kevin";
-        User user = User.builder().username(username).id(userId).build();
+        User user = User.builder().username(username).userId(userId).build();
         UserEntity expected = UserEntity.builder().username(username).userId(userId).build();
 
         when(userRepositoryMock.findByUserIdAndUsername(userId, username)).thenReturn(expected);
