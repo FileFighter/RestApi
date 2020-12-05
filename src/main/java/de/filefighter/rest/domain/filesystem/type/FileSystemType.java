@@ -5,9 +5,9 @@ public enum FileSystemType {
     FOLDER(0),
     TEXT(1),
     PICTURE(2),
-    PDF(3);
-    AUDIO(4);
-    VIDEO(5);
+    PDF(3),
+    AUDIO(4),
+    VIDEO(5)
 
     private final long id;
 
