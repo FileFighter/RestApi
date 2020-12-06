@@ -11,8 +11,7 @@ import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.domain.user.group.Groups;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -26,6 +25,7 @@ import java.util.regex.Pattern;
 
 import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
 
+@Log4j2
 @Service
 public class UserBusinessService {
 
@@ -34,7 +34,6 @@ public class UserBusinessService {
     private final GroupRepository groupRepository;
     private final MongoTemplate mongoTemplate;
 
-    private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
     public static final int USER_ID_MAX = 99999999;
 
 
@@ -96,7 +95,7 @@ public class UserBusinessService {
         try {
             user = this.findUserByUsername(newUser.getUsername());
         } catch (UserNotFoundException ignored) {
-            LOG.info("Username '{}' is free to use.", username);
+            log.info("Username '{}' is free to use.", username);
         }
 
         if (null != user)
@@ -235,7 +234,7 @@ public class UserBusinessService {
             try {
                 user = this.findUserByUsername(username);
             } catch (UserNotFoundException ignored) {
-                LOG.info("Username '{}' is free to use.", username);
+                log.info("Username '{}' is free to use.", username);
             }
 
             if (null != user)
