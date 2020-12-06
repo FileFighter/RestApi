@@ -3,21 +3,46 @@ package de.filefighter.rest.domain.filesystem.business;
 import de.filefighter.rest.domain.filesystem.data.dto.File;
 import de.filefighter.rest.domain.filesystem.data.dto.Folder;
 import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
+import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
+import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.user.data.dto.User;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 
 @Service
 public class FileSystemBusinessService {
 
-    public FileSystemBusinessService() {
+    private final FileSystemRepository fileSystemRepository;
 
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository) {
+
+        this.fileSystemRepository = fileSystemRepository;
     }
 
-    public static FolderContents getContentsOfFolder(String path, User authenticatedUser) {
+    // TODO: implement necessary files when a new user is created.
+
+    // path is /username/folder
+    // in db only /folder but we know the username that created it.
+    // that way we know what contents to display if the same foldername exists twice.
+
+    public FolderContents getContentsOfFolder(String path, User authenticatedUser) {
+        String pathToFind = this.removeTrailingBackSlashFromPath(path);
+
+        ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
+        if (listOfFileSystemEntities.isEmpty())
+            throw new FileSystemContentsNotAccessibleException();
+
+        if (fileSystemEntity.isFile() || fileSystemEntity.getTypeId() != FileSystemType.FOLDER.getId())
+            throw new FileSystemContentsNotAccessibleException();
+
+        if (!userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser))
+            throw new FileSystemContentsNotAccessibleException();
+
+
         FolderContents folderContents;
         switch (path) {
             case "/":
@@ -56,5 +81,13 @@ public class FileSystemBusinessService {
 
         }
         return folderContents;
+    }
+
+    public String removeTrailingBackSlashFromPath(String path) {
+        return null;
+    }
+
+    public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity entity, User user) {
+        return true;
     }
 }
