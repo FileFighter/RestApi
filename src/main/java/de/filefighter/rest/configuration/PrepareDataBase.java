@@ -1,13 +1,13 @@
 package de.filefighter.rest.configuration;
 
-import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
-import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
-import de.filefighter.rest.domain.user.data.persistance.UserEntity;
-import de.filefighter.rest.domain.user.data.persistance.UserRepository;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
+import de.filefighter.rest.domain.user.data.persistence.UserEntity;
+import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
