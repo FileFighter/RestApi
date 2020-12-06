@@ -24,16 +24,16 @@ public class FileSystemBusinessService {
                 folderContents = FolderContents.builder()
                         .files(new File[]{new File(0, "Passwords.crypt", 420, 0, 1897550098, FileSystemType.TEXT, null)})
                         .folders(new Folder[]{
-                                new Folder(1, "/dhbw", "DHBW", 87568438, 0, Instant.now().getEpochSecond(), null),
+                                new Folder(1, "/dhbw", "DHBW", 87568438, 0, 1589998868, null),
                                 new Folder(2, "/homework", "Homework", 1897557698, 0, 1577836800, null)
                         })
                         .build();
                 break;
-            case "/bla":
+            case "/dhbw":
                 folderContents = FolderContents.builder()
                         .folders(new Folder[]{
-                                new Folder(3, "/se", "SE", 18975576, 0, 1601148846, null),
-                                new Folder(4, "/ti-3", "TI-3", 69, 0, 1599936800, null)
+                                new Folder(3, "/dhbw/se", "SE", 18975576, 0, 1601148846, null),
+                                new Folder(4, "/dhbw/ti-3", "TI-3", 69, 0, 1599936800, null)
                         })
                         .files(new File[]{
                                 new File(4, "WhatIsThis", 42, 0, 153354, FileSystemType.UNDEFINED, null),
@@ -45,23 +45,35 @@ public class FileSystemBusinessService {
                                 new File(10, "JavaScriptFTW.js", 176643, 0, 1597388868, FileSystemType.TEXT, null),
                                 new File(11, "TheyWillNeverKnow.crypt", 75896643, 0, 1600188868, FileSystemType.UNDEFINED, null),
                                 new File(12, "Opportunismus und Repression.pdf", 4826643, 0, 1589998868, FileSystemType.PDF, null),
-                                new File(13, "ProfsINeedToBribeOrCharm.txt", 153, 0, Instant.now().getEpochSecond(), FileSystemType.TEXT, null),
+                                new File(13, "ProfsINeedToBribeOrCharm.txt", 153, 0, 1589998868, FileSystemType.TEXT, null),
                                 new File(14, "FinishedFileFighterBE.java", 846846643, 0, 1624752000, FileSystemType.TEXT, null),
                         })
                         .build();
                 break;
-            case "/fasel":
+            case "/dhbw/se":
                 folderContents = FolderContents.builder()
-                        .files(new File[]{new File(15, "DummyFileInFasel.txt", 420, 0, Instant.now().getEpochSecond(), FileSystemType.TEXT, null)})
-                        .folders(new Folder[]{new Folder(16, "/fasel/jonnywishesforasecretchamber", "JonnyWishesForASecretChamber", 2, 0, Instant.now().getEpochSecond(), null)})
+                        .files(new File[]{
+                                new File(18, "FullyAutomatedDocumentationScript.py", 42042, 0, 1589998868, FileSystemType.UNDEFINED, null)
+                        }).build();
+                break;
+            case "/dhbw/ti-3":
+                folderContents = FolderContents.builder()
+                        .files(new File[]{
+                                new File(19, "Braun verstehen in 3 Schritten - Das Buch.pdf", 42042, 0, 1589998868, FileSystemType.PDF, null)
+                        }).build();
+                break;
+            case "/homework":
+                folderContents = FolderContents.builder()
+                        .files(new File[]{new File(15, "homeworks.zip", 420, 0, Instant.now().getEpochSecond(), FileSystemType.UNDEFINED, null)})
+                        .folders(new Folder[]{new Folder(16, "/homework/jonnywishesforasecretchamber", "JonnyWishesForASecretChamber", 2, 0, 1589998868, null)})
                         .build();
                 break;
-            case "/fasel/jonnywishesforasecretchamber":
+            case "/homework/jonnywishesforasecretchamber":
                 folderContents = FolderContents.builder()
-                        .folders(new Folder[]{new Folder(17, "/fasel/johnwishesforasecretchamber/empty", "Empty", 0, 0, Instant.now().getEpochSecond(), null)})
+                        .folders(new Folder[]{new Folder(17, "/homework/johnwishesforasecretchamber/emptyfolder", "EmptyFolder", 0, 0, 1589998868, null)})
                         .build();
                 break;
-            case "/fasel/jonnywishesforasecretchamber/empty":
+            case "/homework/jonnywishesforasecretchamber/emptyfolder":
                 folderContents = FolderContents.builder().build();
                 break;
             default:
