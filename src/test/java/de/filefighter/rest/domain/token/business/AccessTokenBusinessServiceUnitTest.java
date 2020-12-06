@@ -1,8 +1,8 @@
 package de.filefighter.rest.domain.token.business;
 
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;

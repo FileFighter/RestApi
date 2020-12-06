@@ -1,4 +1,4 @@
-package de.filefighter.rest.domain.token.data.persistance;
+package de.filefighter.rest.domain.token.data.persistence;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;

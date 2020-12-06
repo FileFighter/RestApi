@@ -2,8 +2,8 @@ package de.filefighter.rest.domain.user.business;
 
 import de.filefighter.rest.domain.common.DtoServiceInterface;
 import de.filefighter.rest.domain.user.data.dto.User;
-import de.filefighter.rest.domain.user.data.persistance.UserEntity;
-import de.filefighter.rest.domain.user.data.persistance.UserRepository;
+import de.filefighter.rest.domain.user.data.persistence.UserEntity;
+import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import org.springframework.stereotype.Service;
