@@ -5,19 +5,17 @@ import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
+@Log4j2
 @RestController
 @Api(value = "FileSystem Rest Controller", tags = {"FileSystem"})
 @RequestMapping(BASE_API_URI)
 public class FileSystemRestController {
-
-    private static final Logger LOG = LoggerFactory.getLogger(FileSystemRestController.class);
 
     private final FileSystemRestServiceInterface fileSystemRestService;
 
@@ -31,7 +29,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
 
-        LOG.info("Requested Folder contents of folder with path {}.", path);
+        log.info("Requested Folder contents of folder with path {}.", path);
         return fileSystemRestService.getContentsOfFolderByPathAndAccessToken(path, accessToken);
     }
 
@@ -41,7 +39,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {
 
-        LOG.info("Requested information about FileSystemItem with id {}.", fsItemId);
+        log.info("Requested information about FileSystemItem with id {}.", fsItemId);
         return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, accessToken);
     }
 
@@ -51,7 +49,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
-        LOG.info("Searching for file or folder with name {}", name);
+        log.info("Searching for file or folder with name {}", name);
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
     }
 
@@ -61,7 +59,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
-        LOG.info("Tried uploading new FileSystemItem {}", fileSystemItemUpdate);
+        log.info("Tried uploading new FileSystemItem {}", fileSystemItemUpdate);
         return fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, accessToken);
     }
 
@@ -72,7 +70,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
-        LOG.info("Tried updating FileSystemItem {} with {}.", fsItemId, fileSystemItemUpdate);
+        log.info("Tried updating FileSystemItem {} with {}.", fsItemId, fileSystemItemUpdate);
         return fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
     }
 
@@ -82,7 +80,7 @@ public class FileSystemRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ){
 
-        LOG.info("Tried deleting FileSystemItem with id {}", fsItemId);
+        log.info("Tried deleting FileSystemItem with id {}", fsItemId);
         return fileSystemRestService.deleteFileSystemItemWithIdAndAccessToken(fsItemId, accessToken);
     }
 }

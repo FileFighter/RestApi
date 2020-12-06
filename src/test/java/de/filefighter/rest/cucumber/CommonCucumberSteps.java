@@ -12,8 +12,7 @@ import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -25,9 +24,9 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Log4j2
 public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CommonCucumberSteps.class);
     private final UserRepository userRepository;
     private final AccessTokenRepository accessTokenRepository;
     private final FileSystemRepository fileSystemRepository;
@@ -50,7 +49,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     @And("user {long} exists")
     public void userExists(long userId) {
-        LOG.info("Creating User: " + userRepository.save(UserEntity
+        log.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .build()));
@@ -58,7 +57,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     @And("user with userId {long} exists and has username {string}, password {string} and refreshToken {string}")
     public void userWithIdExistsAndHasUsernamePasswordAndRefreshToken(long userId, String username, String password, String refreshTokenValue) {
-        LOG.info("Creating User: " + userRepository.save(UserEntity
+        log.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .username(username)
@@ -70,7 +69,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     @And("user with userId {long} exists and has username {string}, password {string}")
     public void userWithIdExistsAndHasUsernamePassword(long userId, String username, String password) {
-        LOG.info("Creating User: " + userRepository.save(UserEntity
+        log.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .username(username)

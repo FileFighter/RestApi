@@ -6,21 +6,18 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
+@Log4j2
 @RestController
 @Api(value = "User Rest Controller", tags = {"User"})
-
 @RequestMapping(BASE_API_URI)
 public class UserRestController {
-
-    private static final Logger LOG = LoggerFactory.getLogger(UserRestController.class);
 
     private final UserRestServiceInterface userRestService;
 
@@ -34,7 +31,7 @@ public class UserRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "admin-token") String accessToken,
             @RequestBody UserRegisterForm newUser) {
 
-        LOG.info("Registered new User {}.", newUser);
+        log.info("Registered new User {}.", newUser);
         return userRestService.registerNewUserWithAccessToken(newUser, accessToken);
     }
 
@@ -42,7 +39,7 @@ public class UserRestController {
     public ResponseEntity<RefreshToken> loginWithUsernameAndPassword(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BASIC_PREFIX + "S2V2aW46MTIzNA==") String base64encodedUserAndPassword) {
 
-        LOG.info("Requested Login.");
+        log.info("Requested Login.");
         return userRestService.getRefreshTokenWithUsernameAndPassword(base64encodedUserAndPassword);
     }
 
@@ -50,7 +47,7 @@ public class UserRestController {
     public ResponseEntity<AccessToken> getAccessToken(
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
 
-        LOG.info("Requested login for token {}.", refreshToken);
+        log.info("Requested login for token {}.", refreshToken);
         return userRestService.getAccessTokenByRefreshToken(refreshToken);
     }
 
@@ -60,7 +57,7 @@ public class UserRestController {
             @PathVariable long userId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
 
-        LOG.info("Requested User {} with token {}.", userId, accessToken);
+        log.info("Requested User {} with token {}.", userId, accessToken);
         return userRestService.getUserByUserIdAuthenticateWithAccessToken(accessToken, userId);
     }
 
@@ -70,7 +67,7 @@ public class UserRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestBody UserRegisterForm updatedUser) {
 
-        LOG.info("Updated User {} and Token {}, with form {}.", userId, accessToken, updatedUser);
+        log.info("Updated User {} and Token {}, with form {}.", userId, accessToken, updatedUser);
         return userRestService.updateUserByUserIdAuthenticateWithAccessToken(updatedUser, userId, accessToken);
     }
 
@@ -79,7 +76,7 @@ public class UserRestController {
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
             @RequestParam(name = "username", value = "username") String username
     ) {
-        LOG.info("Requested finding User with the username {} and Token {}", username, accessToken);
+        log.info("Requested finding User with the username {} and Token {}", username, accessToken);
         return userRestService.findUserByUsernameAndAccessToken(username, accessToken);
     }
 }

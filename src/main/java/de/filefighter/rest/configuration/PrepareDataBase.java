@@ -8,8 +8,7 @@ import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +17,7 @@ import org.springframework.context.annotation.Profile;
 
 import java.time.Instant;
 
+@Log4j2
 @Configuration
 public class PrepareDataBase {
 
@@ -32,9 +32,7 @@ public class PrepareDataBase {
 
     @Value("${filefighter.date}")
     String date;
-
-    private static final Logger LOG = LoggerFactory.getLogger(PrepareDataBase.class);
-
+    
     @Bean
     @Profile({"dev", "prod"})
     CommandLineRunner veryImportantFileFighterStartScript() {
@@ -62,11 +60,11 @@ public class PrepareDataBase {
     @Bean
     CommandLineRunner cleanDataBase(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
         return args -> {
-            LOG.info("Starting with clean user collection.");
+            log.info("Starting with clean user collection.");
             userRepository.deleteAll();
-            LOG.info("Starting with clean fileSystem collection.");
+            log.info("Starting with clean fileSystem collection.");
             fileSystemRepository.deleteAll();
-            LOG.info("Starting with clean accessToken collection.");
+            log.info("Starting with clean accessToken collection.");
             accessTokenRepository.deleteAll();
         };
     }
@@ -75,7 +73,7 @@ public class PrepareDataBase {
     @Profile("prod")
     CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
-            LOG.info("Preloading default admin user: {}.", userRepository.save(UserEntity
+            log.info("Preloading default admin user: {}.", userRepository.save(UserEntity
                     .builder()
                     .userId(0L)
                     .username("Admin")
@@ -85,7 +83,7 @@ public class PrepareDataBase {
                     .groupIds(new long[]{0, 1})
                     .build()));
 
-            LOG.info("Preloading default fsStructure: {}.", fileSystemRepository.save(FileSystemEntity
+            log.info("Preloading default fsStructure: {}.", fileSystemRepository.save(FileSystemEntity
                     .builder()
                     .createdByUserId(0)
                     .fileSystemId(0)
@@ -99,8 +97,8 @@ public class PrepareDataBase {
                     .visibleForGroupIds(new long[]{-1, 0, 1})
                     .build()));
 
-            LOG.info("Inserting Users {}", (userRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
-            LOG.info("Inserting fsItems {}", (fileSystemRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting Users {}", (userRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting fsItems {}", (fileSystemRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 
@@ -108,7 +106,7 @@ public class PrepareDataBase {
     @Profile("dev")
     CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
-            LOG.info("Preloading default users: {} {}.",
+            log.info("Preloading default users: {} {}.",
                     userRepository.save(UserEntity
                             .builder()
                             .userId(0)
@@ -128,7 +126,7 @@ public class PrepareDataBase {
                             .groupIds(new long[]{-1})
                             .build()));
 
-            LOG.info("Preloading default tokens: {} {}",
+            log.info("Preloading default tokens: {} {}",
                     accessTokenRepository.save(AccessTokenEntity
                             .builder()
                             .userId(0)
@@ -142,7 +140,7 @@ public class PrepareDataBase {
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
 
-            LOG.info("Preloading default fsItems: {} {}.",
+            log.info("Preloading default fsItems: {} {}.",
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .fileSystemId(0)
@@ -167,9 +165,9 @@ public class PrepareDataBase {
                             .visibleForGroupIds(new long[]{0})
                             .build()));
 
-            LOG.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
-            LOG.info("Inserting token {}", (accessTokenRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
-            LOG.info("Inserting Users {}", (userRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting token {}", (accessTokenRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting Users {}", (userRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };
     }
 }

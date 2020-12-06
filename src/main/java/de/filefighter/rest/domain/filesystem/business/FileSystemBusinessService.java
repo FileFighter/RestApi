@@ -14,7 +14,6 @@ import java.time.Instant;
 public class FileSystemBusinessService {
 
     public FileSystemBusinessService() {
-
     }
 
     public static FolderContents getContentsOfFolder(String path, User authenticatedUser) {
