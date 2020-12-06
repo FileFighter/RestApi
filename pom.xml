@@ -17,6 +17,8 @@
     <properties>
         <java.version>11</java.version>
         <cucumber.version>6.9.0</cucumber.version>
+        <sonar.coverage.exclusions>**/data/**/*.java,**/configuration/*.java,**/exceptions/*.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
