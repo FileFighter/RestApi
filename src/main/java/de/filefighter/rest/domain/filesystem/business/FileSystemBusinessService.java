@@ -53,15 +53,15 @@ public class FileSystemBusinessService {
             case "/fasel":
                 folderContents = FolderContents.builder()
                         .files(new File[]{new File(15, "DummyFileInFasel.txt", 420, 0, Instant.now().getEpochSecond(), FileSystemType.TEXT, null)})
-                        .folders(new Folder[]{new Folder(16, "/fasel/johnwishesforasecretchamber", "JohnWishesForASecretChamber", 2, 0, Instant.now().getEpochSecond(), null)})
+                        .folders(new Folder[]{new Folder(16, "/fasel/jonnywishesforasecretchamber", "JonnyWishesForASecretChamber", 2, 0, Instant.now().getEpochSecond(), null)})
                         .build();
                 break;
-            case "/fasel/johnwishesforasecretchamber":
+            case "/fasel/jonnywishesforasecretchamber":
                 folderContents = FolderContents.builder()
                         .folders(new Folder[]{new Folder(17, "/fasel/johnwishesforasecretchamber/empty", "Empty", 0, 0, Instant.now().getEpochSecond(), null)})
                         .build();
                 break;
-            case "/fasel/johnwishesforasecretchamber/empty":
+            case "/fasel/jonnywishesforasecretchamber/empty":
                 folderContents = FolderContents.builder().build();
                 break;
             default:
