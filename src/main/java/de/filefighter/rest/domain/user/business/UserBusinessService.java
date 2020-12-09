@@ -11,8 +11,6 @@ import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
 import de.filefighter.rest.domain.user.group.GroupRepository;
 import de.filefighter.rest.domain.user.group.Groups;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -34,9 +32,7 @@ public class UserBusinessService {
     private final GroupRepository groupRepository;
     private final MongoTemplate mongoTemplate;
 
-    private static final Logger LOG = LoggerFactory.getLogger(UserBusinessService.class);
     public static final int USER_ID_MAX = 99999999;
-
 
     @Value("${filefighter.disable-password-check}")
     public boolean passwordCheckDisabled;
@@ -89,17 +85,12 @@ public class UserBusinessService {
     }
 
     public void registerNewUser(UserRegisterForm newUser) {
-        // check username
         String username = newUser.getUsername();
 
-        User user = null;
-        try {
-            user = this.findUserByUsername(newUser.getUsername());
-        } catch (UserNotFoundException ignored) {
-            LOG.info("Username '{}' is free to use.", username);
-        }
+        if(!stringIsValid(username))
+            throw new UserNotRegisteredException("Username was not valid.");
 
-        if (null != user)
+        if (this.userWithUsernameDoesExist(username))
             throw new UserNotRegisteredException("Username already taken.");
 
         // check pws.
@@ -147,6 +138,13 @@ public class UserBusinessService {
 
         Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+).{8,20}$");
         return pattern.matcher(password).matches();
+    }
+
+    public boolean userWithUsernameDoesExist(String username){
+        String lowercaseUsername = username.toLowerCase();
+
+        UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
+        return entity != null;
     }
 
     public void updateUser(long userId, UserRegisterForm userToUpdate, User authenticatedUser) {
@@ -231,14 +229,7 @@ public class UserBusinessService {
             if (!stringIsValid(username))
                 throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
 
-            User user = null;
-            try {
-                user = this.findUserByUsername(username);
-            } catch (UserNotFoundException ignored) {
-                LOG.info("Username '{}' is free to use.", username);
-            }
-
-            if (null != user)
+            if (this.userWithUsernameDoesExist(username))
                 throw new UserNotUpdatedException("Username already taken.");
 
             update.set("username", username);
