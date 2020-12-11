@@ -20,10 +20,15 @@ public class FileSystemEntity {
     private boolean isFile;
     private long createdByUserId; //uploadedBy
     private long lastUpdated;
-    private long[] visibleForGroupIds;
-    private long[] editableFoGroupIds;
-    private long[] visibleForUserIds;
-    private long[] editableForUserIds;
-    private long[] itemIds;
+    @Builder.Default
+    private long[] visibleForGroupIds = new long[0];
+    @Builder.Default
+    private long[] editableFoGroupIds = new long[0];
+    @Builder.Default
+    private long[] visibleForUserIds = new long[0];
+    @Builder.Default
+    private long[] editableForUserIds = new long[0];
+    @Builder.Default
+    private long[] itemIds = new long[0];
 
 }

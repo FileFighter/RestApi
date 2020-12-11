@@ -21,6 +21,7 @@ public class UserEntity {
     private String lowercaseUsername; // Redundancy for performance tradeoff.
     private String password;
     private String refreshToken;
-    private long[] groupIds;
+    @Builder.Default
+    private long[] groupIds = new long[0];
 
 }
