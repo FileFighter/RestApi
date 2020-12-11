@@ -11,6 +11,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
+import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +52,7 @@ public class FileSystemBusinessService {
 
         UserEntity userEntityWithUsername = userBusinessService.getUserWithUsername(username);
         if (null == userEntityWithUsername)
-            throw new FileSystemContentsNotAccessibleException("Username in path does not exist.");
+            throw new FileSystemContentsNotAccessibleException();
 
         //TODO: is it a risk to use a user input as regex?
         String pathToFind = path.split("/" + username)[1];
@@ -117,6 +118,25 @@ public class FileSystemBusinessService {
     }
 
     public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
-        return true;
+        // user created the item
+        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
+            return true;
+
+        // user got the item shared.
+        for (long userId : fileSystemEntity.getVisibleForUserIds()) {
+            if (userId == authenticatedUser.getUserId())
+                return true;
+        }
+
+        // user is in group that got the item shared.
+        long[] fileIsSharedToGroups = fileSystemEntity.getVisibleForGroupIds();
+        for (Groups group : authenticatedUser.getGroups()) {
+            for (long groupId : fileIsSharedToGroups) {
+                if (groupId == group.getGroupId())
+                    return true;
+
+            }
+        }
+        return false;
     }
 }
