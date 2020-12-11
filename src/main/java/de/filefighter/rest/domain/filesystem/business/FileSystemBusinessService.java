@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.dto.File;
 import de.filefighter.rest.domain.filesystem.data.dto.Folder;
 import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
@@ -7,87 +8,115 @@ import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
+import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.data.persistance.UserEntity;
+import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 @Service
 public class FileSystemBusinessService {
 
+    private final FileSystemItemsDTOService fileSystemItemsDTOService;
     private final FileSystemRepository fileSystemRepository;
+    private final UserBusinessService userBusinessService;
 
-    public FileSystemBusinessService(FileSystemRepository fileSystemRepository) {
-
+    public FileSystemBusinessService(FileSystemItemsDTOService fileSystemItemsDTOService, FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService) {
+        this.fileSystemItemsDTOService = fileSystemItemsDTOService;
         this.fileSystemRepository = fileSystemRepository;
+        this.userBusinessService = userBusinessService;
     }
 
     // TODO: implement necessary files when a new user is created.
 
     // path is /username/folder
     // in db only /folder but we know the username that created it.
-    // that way we know what contents to display if the same foldername exists twice.
+    // that way we know what contents to display if the same folderName exists twice.
 
-    public FolderContents getContentsOfFolder(String path, User authenticatedUser) {
-        String pathToFind = this.removeTrailingBackSlashFromPath(path);
+    public FolderContents getFolderContentsByPath(String path, User authenticatedUser) {
+        String[] pathWithoutSlashes = path.split("/");
 
+        if (pathWithoutSlashes.length < 2)
+            throw new FileSystemContentsNotAccessibleException();
+
+        if (!"".equals(pathWithoutSlashes[0]))
+            throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
+
+        String username = pathWithoutSlashes[1];
+        if (!InputSanitizerService.stringIsValid(username))
+            throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Username was not found in path.");
+
+        UserEntity userEntityWithUsername = userBusinessService.getUserWithUsername(username);
+        if (null == userEntityWithUsername)
+            throw new FileSystemContentsNotAccessibleException("Username in path does not exist.");
+
+        //TODO: is it a risk to use a user input as regex?
+        String pathToFind = path.split("/" + username)[1];
+        pathToFind = removeTrailingBackSlashes(pathToFind);
+
+        // find the folder with matching path.
         ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
         if (listOfFileSystemEntities.isEmpty())
             throw new FileSystemContentsNotAccessibleException();
 
-        if (fileSystemEntity.isFile() || fileSystemEntity.getTypeId() != FileSystemType.FOLDER.getId())
+        // remove all not accessible items.
+        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || userEntityWithUsername.getUserId() != entity.getCreatedByUserId() || !userIsAllowedToSeeFileSystemEntity(entity, authenticatedUser));
+
+        if (listOfFileSystemEntities.isEmpty())
             throw new FileSystemContentsNotAccessibleException();
 
-        if (!userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser))
-            throw new FileSystemContentsNotAccessibleException();
+        if (listOfFileSystemEntities.size() != 1)
+            throw new IllegalStateException("More than one folder was found with the path " + pathToFind + " and name " + username);
 
+        // get the contents
+        FileSystemEntity fileSystemEntity = listOfFileSystemEntities.get(0);
+        return this.getFolderContentsByEntity(fileSystemEntity, authenticatedUser);
+    }
 
-        FolderContents folderContents;
-        switch (path) {
-            case "/":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{new File(0, "DummyFileInRoot.txt", 420, 0, Instant.now().getEpochSecond(), FileSystemType.TEXT, null)})
-                        .folders(new Folder[]{
-                                new Folder(1, "/bla", "bla", 12345, 0, Instant.now().getEpochSecond(), null),
-                                new Folder(2, "/fasel", "fasel", 12345, 0, Instant.now().getEpochSecond(), null)
-                        })
-                        .build();
-                break;
-            case "/bla":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{
-                                new File(3, "DummyFileInBla.pdf", 42, 0, Instant.now().getEpochSecond(), FileSystemType.PDF, null),
-                                new File(4, "DummyFileInBla1.jpg", 1234321, 0, Instant.now().getEpochSecond(), FileSystemType.PICTURE, null)
-                        })
-                        .build();
-                break;
-            case "/fasel":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{new File(5, "DummyFileInFasel.txt", 420, 0, Instant.now().getEpochSecond(), FileSystemType.TEXT, null)})
-                        .folders(new Folder[]{new Folder(6, "/fasel/johndoessecretchamber", "JohnDoesSecretChamber", 12345, 0, Instant.now().getEpochSecond(), null)})
-                        .build();
-                break;
-            case "/fasel/johndoessecretchamber":
-                folderContents = FolderContents.builder()
-                        .folders(new Folder[]{new Folder(7, "/fasel/johndoessecretchamber/empty", "Empty", 12345, 0, Instant.now().getEpochSecond(), null)})
-                        .build();
-                break;
-            case "/fasel/johndoessecretchamber/empty":
-                folderContents = FolderContents.builder().build();
-                break;
-            default:
-                throw new FileSystemContentsNotAccessibleException();
+    public FolderContents getFolderContentsByEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
+        long[] folderContentItemIds = fileSystemEntity.getItemIds();
 
+        ArrayList<Folder> folders = new ArrayList<>();
+        ArrayList<File> files = new ArrayList<>();
+
+        // check if the contents are visible.
+        for (long fileSystemId : folderContentItemIds) {
+            FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
+
+            if (null == fileSystemEntityInFolder)
+                throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemEntity + " but was empty.");
+
+            if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+                if (fileSystemEntityInFolder.isFile()) {
+                    File file = fileSystemItemsDTOService.createFileDto(fileSystemEntityInFolder);
+                    files.add(file);
+                } else {
+                    Folder folder = fileSystemItemsDTOService.createFolderDto(fileSystemEntityInFolder);
+                    folders.add(folder);
+                }
+            }
         }
-        return folderContents;
+
+        return FolderContents.builder()
+                .files(files.toArray(new File[0]))
+                .folders(folders.toArray(new Folder[0]))
+                .build();
     }
 
-    public String removeTrailingBackSlashFromPath(String path) {
-        return null;
+    private String removeTrailingBackSlashes(String pathToFind) {
+        char[] chars = pathToFind.toCharArray();
+        // for the case of "/"
+        if (chars.length != 1 && chars[chars.length - 1] == '/') {
+            chars = Arrays.copyOf(chars, chars.length - 1);
+            return new String(chars);
+        }
+        return pathToFind;
     }
 
-    public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity entity, User user) {
+    public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
         return true;
     }
 }
