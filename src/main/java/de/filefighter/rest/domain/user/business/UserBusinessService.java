@@ -28,7 +28,7 @@ import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsVa
 public class UserBusinessService {
 
     private final UserRepository userRepository;
-    private final UserDtoService userDtoService;
+    private final UserDTOService userDtoService;
     private final GroupRepository groupRepository;
     private final MongoTemplate mongoTemplate;
 
@@ -37,7 +37,7 @@ public class UserBusinessService {
     @Value("${filefighter.disable-password-check}")
     public boolean passwordCheckDisabled;
 
-    public UserBusinessService(UserRepository userRepository, UserDtoService userDtoService, GroupRepository groupRepository, MongoTemplate mongoTemplate) {
+    public UserBusinessService(UserRepository userRepository, UserDTOService userDtoService, GroupRepository groupRepository, MongoTemplate mongoTemplate) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
         this.groupRepository = groupRepository;
@@ -75,9 +75,7 @@ public class UserBusinessService {
     }
 
     public User findUserByUsername(String username) {
-        String lowercaseUsername = username.toLowerCase();
-
-        UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
+        UserEntity entity = getUserWithUsername(username);
         if (null == entity)
             throw new UserNotFoundException("User with username '" + username + "' not found.");
 
@@ -87,10 +85,10 @@ public class UserBusinessService {
     public void registerNewUser(UserRegisterForm newUser) {
         String username = newUser.getUsername();
 
-        if(!stringIsValid(username))
+        if (!stringIsValid(username))
             throw new UserNotRegisteredException("Username was not valid.");
 
-        if (this.userWithUsernameDoesExist(username))
+        if (null != this.getUserWithUsername(username))
             throw new UserNotRegisteredException("Username already taken.");
 
         // check pws.
@@ -140,11 +138,13 @@ public class UserBusinessService {
         return pattern.matcher(password).matches();
     }
 
-    public boolean userWithUsernameDoesExist(String username){
+    /**
+     * @param username username to find.
+     * @return null or the found user.
+     */
+    public UserEntity getUserWithUsername(String username) {
         String lowercaseUsername = username.toLowerCase();
-
-        UserEntity entity = userRepository.findByLowercaseUsername(lowercaseUsername);
-        return entity != null;
+        return userRepository.findByLowercaseUsername(lowercaseUsername);
     }
 
     public void updateUser(long userId, UserRegisterForm userToUpdate, User authenticatedUser) {
@@ -229,7 +229,7 @@ public class UserBusinessService {
             if (!stringIsValid(username))
                 throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
 
-            if (this.userWithUsernameDoesExist(username))
+            if (null != getUserWithUsername(username))
                 throw new UserNotUpdatedException("Username already taken.");
 
             update.set("username", username);

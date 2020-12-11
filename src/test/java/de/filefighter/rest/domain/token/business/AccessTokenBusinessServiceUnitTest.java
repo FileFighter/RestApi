@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 class AccessTokenBusinessServiceUnitTest {
 
     private final AccessTokenRepository accessTokenRepositoryMock = mock(AccessTokenRepository.class);
-    private final AccessTokenDtoService accessTokenDtoServiceMock = mock(AccessTokenDtoService.class);
+    private final AccessTokenDTOService accessTokenDtoServiceMock = mock(AccessTokenDTOService.class);
     private AccessTokenBusinessService accessTokenBusinessService;
 
     @BeforeEach

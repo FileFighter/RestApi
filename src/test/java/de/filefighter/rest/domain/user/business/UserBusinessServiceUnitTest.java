@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 class UserBusinessServiceUnitTest {
 
     private final UserRepository userRepositoryMock = mock(UserRepository.class);
-    private final UserDtoService userDtoServiceMock = mock(UserDtoService.class);
+    private final UserDTOService userDtoServiceMock = mock(UserDTOService.class);
     private final GroupRepository groupRepositoryMock = mock(GroupRepository.class);
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private UserBusinessService userBusinessService;

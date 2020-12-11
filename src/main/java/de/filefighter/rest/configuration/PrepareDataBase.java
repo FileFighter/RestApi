@@ -142,22 +142,34 @@ public class PrepareDataBase {
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
 
-            LOG.info("Preloading default fsItems: {} {}.",
+            LOG.info("Preloading default fsItems: {} {} {}.",
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .fileSystemId(0)
                             .isFile(false)
                             .path("/")
-                            .itemIds(new long[]{1})
+                            .itemIds(new long[]{2})
                             .lastUpdated(Instant.now().getEpochSecond())
-                            .name("root")
+                            .name("root_User")
+                            .size(420)
+                            .typeId(FileSystemType.FOLDER.getId())
+                            .visibleForGroupIds(new long[]{-1, 0, 1})
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(1)
+                            .fileSystemId(1)
+                            .isFile(false)
+                            .path("/")
+                            .itemIds(new long[0])
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("root_User1")
                             .size(420)
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{-1, 0, 1})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
-                            .fileSystemId(1)
+                            .fileSystemId(2)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("dummyFile.txt")

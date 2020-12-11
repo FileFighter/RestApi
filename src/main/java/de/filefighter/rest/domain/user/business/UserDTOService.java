@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.user.business;
 
-import de.filefighter.rest.domain.common.DtoServiceInterface;
+import de.filefighter.rest.domain.common.DTOServiceInterface;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.data.persistance.UserRepository;
@@ -9,12 +9,12 @@ import de.filefighter.rest.domain.user.group.GroupRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserDtoService implements DtoServiceInterface<User, UserEntity> {
+public class UserDTOService implements DTOServiceInterface<User, UserEntity> {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
 
-    public UserDtoService(GroupRepository groupRepository, UserRepository userRepository) {
+    public UserDTOService(GroupRepository groupRepository, UserRepository userRepository) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
     }

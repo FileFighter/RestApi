@@ -38,7 +38,7 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
         User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
         String cleanPathString = InputSanitizerService.sanitizeString(path);
 
-        FolderContents folderContents = fileSystemBusinessService.getContentsOfFolder(cleanPathString, authenticatedUser);
+        FolderContents folderContents = fileSystemBusinessService.getFolderContentsByPath(cleanPathString, authenticatedUser);
         return new ResponseEntity<>(folderContents, HttpStatus.OK);
     }
 

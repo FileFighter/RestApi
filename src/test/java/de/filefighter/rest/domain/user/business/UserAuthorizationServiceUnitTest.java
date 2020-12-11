@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 class UserAuthorizationServiceUnitTest {
 
     private final UserRepository userRepositoryMock = mock(UserRepository.class);
-    private final UserDtoService userDtoServiceMock = mock(UserDtoService.class);
+    private final UserDTOService userDtoServiceMock = mock(UserDTOService.class);
     private final UserAuthorizationService userAuthorizationService = new UserAuthorizationService(
             userRepositoryMock,
             userDtoServiceMock);

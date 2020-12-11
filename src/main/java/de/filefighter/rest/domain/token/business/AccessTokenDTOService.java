@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.token.business;
 
-import de.filefighter.rest.domain.common.DtoServiceInterface;
+import de.filefighter.rest.domain.common.DTOServiceInterface;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
@@ -8,11 +8,11 @@ import de.filefighter.rest.domain.token.exceptions.AccessTokenNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AccessTokenDtoService implements DtoServiceInterface<AccessToken, AccessTokenEntity> {
+public class AccessTokenDTOService implements DTOServiceInterface<AccessToken, AccessTokenEntity> {
 
     private final AccessTokenRepository accessTokenRepository;
 
-    public AccessTokenDtoService(AccessTokenRepository accessTokenRepository) {
+    public AccessTokenDTOService(AccessTokenRepository accessTokenRepository) {
         this.accessTokenRepository = accessTokenRepository;
     }
 

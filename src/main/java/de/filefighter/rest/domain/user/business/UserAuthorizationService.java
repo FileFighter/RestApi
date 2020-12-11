@@ -19,11 +19,11 @@ import java.util.Base64;
 public class UserAuthorizationService {
 
     private final UserRepository userRepository;
-    private final UserDtoService userDtoService;
+    private final UserDTOService userDtoService;
 
     private static final Logger LOG = LoggerFactory.getLogger(UserAuthorizationService.class);
 
-    public UserAuthorizationService(UserRepository userRepository, UserDtoService userDtoService) {
+    public UserAuthorizationService(UserRepository userRepository, UserDTOService userDtoService) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
     }
