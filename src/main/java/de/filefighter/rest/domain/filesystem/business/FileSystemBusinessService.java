@@ -2,8 +2,8 @@ package de.filefighter.rest.domain.filesystem.business;
 
 import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
-import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
-import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
