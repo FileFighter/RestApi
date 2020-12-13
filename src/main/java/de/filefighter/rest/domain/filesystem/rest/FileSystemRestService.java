@@ -5,7 +5,6 @@ import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
-import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.business.UserAuthorizationService;
@@ -14,6 +13,8 @@ import de.filefighter.rest.rest.ServerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -31,15 +32,15 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FolderContents> getContentsOfFolderByPathAndAccessToken(String path, String accessTokenValue) {
+    public ResponseEntity<ArrayList<FileSystemItem>> getContentsOfFolderByPathAndAccessToken(String path, String accessTokenValue) {
         String cleanHeader = inputSanitizerService.sanitizeRequestHeader(RestConfiguration.AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
         String cleanValue = inputSanitizerService.sanitizeTokenValue(cleanHeader);
         AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
         User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
         String cleanPathString = InputSanitizerService.sanitizeString(path);
 
-        FolderContents folderContents = fileSystemBusinessService.getFolderContentsByPath(cleanPathString, authenticatedUser);
-        return new ResponseEntity<>(folderContents, HttpStatus.OK);
+        ArrayList<FileSystemItem> fileSystemItems = fileSystemBusinessService.getFolderContentsByPath(cleanPathString, authenticatedUser);
+        return new ResponseEntity<>(fileSystemItems, HttpStatus.OK);
     }
 
     @Override

@@ -2,13 +2,14 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
-import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
@@ -26,7 +27,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "contents")
-    public ResponseEntity<FolderContents> getContentsOfFolder(
+    public ResponseEntity<ArrayList<FileSystemItem>> getContentsOfFolder(
             @RequestHeader(value = FS_PATH_HEADER, defaultValue = "/") String path,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
     ) {

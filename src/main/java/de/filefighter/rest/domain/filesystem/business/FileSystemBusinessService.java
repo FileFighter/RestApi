@@ -1,16 +1,14 @@
 package de.filefighter.rest.domain.filesystem.business;
 
 import de.filefighter.rest.domain.common.InputSanitizerService;
-import de.filefighter.rest.domain.filesystem.data.dto.File;
-import de.filefighter.rest.domain.filesystem.data.dto.Folder;
-import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistance.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
+import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
-import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import lombok.extern.log4j.Log4j2;
@@ -23,42 +21,31 @@ import java.util.Arrays;
 @Service
 public class FileSystemBusinessService {
 
-    private final FileSystemItemsDTOService fileSystemItemsDTOService;
     private final FileSystemRepository fileSystemRepository;
     private final UserBusinessService userBusinessService;
+    private final FileSystemTypeRepository fileSystemTypeRepository;
 
-    public FileSystemBusinessService(FileSystemItemsDTOService fileSystemItemsDTOService, FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService) {
-        this.fileSystemItemsDTOService = fileSystemItemsDTOService;
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository) {
         this.fileSystemRepository = fileSystemRepository;
         this.userBusinessService = userBusinessService;
+        this.fileSystemTypeRepository = fileSystemTypeRepository;
     }
 
     // TODO: implement necessary files when a new user is created.
 
-    // path is /username/folder
-    // in db only /folder but we know the username that created it.
-    // that way we know what contents to display if the same folderName exists twice.
+    public ArrayList<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
+        if (!InputSanitizerService.stringIsValid(path))
+            throw new FileSystemContentsNotAccessibleException("Path was not valid.");
 
-    public FolderContents getFolderContentsByPath(String path, User authenticatedUser) {
         String[] pathWithoutSlashes = path.split("/");
 
-        if (pathWithoutSlashes.length < 2)
-            throw new FileSystemContentsNotAccessibleException();
+        if (!path.equals("/") && pathWithoutSlashes.length < 1)
+            throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
 
-        if (!"".equals(pathWithoutSlashes[0]))
+        if (!path.equals("/") && !"".equals(pathWithoutSlashes[0]))
             throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
 
-        String username = pathWithoutSlashes[1];
-        if (!InputSanitizerService.stringIsValid(username))
-            throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Username was not found in path.");
-
-        UserEntity userEntityWithUsername = userBusinessService.getUserWithUsername(username);
-        if (null == userEntityWithUsername)
-            throw new FileSystemContentsNotAccessibleException();
-
-        //TODO: is it a risk to use a user input as regex?
-        String pathToFind = path.split("/" + username)[1];
-        pathToFind = removeTrailingBackSlashes(pathToFind);
+        String pathToFind = removeTrailingBackSlashes(path);
 
         // find the folder with matching path.
         ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
@@ -72,17 +59,9 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // now only own or shared folders are left.
-        log.info("Found {} folders for path {}.", listOfFileSystemEntities.size(), pathToFind);
+        ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>(listOfFileSystemEntities.size());
 
-        // get the contents
-        return this.getFolderContentsByEntity(listOfFileSystemEntities, authenticatedUser);
-    }
-
-    public FolderContents getFolderContentsByEntity(ArrayList<FileSystemEntity> fileSystemEntities, User authenticatedUser) {
-        ArrayList<Folder> folders = new ArrayList<>();
-        ArrayList<File> files = new ArrayList<>();
-
-        for (FileSystemEntity fileSystemEntity : fileSystemEntities) {
+        for (FileSystemEntity fileSystemEntity : listOfFileSystemEntities) {
             long[] folderContentItemIds = fileSystemEntity.getItemIds();
 
             // check if the contents are visible.
@@ -90,24 +69,15 @@ public class FileSystemBusinessService {
                 FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
 
                 if (null == fileSystemEntityInFolder)
-                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemEntities + " but was empty.");
+                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + listOfFileSystemEntities + " but was empty.");
 
                 if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                    if (fileSystemEntityInFolder.isFile()) {
-                        File file = fileSystemItemsDTOService.createFileDto(fileSystemEntityInFolder);
-                        files.add(file);
-                    } else {
-                        Folder folder = fileSystemItemsDTOService.createFolderDto(fileSystemEntityInFolder);
-                        folders.add(folder);
-                    }
+                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathToFind));
                 }
             }
         }
 
-        return FolderContents.builder()
-                .files(files.toArray(new File[0]))
-                .folders(folders.toArray(new Folder[0]))
-                .build();
+        return fileSystemItems;
     }
 
     private String removeTrailingBackSlashes(String pathToFind) {
@@ -141,5 +111,24 @@ public class FileSystemBusinessService {
             }
         }
         return false;
+    }
+
+    public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
+        User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
+        if (null == ownerOfFileSystemItem)
+            throw new FileFighterDataException("Owner of File/Folder does not exist.");
+
+        boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
+
+        return FileSystemItem.builder()
+                .createdByUserId(fileSystemEntity.getCreatedByUserId())
+                .fileSystemId(fileSystemEntity.getFileSystemId())
+                .lastUpdated(fileSystemEntity.getLastUpdated())
+                .name(fileSystemEntity.getName())
+                .size(fileSystemEntity.getSize())
+                .type(fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId()))
+                .path(basePath + fileSystemEntity.getName())
+                .isShared(isShared)
+                .build();
     }
 }

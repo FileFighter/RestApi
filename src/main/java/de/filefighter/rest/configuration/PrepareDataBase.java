@@ -21,8 +21,8 @@ import java.time.Instant;
 @Configuration
 public class PrepareDataBase {
 
-    private static final String MESSAGE_ON_SUCCESS = " was successful.";
-    private static final String MESSAGE_ON_FAILURE = " failed.";
+    private static final String MESSAGE_ON_SUCCESS = "was successful.";
+    private static final String MESSAGE_ON_FAILURE = "failed.";
 
     @Value("${server.port}")
     int serverPort;
@@ -178,7 +178,7 @@ public class PrepareDataBase {
                             .visibleForGroupIds(new long[]{0})
                             .build()));
 
-            LOG.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            LOG.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 3 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             LOG.info("Inserting token {}", (accessTokenRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             LOG.info("Inserting Users {}", (userRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };

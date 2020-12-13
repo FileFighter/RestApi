@@ -1,28 +1,20 @@
 package de.filefighter.rest.domain.filesystem.data.dto;
 
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Data;
 
-@Getter
-@Setter
+@Builder
+@Data
 public class FileSystemItem {
+
     private long fileSystemId;
+    private String path;
     private String name;
+    private boolean isShared;
     private double size;
     private long createdByUserId; //uploadedBy
     private long lastUpdated;
     private FileSystemType type;
 
-    protected FileSystemItem() {
-    }
-
-    public FileSystemItem(long fileSystemId, String name, double size, long createdByUserId, long lastUpdated, FileSystemType type) {
-        this.fileSystemId = fileSystemId;
-        this.name = name;
-        this.size = size;
-        this.createdByUserId = createdByUserId;
-        this.lastUpdated = lastUpdated;
-        this.type = type;
-    }
 }
