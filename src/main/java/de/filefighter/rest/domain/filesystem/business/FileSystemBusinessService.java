@@ -13,11 +13,13 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistance.UserEntity;
 import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+@Log4j2
 @Service
 public class FileSystemBusinessService {
 
@@ -64,39 +66,40 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // remove all not accessible items.
-        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || userEntityWithUsername.getUserId() != entity.getCreatedByUserId() || !userIsAllowedToSeeFileSystemEntity(entity, authenticatedUser));
+        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !userIsAllowedToSeeFileSystemEntity(entity, authenticatedUser));
 
         if (listOfFileSystemEntities.isEmpty())
             throw new FileSystemContentsNotAccessibleException();
 
-        if (listOfFileSystemEntities.size() != 1)
-            throw new IllegalStateException("More than one folder was found with the path " + pathToFind + " and name " + username);
+        // now only own or shared folders are left.
+        log.info("Found {} folders for path {}.", listOfFileSystemEntities.size(), pathToFind);
 
         // get the contents
-        FileSystemEntity fileSystemEntity = listOfFileSystemEntities.get(0);
-        return this.getFolderContentsByEntity(fileSystemEntity, authenticatedUser);
+        return this.getFolderContentsByEntity(listOfFileSystemEntities, authenticatedUser);
     }
 
-    public FolderContents getFolderContentsByEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
-        long[] folderContentItemIds = fileSystemEntity.getItemIds();
-
+    public FolderContents getFolderContentsByEntity(ArrayList<FileSystemEntity> fileSystemEntities, User authenticatedUser) {
         ArrayList<Folder> folders = new ArrayList<>();
         ArrayList<File> files = new ArrayList<>();
 
-        // check if the contents are visible.
-        for (long fileSystemId : folderContentItemIds) {
-            FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
+        for (FileSystemEntity fileSystemEntity : fileSystemEntities) {
+            long[] folderContentItemIds = fileSystemEntity.getItemIds();
 
-            if (null == fileSystemEntityInFolder)
-                throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemEntity + " but was empty.");
+            // check if the contents are visible.
+            for (long fileSystemId : folderContentItemIds) {
+                FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
 
-            if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                if (fileSystemEntityInFolder.isFile()) {
-                    File file = fileSystemItemsDTOService.createFileDto(fileSystemEntityInFolder);
-                    files.add(file);
-                } else {
-                    Folder folder = fileSystemItemsDTOService.createFolderDto(fileSystemEntityInFolder);
-                    folders.add(folder);
+                if (null == fileSystemEntityInFolder)
+                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemEntities + " but was empty.");
+
+                if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+                    if (fileSystemEntityInFolder.isFile()) {
+                        File file = fileSystemItemsDTOService.createFileDto(fileSystemEntityInFolder);
+                        files.add(file);
+                    } else {
+                        Folder folder = fileSystemItemsDTOService.createFolderDto(fileSystemEntityInFolder);
+                        folders.add(folder);
+                    }
                 }
             }
         }

@@ -125,7 +125,7 @@ public class PrepareDataBase {
                             .lowercaseUsername("user1")
                             .password("12345")
                             .refreshToken("rft")
-                            .groupIds(new long[]{-1})
+                            .groupIds(new long[]{0})
                             .build()));
 
             LOG.info("Preloading default tokens: {} {}",
