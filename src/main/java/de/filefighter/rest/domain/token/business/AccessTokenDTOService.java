@@ -2,8 +2,8 @@ package de.filefighter.rest.domain.token.business;
 
 import de.filefighter.rest.domain.common.DTOServiceInterface;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
 import de.filefighter.rest.domain.token.exceptions.AccessTokenNotFoundException;
 import org.springframework.stereotype.Service;
 

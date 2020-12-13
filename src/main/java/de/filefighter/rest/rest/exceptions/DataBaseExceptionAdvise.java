@@ -3,7 +3,7 @@ package de.filefighter.rest.rest.exceptions;
 import de.filefighter.rest.domain.health.business.SystemHealthBusinessService;
 import de.filefighter.rest.domain.health.data.SystemHealth;
 import de.filefighter.rest.rest.ServerResponse;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+@Log4j2
 @ControllerAdvice
 public class DataBaseExceptionAdvise {
 
@@ -27,7 +28,7 @@ public class DataBaseExceptionAdvise {
     @ExceptionHandler(DataAccessException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     ResponseEntity<ServerResponse> requestDidntMeetFormalRequirements(DataAccessException ex) {
-        LoggerFactory.getLogger(DataAccessException.class).warn(ex.getMessage());
+        log.warn(ex.getMessage());
         systemHealthBusinessService.triggerIntegrityChange(SystemHealth.DataIntegrity.UNSTABLE);
         return new ResponseEntity<>(new ServerResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Error occurred."), HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -8,20 +8,18 @@ import de.filefighter.rest.domain.user.data.persistance.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+@Log4j2
 @Service
 public class UserAuthorizationService {
 
     private final UserRepository userRepository;
     private final UserDTOService userDtoService;
-
-    private static final Logger LOG = LoggerFactory.getLogger(UserAuthorizationService.class);
 
     public UserAuthorizationService(UserRepository userRepository, UserDTOService userDtoService) {
         this.userRepository = userRepository;
@@ -34,7 +32,7 @@ public class UserAuthorizationService {
             byte[] decodedValue = Base64.getDecoder().decode(base64encodedUserAndPassword);
             decodedUsernameAndPassword = new String(decodedValue, StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
-            LOG.warn("Found {} in {}", ex.getMessage(), base64encodedUserAndPassword);
+            log.warn("Found {} in {}", ex.getMessage(), base64encodedUserAndPassword);
             throw new RequestDidntMeetFormalRequirementsException("Found unsupported character in header.");
         }
 

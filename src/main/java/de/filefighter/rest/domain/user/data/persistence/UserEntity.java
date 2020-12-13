@@ -1,4 +1,4 @@
-package de.filefighter.rest.domain.user.data.persistance;
+package de.filefighter.rest.domain.user.data.persistence;
 
 import lombok.Builder;
 import lombok.Getter;

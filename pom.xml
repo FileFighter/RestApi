@@ -17,6 +17,8 @@
     <properties>
         <java.version>11</java.version>
         <cucumber.version>6.9.0</cucumber.version>
+        <sonar.coverage.exclusions>**/data/**/*.java,**/configuration/*.java,**/exceptions/*.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -139,6 +141,13 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.6</version>
+                <configuration>
+                    <excludes>
+                        <exclude>de/filefighter/rest/domain/**/data/**/*.class</exclude>
+                        <exclude>de/filefighter/rest/configuration/*.class</exclude>
+                        <exclude>de/filefighter/rest/domain/**/exceptions/*.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

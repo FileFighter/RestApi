@@ -1,18 +1,18 @@
 package de.filefighter.rest.domain.token.business;
 
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenEntity;
-import de.filefighter.rest.domain.token.data.persistance.AccessTokenRepository;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
+import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Log4j2
 @Service
 public class AccessTokenBusinessService {
 
@@ -21,7 +21,6 @@ public class AccessTokenBusinessService {
 
     public static final long ACCESS_TOKEN_DURATION_IN_SECONDS = 3600L;
     public static final long ACCESS_TOKEN_SAFETY_MARGIN = 5L;
-    private static final Logger LOG = LoggerFactory.getLogger(AccessTokenBusinessService.class);
 
     public AccessTokenBusinessService(AccessTokenRepository accessTokenRepository, AccessTokenDTOService accessTokenDtoService) {
         this.accessTokenRepository = accessTokenRepository;
@@ -43,7 +42,7 @@ public class AccessTokenBusinessService {
             accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
         } else {
             if (currentTimeSeconds + ACCESS_TOKEN_SAFETY_MARGIN > accessTokenEntity.getValidUntil()) {
-                LOG.info("Deleting AccessToken for UserId {}, because its invalid now.", userId);
+                log.info("Deleting AccessToken for UserId {}, because its invalid now.", userId);
                 long deletedTokenAmount = accessTokenRepository.deleteByUserId(userId);
                 if (1L != deletedTokenAmount)
                     throw new FileFighterDataException("AccessToken for userId " + userId + " could not be deleted.");
