@@ -83,19 +83,31 @@ public class PrepareDataBase {
                     .groupIds(new long[]{0, 1})
                     .build()));
 
-            log.info("Preloading default fsStructure: {}.", fileSystemRepository.save(FileSystemEntity
-                    .builder()
-                    .createdByUserId(0)
-                    .fileSystemId(0)
-                    .isFile(false)
-                    .path("/")
-                    .itemIds(new long[0])
-                    .lastUpdated(Instant.now().getEpochSecond())
-                    .name("root")
-                    .size(0)
-                    .typeId(FileSystemType.FOLDER.getId())
-                    .visibleForGroupIds(new long[]{-1, 0, 1})
-                    .build()));
+            log.info("Preloading default fsStructure: {} {}.", fileSystemRepository.save(FileSystemEntity
+                            .builder()
+                            .createdByUserId(0)
+                            .fileSystemId(0)
+                            .isFile(false)
+                            .path("/")
+                            .itemIds(new long[0])
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("root")
+                            .size(0)
+                            .typeId(FileSystemType.FOLDER.getId())
+                            .visibleForGroupIds(new long[]{-1, 0, 1})
+                            .itemIds(new long[]{1})
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(0)
+                            .fileSystemId(1)
+                            .isFile(true)
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("dummyFile.txt")
+                            .size(420)
+                            .typeId(FileSystemType.TEXT.getId())
+                            .editableFoGroupIds(new long[]{0})
+                            .visibleForGroupIds(new long[]{0})
+                            .build()));
 
             log.info("Inserting Users {}", (userRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             log.info("Inserting fsItems {}", (fileSystemRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
