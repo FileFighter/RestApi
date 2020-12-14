@@ -1,17 +1,13 @@
 package de.filefighter.rest.domain.user.data.persistence;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Document(collection = "user")
-@Getter
-@ToString
+@Data
 @Builder
-@Setter
 public class UserEntity {
 
     @MongoId
