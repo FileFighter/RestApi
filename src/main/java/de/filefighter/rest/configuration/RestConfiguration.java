@@ -12,6 +12,6 @@ public class RestConfiguration {
     public static final String DEFAULT_ERROR_URI = "/error";
 
     private RestConfiguration(){
-        // Cannot be inst
+        // Cannot be instantiated.
     }
 }

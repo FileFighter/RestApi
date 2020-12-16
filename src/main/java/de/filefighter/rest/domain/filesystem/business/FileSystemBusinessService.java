@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -33,7 +34,7 @@ public class FileSystemBusinessService {
 
     // TODO: implement necessary files when a new user is created.
 
-    public ArrayList<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
+    public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
         if (!InputSanitizerService.stringIsValid(path))
             throw new FileSystemContentsNotAccessibleException("Path was not valid.");
 
