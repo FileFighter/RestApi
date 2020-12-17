@@ -82,7 +82,7 @@ public class UserBusinessService {
         return userDtoService.createDto(entity);
     }
 
-    public void registerNewUser(UserRegisterForm newUser) {
+    public UserEntity registerNewUser(UserRegisterForm newUser) {
         String username = newUser.getUsername();
 
         if (!stringIsValid(username))
@@ -121,7 +121,7 @@ public class UserBusinessService {
         }
 
         //create new user.
-        userRepository.save(UserEntity.builder()
+        return userRepository.save(UserEntity.builder()
                 .lowercaseUsername(username.toLowerCase())
                 .username(username)
                 .password(password)

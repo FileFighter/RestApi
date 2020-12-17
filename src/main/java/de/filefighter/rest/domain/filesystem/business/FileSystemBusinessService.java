@@ -9,11 +9,14 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.group.Groups;
 import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +25,7 @@ import java.util.List;
 @Service
 public class FileSystemBusinessService {
 
+    private static final int FILE_SYSTEM_ID_MAX = 99999999;
     private final FileSystemRepository fileSystemRepository;
     private final UserBusinessService userBusinessService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
@@ -32,7 +36,6 @@ public class FileSystemBusinessService {
         this.fileSystemTypeRepository = fileSystemTypeRepository;
     }
 
-    // TODO: implement necessary files when a new user is created.
     public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
         if (!InputSanitizerService.stringIsValid(path))
             throw new FileSystemContentsNotAccessibleException("Path was not valid.");
@@ -135,5 +138,32 @@ public class FileSystemBusinessService {
                 .path(basePath + fileSystemEntity.getName())
                 .isShared(isShared)
                 .build();
+    }
+
+    public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
+        fileSystemRepository.save(FileSystemEntity
+                .builder()
+                .createdByUserId(registeredUserEntity.getUserId())
+                .typeId(0)
+                .isFile(false)
+                .name("root_" + registeredUserEntity.getUsername())
+                .path("/")
+                .lastUpdated(Instant.now().getEpochSecond())
+                .fileSystemId(generateRandomFileSystemId())
+                .build());
+    }
+
+    public long generateRandomFileSystemId() {
+        long possibleFileSystemId = 0L;
+        boolean possibleFileSystemIdIsFree = false;
+
+        while (!possibleFileSystemIdIsFree) {
+            possibleFileSystemId = new SecureRandom().nextInt(FileSystemBusinessService.FILE_SYSTEM_ID_MAX);
+            FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(possibleFileSystemId);
+            if (null == fileSystemEntity && possibleFileSystemId > 0)
+                possibleFileSystemIdIsFree = true;
+        }
+
+        return possibleFileSystemId;
     }
 }
