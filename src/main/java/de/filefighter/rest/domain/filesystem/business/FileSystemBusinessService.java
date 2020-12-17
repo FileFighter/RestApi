@@ -39,7 +39,7 @@ public class FileSystemBusinessService {
 
         String[] pathWithoutSlashes = path.split("/");
 
-        if (!path.equals("/") && pathWithoutSlashes.length < 1)
+        if (!path.equals("/") && pathWithoutSlashes.length < 2)
             throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
 
         if (!path.equals("/") && !"".equals(pathWithoutSlashes[0]))
@@ -49,7 +49,7 @@ public class FileSystemBusinessService {
 
         // find the folder with matching path.
         ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
-        if (listOfFileSystemEntities.isEmpty())
+        if (null == listOfFileSystemEntities) // does return null and not a empty collection.
             throw new FileSystemContentsNotAccessibleException();
 
         // remove all not accessible items.
@@ -59,10 +59,10 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // now only own or shared folders are left.
-        return getFolderContentsOfEntity(listOfFileSystemEntities, authenticatedUser, pathToFind);
+        return getFolderContentsOfEntities(listOfFileSystemEntities, authenticatedUser, pathToFind);
     }
 
-    public List<FileSystemItem> getFolderContentsOfEntity(List<FileSystemEntity> listOfFileSystemEntities, User authenticatedUser, String pathToFind){
+    public List<FileSystemItem> getFolderContentsOfEntities(List<FileSystemEntity> listOfFileSystemEntities, User authenticatedUser, String pathToFind) {
         List<FileSystemItem> fileSystemItems = new ArrayList<>();
 
         for (FileSystemEntity fileSystemEntity : listOfFileSystemEntities) {
@@ -73,10 +73,11 @@ public class FileSystemBusinessService {
                 FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
 
                 if (null == fileSystemEntityInFolder)
-                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + listOfFileSystemEntities + " but was empty.");
+                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
 
                 if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathToFind + "/"));
+                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : pathToFind + "/";
+                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
                 }
             }
         }
