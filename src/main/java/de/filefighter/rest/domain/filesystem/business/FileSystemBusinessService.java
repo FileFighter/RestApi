@@ -33,7 +33,6 @@ public class FileSystemBusinessService {
     }
 
     // TODO: implement necessary files when a new user is created.
-
     public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
         if (!InputSanitizerService.stringIsValid(path))
             throw new FileSystemContentsNotAccessibleException("Path was not valid.");
@@ -60,7 +59,11 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // now only own or shared folders are left.
-        ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>(listOfFileSystemEntities.size());
+        return getFolderContentsOfEntity(listOfFileSystemEntities, authenticatedUser, pathToFind);
+    }
+
+    public List<FileSystemItem> getFolderContentsOfEntity(List<FileSystemEntity> listOfFileSystemEntities, User authenticatedUser, String pathToFind){
+        List<FileSystemItem> fileSystemItems = new ArrayList<>();
 
         for (FileSystemEntity fileSystemEntity : listOfFileSystemEntities) {
             long[] folderContentItemIds = fileSystemEntity.getItemIds();
@@ -73,7 +76,7 @@ public class FileSystemBusinessService {
                     throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + listOfFileSystemEntities + " but was empty.");
 
                 if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathToFind));
+                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathToFind + "/"));
                 }
             }
         }
@@ -81,7 +84,7 @@ public class FileSystemBusinessService {
         return fileSystemItems;
     }
 
-    private String removeTrailingBackSlashes(String pathToFind) {
+    public String removeTrailingBackSlashes(String pathToFind) {
         char[] chars = pathToFind.toCharArray();
         // for the case of "/"
         if (chars.length != 1 && chars[chars.length - 1] == '/') {

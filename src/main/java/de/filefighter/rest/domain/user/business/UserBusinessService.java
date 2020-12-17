@@ -183,7 +183,7 @@ public class UserBusinessService {
     }
 
     private boolean updateGroups(Update newUpdate, long[] groupIds, boolean authenticatedUserIsAdmin) {
-        if (null != groupIds) {
+        if (null != groupIds && groupIds.length != 0) {
             try {
                 for (Groups group : groupRepository.getGroupsByIds(groupIds)) {
                     if (group == Groups.ADMIN && !authenticatedUserIsAdmin)

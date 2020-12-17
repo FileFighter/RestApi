@@ -283,8 +283,9 @@ class UserBusinessServiceUnitTest {
         assertEquals("User could not get updated. No updates specified.", ex.getMessage());
 
         UserRegisterForm userRegisterForm1 = UserRegisterForm.builder().build();
+        User authenticatedUser1 = User.builder().groups(null).build();
         ex = assertThrows(UserNotUpdatedException.class, () ->
-                userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+                userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser1));
         assertEquals("User could not get updated. Authenticated User is not allowed.", ex.getMessage());
 
         authenticatedUser.setGroups(new Groups[]{Groups.UNDEFINED});
