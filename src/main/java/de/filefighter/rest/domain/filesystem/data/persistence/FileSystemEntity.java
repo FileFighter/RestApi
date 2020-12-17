@@ -12,7 +12,8 @@ public class FileSystemEntity {
 
     @MongoId
     private String mongoId;
-    private long fileSystemId;
+    @Builder.Default
+    private long fileSystemId = -1;
     private String name;
     private String path;
     private long typeId;

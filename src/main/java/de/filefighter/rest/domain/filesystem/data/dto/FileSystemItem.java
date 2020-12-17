@@ -8,7 +8,8 @@ import lombok.Data;
 @Data
 public class FileSystemItem {
 
-    private long fileSystemId;
+    @Builder.Default
+    private long fileSystemId = -1;
     private String path;
     private String name;
     private boolean isShared;

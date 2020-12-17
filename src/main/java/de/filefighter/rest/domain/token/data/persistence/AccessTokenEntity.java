@@ -13,7 +13,8 @@ public class AccessTokenEntity {
     @MongoId
     private String mongoId;
     private String value;
-    private long userId;
+    @Builder.Default
+    private long userId = -1;
     private long validUntil;
 
 }
