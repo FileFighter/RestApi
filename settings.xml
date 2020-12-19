@@ -10,7 +10,7 @@
             </activation>
             <properties>
                 <sonar.host.url>
-                  http://sonar.filefighter.de
+                  https://sonar.filefighter.de
                 </sonar.host.url>
                 <sonar.login>${env.SONAR_LOGIN}</sonar.login>
                 <sonar.password>${env.SONAR_PASSWORD}</sonar.password>
