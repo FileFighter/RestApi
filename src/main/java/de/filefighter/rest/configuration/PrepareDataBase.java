@@ -33,6 +33,7 @@ public class PrepareDataBase {
     @Value("${filefighter.date}")
     String date;
 
+    @SuppressWarnings("squid:S106")
     @Bean
     @Profile({"dev", "prod"})
     CommandLineRunner veryImportantFileFighterStartScript() {
@@ -40,17 +41,17 @@ public class PrepareDataBase {
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
             System.out.println();
-            System.out.println("  _____   _   _          _____   _           _       _                 ");
-            System.out.println(" |  ___| (_) | |   ___  |  ___| (_)   __ _  | |__   | |_    ___   _ __ ");
+            System.out.println("  _____   _   _          _____   _           _       _");
+            System.out.println(" |  ___| (_) | |   ___  |  ___| (_)   __ _  | |__   | |_    ___   _ __");
             System.out.println(" | |_    | | | |  / _ \\ | |_    | |  / _  | | '_ \\  | __|  / _ \\ | '__|");
-            System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |   ");
-            System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|   ");
-            System.out.println("                                     |___/                             ");
-            System.out.println("                  Version v" + version + " Last updated at " + date + "               ");
-            System.out.println("             Developed by Gimleux, Valentin, Open-Schnick.            ");
-            System.out.println("           Development Blog: https://filefighter.github.io            ");
-            System.out.println("       The code can be found at: https://www.github.com/filefighter    ");
-            System.out.println("                   Running on http://localhost:" + serverPort);
+            System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |");
+            System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|");
+            System.out.println("                                     |___/");
+            System.out.println("                 Version v" + version + " Last updated at " + date + "");
+            System.out.println("               Developed by Gimleux, Valentin, Open-Schnick.");
+            System.out.println("               Development Blog: https://blog.filefighter.de");
+            System.out.println("        The code can be found at: https://www.github.com/filefighter");
+            System.out.println("                    Running on http://localhost:" + serverPort);
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
             System.out.println();
@@ -160,7 +161,7 @@ public class PrepareDataBase {
                             .path("/")
                             .itemIds(new long[]{2})
                             .lastUpdated(Instant.now().getEpochSecond())
-                            .name("root_User")
+                            .name("HOME_User")
                             .size(420)
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{0, 1})
@@ -171,7 +172,7 @@ public class PrepareDataBase {
                             .isFile(false)
                             .path("/")
                             .lastUpdated(Instant.now().getEpochSecond())
-                            .name("root_User1")
+                            .name("HOME_User1")
                             .size(420)
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{-1, 0, 1})

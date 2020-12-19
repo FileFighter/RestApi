@@ -77,7 +77,7 @@ public class FileSystemBusinessService {
                     throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
 
                 if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : pathToFind + "/";
+                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : pathToFind + "/"; //NOSONAR
                     fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
                 }
             }
