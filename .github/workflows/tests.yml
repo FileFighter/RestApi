@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/**'
       - 'pom.xml'
+      - '.github/workflows/tests.yml'
 
 jobs:
   Run_all_tests:
