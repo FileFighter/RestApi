@@ -151,6 +151,18 @@ public class FileSystemBusinessService {
                 .build());
     }
 
+    public double getTotalFileSize() {
+        ArrayList<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
+        if (null == entities)
+            throw new FileFighterDataException("Couldn't find any Home directories!");
+
+        double size = 0;
+        for (FileSystemEntity entity : entities) {
+            size += entity.getSize();
+        }
+        return size;
+    }
+
     public long getFileSystemEntityCount() {
         return fileSystemRepository.count();
     }

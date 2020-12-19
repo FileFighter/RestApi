@@ -20,10 +20,10 @@ import static org.mockito.Mockito.when;
 
 class FileSystemBusinessServiceUnitTest {
 
-    private final FileSystemRepository fileSystemRepository = mock(FileSystemRepository.class);
+    private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
     private final UserBusinessService userBusinessService = mock(UserBusinessService.class);
     private final FileSystemTypeRepository fileSystemTypeRepository = mock(FileSystemTypeRepository.class);
-    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepository, userBusinessService, fileSystemTypeRepository);
+    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, userBusinessService, fileSystemTypeRepository);
 
     @Test
     void getFolderContentsByPathThrows() {
@@ -46,7 +46,7 @@ class FileSystemBusinessServiceUnitTest {
                 fileSystemBusinessService.getFolderContentsByPath(wrongFormat1, dummyUser));
         assertEquals("Folder contents could not be displayed. Path was in wrong format. Use a leading backslash.", ex.getMessage());
 
-        when(fileSystemRepository.findByPath(validPath)).thenReturn(null);
+        when(fileSystemRepositoryMock.findByPath(validPath)).thenReturn(null);
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
@@ -57,7 +57,7 @@ class FileSystemBusinessServiceUnitTest {
         fileSystemEntityArrayList.add(FileSystemEntity.builder().isFile(false).typeId(-1).build());
         fileSystemEntityArrayList.add(FileSystemEntity.builder().createdByUserId(420).build());
 
-        when(fileSystemRepository.findByPath(validPath)).thenReturn(fileSystemEntityArrayList);
+        when(fileSystemRepositoryMock.findByPath(validPath)).thenReturn(fileSystemEntityArrayList);
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
@@ -67,7 +67,7 @@ class FileSystemBusinessServiceUnitTest {
     @Test
     void getFolderContentsByPathWorks() {
         String path = "/uga/buga/buga";
-        String pathToRequest = path+"/";
+        String pathToRequest = path + "/";
         long userId = 420;
         long fileIdInFolder = 123;
         User user = User.builder().userId(userId).build();
@@ -75,8 +75,8 @@ class FileSystemBusinessServiceUnitTest {
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
         entities.add(foundFolder);
 
-        when(fileSystemRepository.findByPath(path)).thenReturn(entities);
-        when(fileSystemRepository.findByFileSystemId(fileIdInFolder)).thenReturn(FileSystemEntity.builder().createdByUserId(userId).build());
+        when(fileSystemRepositoryMock.findByPath(path)).thenReturn(entities);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileIdInFolder)).thenReturn(FileSystemEntity.builder().createdByUserId(userId).build());
         when(userBusinessService.getUserById(userId)).thenReturn(User.builder().build());
 
         ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(pathToRequest, user);
@@ -92,7 +92,7 @@ class FileSystemBusinessServiceUnitTest {
         ArrayList<FileSystemEntity> arrayList = new ArrayList<>();
         arrayList.add(foundFolder);
 
-        when(fileSystemRepository.findByFileSystemId(fileSystemId)).thenReturn(null);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId)).thenReturn(null);
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.getFolderContentsOfEntities(arrayList, authenticatedUser, "/"));
@@ -101,18 +101,18 @@ class FileSystemBusinessServiceUnitTest {
 
     @Test
     void getFolderContentsOfEntityWorks() {
-            long userId = 420;
+        long userId = 420;
         User authenticatedUser = User.builder().userId(userId).build();
         FileSystemEntity foundFolder = FileSystemEntity.builder().itemIds(new long[]{0, 1, 2, 3, 4}).build();
         ArrayList<FileSystemEntity> arrayList = new ArrayList<>();
         arrayList.add(foundFolder);
 
         FileSystemEntity dummyEntity = FileSystemEntity.builder().createdByUserId(userId).build();
-        when(fileSystemRepository.findByFileSystemId(0)).thenReturn(dummyEntity);
-        when(fileSystemRepository.findByFileSystemId(1)).thenReturn(dummyEntity);
-        when(fileSystemRepository.findByFileSystemId(2)).thenReturn(dummyEntity);
-        when(fileSystemRepository.findByFileSystemId(3)).thenReturn(dummyEntity);
-        when(fileSystemRepository.findByFileSystemId(4)).thenReturn(FileSystemEntity.builder().createdByUserId(userId+1).build());
+        when(fileSystemRepositoryMock.findByFileSystemId(0)).thenReturn(dummyEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(1)).thenReturn(dummyEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(2)).thenReturn(dummyEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(3)).thenReturn(dummyEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(4)).thenReturn(FileSystemEntity.builder().createdByUserId(userId + 1).build());
         when(userBusinessService.getUserById(userId)).thenReturn(User.builder().userId(userId).build());
 
         ArrayList<FileSystemItem> actual = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsOfEntities(arrayList, authenticatedUser, "/");
@@ -214,5 +214,26 @@ class FileSystemBusinessServiceUnitTest {
         assertEquals(FileSystemType.UNDEFINED, actual.getType());
         assertEquals(basePath + name, actual.getPath());
         assertTrue(actual.isShared());
+    }
+
+    @Test
+    void getTotalFileSizeThrows() {
+        when(fileSystemRepositoryMock.findByPath("/")).thenReturn(null);
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, fileSystemBusinessService::getTotalFileSize);
+        assertEquals("Internal Error occurred. Couldn't find any Home directories!", ex.getMessage());
+    }
+
+    @Test
+    void getTotalFileSizeWorks() {
+        double size0 = 1.3;
+        double size1 = 2.4;
+        ArrayList<FileSystemEntity> entities = new ArrayList<>();
+        entities.add(FileSystemEntity.builder().size(size0).build());
+        entities.add(FileSystemEntity.builder().size(size1).build());
+
+        when(fileSystemRepositoryMock.findByPath("/")).thenReturn(entities);
+
+        double actualSize = fileSystemBusinessService.getTotalFileSize();
+        assertEquals(size0 + size1, actualSize);
     }
 }

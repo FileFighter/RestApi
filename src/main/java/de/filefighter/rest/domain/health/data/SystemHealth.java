@@ -12,6 +12,7 @@ import lombok.Data;
 public class SystemHealth {
     private final long uptimeInSeconds;
     private final long userCount;
+    private final double usedStorageInMb;
     private final DataIntegrity dataIntegrity;
     private final String version;
 
