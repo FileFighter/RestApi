@@ -9,3 +9,6 @@ Backend REST API for FileFighter
 ![Latest Release](https://github.com/FileFighter/RestApi/workflows/Latest%20Release/badge.svg)
 ![Stable Release](https://github.com/FileFighter/RestApi/workflows/Stable%20Release/badge.svg)
 ![Tests](https://github.com/FileFighter/RestApi/workflows/Tests/badge.svg)
+
+
+![Test](https://sonar.filefighter.de/images/logo.svg?v=6.6)
