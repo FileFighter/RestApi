@@ -15,7 +15,6 @@ import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +24,6 @@ import java.util.List;
 @Service
 public class FileSystemBusinessService {
 
-    private static final int FILE_SYSTEM_ID_MAX = 99999999;
     private final FileSystemRepository fileSystemRepository;
     private final UserBusinessService userBusinessService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
@@ -146,24 +144,18 @@ public class FileSystemBusinessService {
                 .createdByUserId(registeredUserEntity.getUserId())
                 .typeId(0)
                 .isFile(false)
-                .name("root_" + registeredUserEntity.getUsername())
+                .name("HOME_" + registeredUserEntity.getUsername())
                 .path("/")
                 .lastUpdated(Instant.now().getEpochSecond())
-                .fileSystemId(generateRandomFileSystemId())
+                .fileSystemId(generateNextFileSystemId())
                 .build());
     }
 
-    public long generateRandomFileSystemId() {
-        long possibleFileSystemId = 0L;
-        boolean possibleFileSystemIdIsFree = false;
+    public long getFileSystemEntityCount() {
+        return fileSystemRepository.count();
+    }
 
-        while (!possibleFileSystemIdIsFree) {
-            possibleFileSystemId = new SecureRandom().nextInt(FileSystemBusinessService.FILE_SYSTEM_ID_MAX);
-            FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(possibleFileSystemId);
-            if (null == fileSystemEntity && possibleFileSystemId > 0)
-                possibleFileSystemIdIsFree = true;
-        }
-
-        return possibleFileSystemId;
+    public long generateNextFileSystemId() {
+        return getFileSystemEntityCount() + 1;
     }
 }
