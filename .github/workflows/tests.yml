@@ -28,6 +28,8 @@ jobs:
       -
         name: Run Tests and update Sonar (import cert first)
         run: |
+          whoami
+          echo $JAVA_HOME
           echo "${{ secrets.SSL_CERT }}" > filefighter.de_ssl_certificate.cer
           yes yes | keytool -import -alias filefighterde -file filefighter.de_ssl_certificate.cer  -storetype JKS -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
           mvn clean verify sonar:sonar -s ./settings.xml
