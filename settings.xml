@@ -10,7 +10,7 @@
             </activation>
             <properties>
                 <sonar.host.url>
-                  http://filefighter.ddns.net:9000
+                  http://sonar.filefighter.de
                 </sonar.host.url>
                 <sonar.login>${env.SONAR_LOGIN}</sonar.login>
                 <sonar.password>${env.SONAR_PASSWORD}</sonar.password>
