@@ -20,7 +20,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -90,7 +89,19 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 
-    // This step almost needs a unit test.
+    @And("fileSystemItem with the fileSystemId {long} exists and has the path {string}")
+    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, String path) {
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} exists and has the name {string}")
+    public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, String name) {
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} is a folder and contains the fileSystemId {long}")
+    public void fileSystemItemWithTheFileSystemIdIsAFolderAndContainsTheFileSystemId(long fileSystemIdFolder, long fileSystemId) {
+    }
+
+    /* This step almost needs a unit test.
     @Given("{string} exists with fileSystemId {long} and path {string}")
     public void fileOrFolderExistsWithIdAndPath(String fileOrFolder, long fsItemId, String path) {
         String[] names = path.split("/");
@@ -141,9 +152,9 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 }
             }
         }
-    }
+    }*/
 
-    @And("user {long} is owner of file or folder with fileSystemId {long}")
+    @And("user with userId {long} is owner of file or folder with fileSystemId {long}")
     public void userIsOwnerOfFileOrFolderWithId(long userId, long fsItemId) {
         FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
 
@@ -188,4 +199,5 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         assertNotEquals(differentValue, actualValue);
     }
+
 }
