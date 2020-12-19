@@ -26,7 +26,7 @@ jobs:
           docker create -p 27017:27017 --name FileFighterDB mongo:latest
           docker start FileFighterDB
       -
-        name: Run Tests and update Sonar
+        name: Run Tests and update Sonar (import cert first)
         run: |
           echo "${{ secrets.SSL_CERT }}" > filefighter.de_ssl_certificate.cer
           yes yes | keytool -import -alias filefighterde -file filefighter.de_ssl_certificate.cer  -storetype JKS -keystore $JAVA_HOME/lib/security/cacerts -storepass "${{ secrets.STOREPASS }}"
