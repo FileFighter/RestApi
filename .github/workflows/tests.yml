@@ -26,7 +26,12 @@ jobs:
           docker start FileFighterDB
       -
         name: Run Tests and update Sonar
-        run: mvn clean verify sonar:sonar -s ./settings.xml
+        run: |
+          echo ${{ secrets.SSL_CERT }} > filefighter.de_ssl_certificate.cer
+          yes yes | keytool -import -alias filefighterde -file filefighter.de_ssl_certificate.cer  -storetype JKS -keystore $JAVA_HOME/lib/security/cacerts -storepass ${{ secrets.STOREPASS }}
+          mvn clean verify sonar:sonar -s ./settings.xml
+          rm filefighter.de_ssl_certificate.cer
+          keytool -delete -alias filefighterde -keystore $JAVA_HOME/lib/security/cacerts -storepass ${{ secrets.STOREPASS }}
         env:
           SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
           SONAR_PASSWORD: ${{ secrets.SONAR_PASSWORD }}
