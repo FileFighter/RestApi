@@ -10,7 +10,7 @@
     </parent>
     <groupId>de.filefighter</groupId>
     <artifactId>rest</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <name>RestApi</name>
     <description>RestApi for FileFighter</description>
 
@@ -180,10 +180,8 @@
                                     </includes>
                                     <excludes>
                                         <!-- NOT IMPLEMENTED YET -->
-                                        <!-- TODO: remove fs -->
                                         <exclude>*FileSystemRestService</exclude>
                                         <exclude>*PermissionRestService</exclude>
-                                        <exclude>*FileSystemBusinessService</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
