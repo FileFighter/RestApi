@@ -28,7 +28,7 @@ Feature: View Folder
     And accessToken with value "2345678" exists for user 9877
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
 
-  Scenario: shared folder
+  Scenario: shared folder (user)
     Given user 4321 exists
     And accessToken with value "123321123" exists for user 4321
     And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 73
@@ -36,11 +36,30 @@ Feature: View Folder
     Then response status code is 200
     And the response contains an empty list for files and folders
 
-  Scenario: shared folder and file
+  Scenario: shared folder and file (user)
     Given user 4321 exists
     And accessToken with value "123321123" exists for user 4321
     And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 73
     And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 42
+    When user with token "123321123" wants to see the content of folder with path "/bla"
+    Then response status code is 200
+    And the response contains the file with fileSystemId 72 and name "wow.txt"
+
+  Scenario: shared folder (group)
+    Given user 4321 exists
+    And user with userId 4321 is in group with groupId 1
+    And accessToken with value "123321123" exists for user 4321
+    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 73
+    When user with token "123321123" wants to see the content of folder with path "/bla"
+    Then response status code is 200
+    And the response contains an empty list for files and folders
+
+  Scenario: shared folder and file (group)
+    Given user 4321 exists
+    And user with userId 4321 is in group with groupId 1
+    And accessToken with value "123321123" exists for user 4321
+    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 73
+    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "123321123" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
