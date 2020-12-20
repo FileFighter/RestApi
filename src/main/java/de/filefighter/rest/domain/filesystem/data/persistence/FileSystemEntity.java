@@ -19,7 +19,8 @@ public class FileSystemEntity {
     private long typeId;
     private double size;
     private boolean isFile;
-    private long createdByUserId; //uploadedBy
+    @Builder.Default
+    private long createdByUserId = -1; //uploadedBy
     private long lastUpdated;
     @Builder.Default
     private long[] visibleForGroupIds = new long[0];

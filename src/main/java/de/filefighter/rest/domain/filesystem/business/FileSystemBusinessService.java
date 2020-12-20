@@ -77,7 +77,7 @@ public class FileSystemBusinessService {
                     throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
 
                 if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : pathToFind + "/"; //NOSONAR
+                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : (pathToFind + "/"); //NOSONAR
                     fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
                 }
             }
@@ -121,10 +121,10 @@ public class FileSystemBusinessService {
 
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
         User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
-        if (null == ownerOfFileSystemItem)
-            throw new FileFighterDataException("Owner of File/Folder does not exist.");
 
         boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
+        FileSystemType type = fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId());
+        boolean isAFolder = type == FileSystemType.FOLDER && !fileSystemEntity.isFile();
 
         return FileSystemItem.builder()
                 .createdByUserId(fileSystemEntity.getCreatedByUserId())
@@ -132,7 +132,7 @@ public class FileSystemBusinessService {
                 .lastUpdated(fileSystemEntity.getLastUpdated())
                 .name(fileSystemEntity.getName())
                 .size(fileSystemEntity.getSize())
-                .type(fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId()))
+                .type(isAFolder ? FileSystemType.FOLDER : type)
                 .path(basePath + fileSystemEntity.getName())
                 .isShared(isShared)
                 .build();
