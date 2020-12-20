@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
@@ -18,6 +19,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
 
     private final ObjectMapper objectMapper;
 
+    @Autowired
     public ViewFolderContentsSteps(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }

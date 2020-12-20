@@ -156,22 +156,9 @@ class FileSystemBusinessServiceUnitTest {
         assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
 
         // user is not allowed.
-        user = User.builder().groups(new Groups[]{Groups.UNDEFINED}).build();
-        fileSystemEntity = FileSystemEntity.builder().visibleForGroupIds(new long[]{1}).build();
+        user = User.builder().userId(123).groups(new Groups[]{Groups.UNDEFINED}).build();
+        fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
         assertFalse(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
-    }
-
-    @Test
-    void createDTOThrows() {
-        long userId = 420L;
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
-
-        when(userBusinessService.getUserById(userId)).thenReturn(null);
-
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.createDTO(fileSystemEntity, null, "/"));
-
-        assertEquals("Internal Error occurred. Owner of File/Folder does not exist.", ex.getMessage());
     }
 
     @Test
