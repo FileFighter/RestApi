@@ -32,6 +32,9 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     private final ObjectMapper objectMapper;
 
     @Autowired
+    MongoTemplate mongoTemplate;
+
+    @Autowired
     public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         this.userRepository = userRepository;
         this.accessTokenRepository = accessTokenRepository;
@@ -77,9 +80,6 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .build()));
     }
 
-    @Autowired
-    MongoTemplate mongoTemplate;
-
     @And("user with userId {long} is in group with groupId {long}")
     public void userWithIdIsInGroupWithId(long userId, long groupId) {
         Query query = new Query();
@@ -89,70 +89,32 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 
-    @And("fileSystemItem with the fileSystemId {long} exists and has the path {string}")
-    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, String path) {
+    @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} and has the path {string}")
+    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .path(path)
+                .createdByUserId(userId)
+                .fileSystemId(fileSystemId)
+                .build());
     }
 
-    @And("fileSystemItem with the fileSystemId {long} exists and has the name {string}")
-    public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, String name) {
+    @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} and has the name {string}")
+    public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, long userId, String name) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .name(name)
+                .createdByUserId(userId)
+                .fileSystemId(fileSystemId)
+                .build());
     }
 
     @And("fileSystemItem with the fileSystemId {long} is a folder and contains the fileSystemId {long}")
     public void fileSystemItemWithTheFileSystemIdIsAFolderAndContainsTheFileSystemId(long fileSystemIdFolder, long fileSystemId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("itemIds", new long[]{fileSystemId});
+        query.addCriteria(Criteria.where("fileSystemId").is(fileSystemIdFolder));
+
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }
-
-    /* This step almost needs a unit test.
-    @Given("{string} exists with fileSystemId {long} and path {string}")
-    public void fileOrFolderExistsWithIdAndPath(String fileOrFolder, long fsItemId, String path) {
-        String[] names = path.split("/");
-        StringBuilder completeFilePath = new StringBuilder("/");
-
-        System.out.println(Arrays.toString(names));
-
-        // build root dir.
-        fileSystemRepository.save(FileSystemEntity
-                .builder()
-                .isFile(false)
-                .path(completeFilePath.toString())
-                .build());
-
-
-        // build all files and folders.
-        for (int i = 0; i < names.length; i++) {
-            if (!names[i].isEmpty() && !names[i].isBlank()) {
-                boolean isLastOne = i == names.length - 1;
-                if (!isLastOne) {
-                    //is obviously a folder.
-                    completeFilePath.append(names[i]).append("/");
-                    fileSystemRepository.save(FileSystemEntity
-                            .builder()
-                            .isFile(false)
-                            .path(completeFilePath.toString())
-                            .build());
-                    System.out.println("folder: " + completeFilePath.toString());
-                } else {
-                    System.out.println("last one: " + names[i]);
-                    if (fileOrFolder.equals("file")) {
-                        fileSystemRepository.save(FileSystemEntity
-                                .builder()
-                                .isFile(true)
-                                .fileSystemId(fsItemId)
-                                .build());
-                    } else if (fileOrFolder.equals("folder")) {
-                        completeFilePath.append(names[i]).append("/");
-                        fileSystemRepository.save(FileSystemEntity
-                                .builder()
-                                .isFile(false)
-                                .fileSystemId(fsItemId)
-                                .path(completeFilePath.toString())
-                                .build());
-                    } else {
-                        throw new IllegalArgumentException("Found not valid string for FileOrFolder in Steps file.");
-                    }
-                }
-            }
-        }
-    }*/
 
     @And("user with userId {long} is owner of file or folder with fileSystemId {long}")
     public void userIsOwnerOfFileOrFolderWithId(long userId, long fsItemId) {

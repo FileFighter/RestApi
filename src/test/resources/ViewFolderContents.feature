@@ -5,9 +5,10 @@ Feature: View Folder
   Background:
     Given database is empty
     And user 1234 exists
+    And user 420 exists
     And accessToken with value "900000" exists for user 1234
-    And fileSystemItem with the fileSystemId 42 exists and has the path "/bla"
-    And fileSystemItem with the fileSystemId 72 exists and has the name "wow.txt"
+    And fileSystemItem with the fileSystemId 42 exists, was created by user with userId 420 and has the path "/bla"
+    And fileSystemItem with the fileSystemId 72 exists, was created by user with userId 420 and has the name "wow.txt"
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 72
 
   Scenario: Successful interaction
@@ -31,7 +32,7 @@ Feature: View Folder
   Scenario: shared folder (user)
     Given user 4321 exists
     And accessToken with value "123321123" exists for user 4321
-    And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 73
+    And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "123321123" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains an empty list for files and folders
@@ -39,7 +40,7 @@ Feature: View Folder
   Scenario: shared folder and file (user)
     Given user 4321 exists
     And accessToken with value "123321123" exists for user 4321
-    And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 73
+    And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 72
     And user with the userId 4321 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "123321123" wants to see the content of folder with path "/bla"
     Then response status code is 200
@@ -49,7 +50,7 @@ Feature: View Folder
     Given user 4321 exists
     And user with userId 4321 is in group with groupId 1
     And accessToken with value "123321123" exists for user 4321
-    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 73
+    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "123321123" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains an empty list for files and folders
@@ -58,15 +59,15 @@ Feature: View Folder
     Given user 4321 exists
     And user with userId 4321 is in group with groupId 1
     And accessToken with value "123321123" exists for user 4321
-    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 73
+    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 72
     And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "123321123" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
 
   Scenario: empty directory
-    Given fileSystemItem with the fileSystemId 44 exists and has the path "/empty"
+    Given fileSystemItem with the fileSystemId 44 exists, was created by user with userId 420 and has the path "/empty"
     And user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 44
-    When user with token "900000" wants to see the content of folder with path "empty"
+    When user with token "900000" wants to see the content of folder with path "/empty"
     Then response status code is 200
     And the response contains an empty list for files and folders
