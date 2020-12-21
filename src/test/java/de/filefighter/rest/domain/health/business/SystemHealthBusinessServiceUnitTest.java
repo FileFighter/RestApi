@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.health.business;
 
+import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.health.data.SystemHealth;
 import de.filefighter.rest.domain.health.data.SystemHealth.DataIntegrity;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
@@ -18,22 +19,26 @@ class SystemHealthBusinessServiceUnitTest {
 
     private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final AccessTokenBusinessService accessTokenBusinessServiceMock = mock(AccessTokenBusinessService.class);
+    private final FileSystemBusinessService fileSystemBusinessService = mock(FileSystemBusinessService.class);
     private SystemHealthBusinessService systemHealthBusinessService;
 
     @BeforeEach
     void setUp() {
-        systemHealthBusinessService = new SystemHealthBusinessService(userBusinessServiceMock, accessTokenBusinessServiceMock);
+        systemHealthBusinessService = new SystemHealthBusinessService(userBusinessServiceMock, accessTokenBusinessServiceMock, fileSystemBusinessService);
     }
 
     @Test
     void getCurrentSystemHealthInfo() {
         long expectedUserCount = 420;
+        double expectedSize = 1234.532;
 
         when(userBusinessServiceMock.getUserCount()).thenReturn(expectedUserCount);
+        when(fileSystemBusinessService.getTotalFileSize()).thenReturn(expectedSize);
 
         SystemHealth systemHealth = systemHealthBusinessService.getCurrentSystemHealthInfo();
 
         assertTrue(systemHealth.getUptimeInSeconds() >= 0);
+        assertEquals(expectedSize, systemHealth.getUsedStorageInMb());
         assertEquals(expectedUserCount, systemHealth.getUserCount());
     }
 

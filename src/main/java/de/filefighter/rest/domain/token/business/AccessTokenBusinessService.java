@@ -17,12 +17,12 @@ import java.util.UUID;
 public class AccessTokenBusinessService {
 
     private final AccessTokenRepository accessTokenRepository;
-    private final AccessTokenDtoService accessTokenDtoService;
+    private final AccessTokenDTOService accessTokenDtoService;
 
     public static final long ACCESS_TOKEN_DURATION_IN_SECONDS = 3600L;
     public static final long ACCESS_TOKEN_SAFETY_MARGIN = 5L;
 
-    public AccessTokenBusinessService(AccessTokenRepository accessTokenRepository, AccessTokenDtoService accessTokenDtoService) {
+    public AccessTokenBusinessService(AccessTokenRepository accessTokenRepository, AccessTokenDTOService accessTokenDtoService) {
         this.accessTokenRepository = accessTokenRepository;
         this.accessTokenDtoService = accessTokenDtoService;
     }

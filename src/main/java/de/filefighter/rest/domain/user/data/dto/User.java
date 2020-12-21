@@ -1,4 +1,5 @@
 package de.filefighter.rest.domain.user.data.dto;
+
 import de.filefighter.rest.domain.user.group.Groups;
 import lombok.Builder;
 import lombok.Data;
@@ -7,9 +8,11 @@ import lombok.Data;
 @Data
 @Builder
 public class User {
-    private long userId;
+    @Builder.Default
+    private long userId = -1;
     private String username;
-    private Groups[] groups;
+    @Builder.Default
+    private Groups[] groups = new Groups[0];
 
     public User(long userId, String username, Groups... groups) {
         this.userId = userId;

@@ -12,18 +12,25 @@ public class FileSystemEntity {
 
     @MongoId
     private String mongoId;
-    private long fileSystemId;
+    @Builder.Default
+    private long fileSystemId = -1;
     private String name;
     private String path;
     private long typeId;
     private double size;
     private boolean isFile;
-    private long createdByUserId; //uploadedBy
+    @Builder.Default
+    private long createdByUserId = -1; //uploadedBy
     private long lastUpdated;
-    private long[] visibleForGroupIds;
-    private long[] editableFoGroupIds;
-    private long[] visibleForUserIds;
-    private long[] editableForUserIds;
-    private long[] itemIds;
+    @Builder.Default
+    private long[] visibleForGroupIds = new long[0];
+    @Builder.Default
+    private long[] editableFoGroupIds = new long[0];
+    @Builder.Default
+    private long[] visibleForUserIds = new long[0];
+    @Builder.Default
+    private long[] editableForUserIds = new long[0];
+    @Builder.Default
+    private long[] itemIds = new long[0];
 
 }

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 class UserBusinessServiceUnitTest {
 
     private final UserRepository userRepositoryMock = mock(UserRepository.class);
-    private final UserDtoService userDtoServiceMock = mock(UserDtoService.class);
+    private final UserDTOService userDtoServiceMock = mock(UserDTOService.class);
     private final GroupRepository groupRepositoryMock = mock(GroupRepository.class);
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private UserBusinessService userBusinessService;
@@ -177,6 +177,7 @@ class UserBusinessServiceUnitTest {
 
     @Test
     void registerNewUserThrows() {
+        String notValidUsername = null;
         String username = "ValidUserName";
         String notValidPassword = "password";
         String password = "validPassword1234";
@@ -190,11 +191,18 @@ class UserBusinessServiceUnitTest {
                 .groupIds(groups)
                 .build();
 
+        // not valid.
+        userRegisterForm.setUsername(notValidUsername);
+        UserNotRegisteredException ex = assertThrows(UserNotRegisteredException.class, () ->
+                userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. Username was not valid.", ex.getMessage());
+
         // username taken
+        userRegisterForm.setUsername(username);
         when(userRepositoryMock.findByLowercaseUsername(username.toLowerCase())).thenReturn(UserEntity.builder().build());
         when(userDtoServiceMock.createDto(any())).thenReturn(User.builder().build());
 
-        UserNotRegisteredException ex = assertThrows(UserNotRegisteredException.class, () ->
+        ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
         assertEquals("User could not be registered. Username already taken.", ex.getMessage());
 
@@ -275,8 +283,9 @@ class UserBusinessServiceUnitTest {
         assertEquals("User could not get updated. No updates specified.", ex.getMessage());
 
         UserRegisterForm userRegisterForm1 = UserRegisterForm.builder().build();
+        User authenticatedUser1 = User.builder().groups(null).build();
         ex = assertThrows(UserNotUpdatedException.class, () ->
-                userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+                userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser1));
         assertEquals("User could not get updated. Authenticated User is not allowed.", ex.getMessage());
 
         authenticatedUser.setGroups(new Groups[]{Groups.UNDEFINED});

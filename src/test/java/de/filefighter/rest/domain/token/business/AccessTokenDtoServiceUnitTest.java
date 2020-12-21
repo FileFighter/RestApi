@@ -15,11 +15,11 @@ import static org.mockito.Mockito.when;
 class AccessTokenDtoServiceUnitTest {
 
     private final AccessTokenRepository accessTokenRepository = mock(AccessTokenRepository.class);
-    private AccessTokenDtoService accessTokenDtoService;
+    private AccessTokenDTOService accessTokenDtoService;
 
     @BeforeEach
     void setUp() {
-        accessTokenDtoService = new AccessTokenDtoService(accessTokenRepository);
+        accessTokenDtoService = new AccessTokenDTOService(accessTokenRepository);
     }
 
     @Test
