@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.health.business;
 
+import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.health.data.SystemHealth;
 import de.filefighter.rest.domain.health.data.SystemHealth.DataIntegrity;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
@@ -14,25 +15,28 @@ public class SystemHealthBusinessService {
 
     private final UserBusinessService userBusinessService;
     private final AccessTokenBusinessService accessTokenBusinessService;
+    private final FileSystemBusinessService fileSystemBusinessService;
     private final long serverStartedAt;
     private DataIntegrity cachedIntegrity = DataIntegrity.STABLE;
 
     @Value("${filefighter.version}")
     String version;
 
-    public SystemHealthBusinessService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService) {
+    public SystemHealthBusinessService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService) {
         this.userBusinessService = userBusinessService;
         this.accessTokenBusinessService = accessTokenBusinessService;
+        this.fileSystemBusinessService = fileSystemBusinessService;
         this.serverStartedAt = this.getCurrentEpochSeconds();
     }
 
-    public SystemHealth getCurrentSystemHealthInfo(){
+    public SystemHealth getCurrentSystemHealthInfo() {
         long currentEpoch = getCurrentEpochSeconds();
         return SystemHealth.builder()
                 .uptimeInSeconds(currentEpoch - serverStartedAt)
                 .userCount(userBusinessService.getUserCount())
+                .usedStorageInMb(fileSystemBusinessService.getTotalFileSize())
                 .dataIntegrity(calculateDataIntegrity())
-                .version("v"+this.version)
+                .version("v" + this.version)
                 .build();
     }
 
@@ -41,19 +45,19 @@ public class SystemHealthBusinessService {
         long accessTokenCount = accessTokenBusinessService.getAccessTokenCount();
 
         // Risk / Unstable Cases.
-        if(userCount < accessTokenCount){
+        if (userCount < accessTokenCount) {
             this.triggerIntegrityChange(DataIntegrity.POSSIBLE_RISK);
         }
 
         return cachedIntegrity;
     }
 
-    public long getCurrentEpochSeconds(){
+    public long getCurrentEpochSeconds() {
         return Instant.now().getEpochSecond();
     }
 
     public void triggerIntegrityChange(DataIntegrity integrity) {
-        if(cachedIntegrity.getCode() < integrity.getCode()){
+        if (cachedIntegrity.getCode() < integrity.getCode()) {
             this.cachedIntegrity = integrity;
         }
     }

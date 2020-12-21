@@ -1,84 +1,173 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-import de.filefighter.rest.domain.filesystem.data.dto.File;
-import de.filefighter.rest.domain.filesystem.data.dto.Folder;
-import de.filefighter.rest.domain.filesystem.data.dto.FolderContents;
+import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
+import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
+import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.data.persistence.UserEntity;
+import de.filefighter.rest.domain.user.group.Groups;
+import de.filefighter.rest.rest.exceptions.FileFighterDataException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+@Log4j2
 @Service
 public class FileSystemBusinessService {
 
-    public FileSystemBusinessService() {
+    private final FileSystemRepository fileSystemRepository;
+    private final UserBusinessService userBusinessService;
+    private final FileSystemTypeRepository fileSystemTypeRepository;
+
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository) {
+        this.fileSystemRepository = fileSystemRepository;
+        this.userBusinessService = userBusinessService;
+        this.fileSystemTypeRepository = fileSystemTypeRepository;
     }
 
-    public static FolderContents getContentsOfFolder(String path, User authenticatedUser) {
-        FolderContents folderContents;
-        switch (path) {
-            case "/":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{new File(0, "Passwords.crypt", 420, 0, 1897550098, FileSystemType.TEXT, null)})
-                        .folders(new Folder[]{
-                                new Folder(1, "/dhbw", "DHBW", 87568438, 0, 1589998868, null),
-                                new Folder(2, "/homework", "Homework", 1897557698, 0, 1577836800, null)
-                        })
-                        .build();
-                break;
-            case "/dhbw":
-                folderContents = FolderContents.builder()
-                        .folders(new Folder[]{
-                                new Folder(3, "/dhbw/se", "SE", 18975576, 0, 1601148846, null),
-                                new Folder(4, "/dhbw/ti-3", "TI-3", 69, 0, 1599936800, null)
-                        })
-                        .files(new File[]{
-                                new File(4, "WhatIsThis", 42, 0, 153354, FileSystemType.UNDEFINED, null),
-                                new File(5, "HerrMeyerSieWissenDochImmerAlles.mp3", 27565846, 0, 1599147368, FileSystemType.AUDIO, null),
-                                new File(6, "cucumberTestsWorkProve.mp4", 224850446, 0, 1602047368, FileSystemType.VIDEO, null),
-                                new File(7, "WeirdScreenshot.jpg", 4866848, 0, 1599949968, FileSystemType.PICTURE, null),
-                                new File(8, "ILikeThisFileType.md", 96643, 0, 1598888868, FileSystemType.TEXT, null),
-                                new File(9, "MyFirstWebsite.html", 861858, 0, 1601584968, FileSystemType.TEXT, null),
-                                new File(10, "JavaScriptFTW.js", 176643, 0, 1597388868, FileSystemType.TEXT, null),
-                                new File(11, "TheyWillNeverKnow.crypt", 75896643, 0, 1600188868, FileSystemType.UNDEFINED, null),
-                                new File(12, "Opportunismus und Repression.pdf", 4826643, 0, 1589998868, FileSystemType.PDF, null),
-                                new File(13, "ProfsINeedToBribeOrCharm.txt", 153, 0, 1589998868, FileSystemType.TEXT, null),
-                                new File(14, "FinishedFileFighterBE.java", 846846643, 0, 1624752000, FileSystemType.TEXT, null),
-                        })
-                        .build();
-                break;
-            case "/dhbw/se":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{
-                                new File(18, "FullyAutomatedDocumentationScript.py", 42042, 0, 1589998868, FileSystemType.UNDEFINED, null)
-                        }).build();
-                break;
-            case "/dhbw/ti-3":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{
-                                new File(19, "Braun verstehen in 3 Schritten - Das Buch.pdf", 42042, 0, 1589998868, FileSystemType.PDF, null)
-                        }).build();
-                break;
-            case "/homework":
-                folderContents = FolderContents.builder()
-                        .files(new File[]{new File(15, "homeworks.zip", 420, 0, Instant.now().getEpochSecond(), FileSystemType.UNDEFINED, null)})
-                        .folders(new Folder[]{new Folder(16, "/homework/jonnywishesforasecretchamber", "JonnyWishesForASecretChamber", 2, 0, 1589998868, null)})
-                        .build();
-                break;
-            case "/homework/jonnywishesforasecretchamber":
-                folderContents = FolderContents.builder()
-                        .folders(new Folder[]{new Folder(17, "/homework/johnwishesforasecretchamber/emptyfolder", "EmptyFolder", 0, 0, 1589998868, null)})
-                        .build();
-                break;
-            case "/homework/jonnywishesforasecretchamber/emptyfolder":
-                folderContents = FolderContents.builder().build();
-                break;
-            default:
-                throw new FileSystemContentsNotAccessibleException();
+    public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
+        if (!InputSanitizerService.stringIsValid(path))
+            throw new FileSystemContentsNotAccessibleException("Path was not valid.");
 
+        String[] pathWithoutSlashes = path.split("/");
+
+        if (!path.equals("/") && pathWithoutSlashes.length < 2)
+            throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
+
+        if (!path.equals("/") && !"".equals(pathWithoutSlashes[0]))
+            throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
+
+        String pathToFind = removeTrailingBackSlashes(path);
+
+        // find the folder with matching path.
+        ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
+        if (null == listOfFileSystemEntities) // does return null and not a empty collection.
+            throw new FileSystemContentsNotAccessibleException();
+
+        // remove all not accessible items.
+        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !userIsAllowedToSeeFileSystemEntity(entity, authenticatedUser));
+
+        if (listOfFileSystemEntities.isEmpty())
+            throw new FileSystemContentsNotAccessibleException();
+
+        // now only own or shared folders are left.
+        return getFolderContentsOfEntities(listOfFileSystemEntities, authenticatedUser, pathToFind);
+    }
+
+    public List<FileSystemItem> getFolderContentsOfEntities(List<FileSystemEntity> listOfFileSystemEntities, User authenticatedUser, String pathToFind) {
+        List<FileSystemItem> fileSystemItems = new ArrayList<>();
+
+        for (FileSystemEntity fileSystemEntity : listOfFileSystemEntities) {
+            long[] folderContentItemIds = fileSystemEntity.getItemIds();
+
+            // check if the contents are visible.
+            for (long fileSystemId : folderContentItemIds) {
+                FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
+
+                if (null == fileSystemEntityInFolder)
+                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
+
+                if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : (pathToFind + "/"); //NOSONAR
+                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
+                }
+            }
         }
-        return folderContents;
+
+        return fileSystemItems;
+    }
+
+    public String removeTrailingBackSlashes(String pathToFind) {
+        char[] chars = pathToFind.toCharArray();
+        // for the case of "/"
+        if (chars.length != 1 && chars[chars.length - 1] == '/') {
+            chars = Arrays.copyOf(chars, chars.length - 1);
+            return new String(chars);
+        }
+        return pathToFind;
+    }
+
+    public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
+        // user created the item
+        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
+            return true;
+
+        // user got the item shared.
+        for (long userId : fileSystemEntity.getVisibleForUserIds()) {
+            if (userId == authenticatedUser.getUserId())
+                return true;
+        }
+
+        // user is in group that got the item shared.
+        long[] fileIsSharedToGroups = fileSystemEntity.getVisibleForGroupIds();
+        for (Groups group : authenticatedUser.getGroups()) {
+            for (long groupId : fileIsSharedToGroups) {
+                if (groupId == group.getGroupId())
+                    return true;
+
+            }
+        }
+        return false;
+    }
+
+    public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
+        User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
+
+        boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
+        FileSystemType type = fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId());
+        boolean isAFolder = type == FileSystemType.FOLDER && !fileSystemEntity.isFile();
+
+        return FileSystemItem.builder()
+                .createdByUserId(fileSystemEntity.getCreatedByUserId())
+                .fileSystemId(fileSystemEntity.getFileSystemId())
+                .lastUpdated(fileSystemEntity.getLastUpdated())
+                .name(fileSystemEntity.getName())
+                .size(fileSystemEntity.getSize())
+                .type(isAFolder ? FileSystemType.FOLDER : type)
+                .path(basePath + fileSystemEntity.getName())
+                .isShared(isShared)
+                .build();
+    }
+
+    public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
+        fileSystemRepository.save(FileSystemEntity
+                .builder()
+                .createdByUserId(registeredUserEntity.getUserId())
+                .typeId(0)
+                .isFile(false)
+                .name("HOME_" + registeredUserEntity.getUsername())
+                .path("/")
+                .lastUpdated(Instant.now().getEpochSecond())
+                .fileSystemId(generateNextFileSystemId())
+                .build());
+    }
+
+    public double getTotalFileSize() {
+        ArrayList<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
+        if (null == entities)
+            throw new FileFighterDataException("Couldn't find any Home directories!");
+
+        double size = 0;
+        for (FileSystemEntity entity : entities) {
+            size += entity.getSize();
+        }
+        return size;
+    }
+
+    public long getFileSystemEntityCount() {
+        return fileSystemRepository.count();
+    }
+
+    public long generateNextFileSystemId() {
+        return getFileSystemEntityCount() + 1;
     }
 }

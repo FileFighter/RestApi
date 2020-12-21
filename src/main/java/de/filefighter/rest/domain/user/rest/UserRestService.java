@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.user.rest;
 
 import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
@@ -8,6 +9,7 @@ import de.filefighter.rest.domain.user.business.UserAuthorizationService;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
+import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.rest.ServerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +27,14 @@ public class UserRestService implements UserRestServiceInterface {
     private final UserAuthorizationService userAuthorizationService;
     private final AccessTokenBusinessService accessTokenBusinessService;
     private final InputSanitizerService inputSanitizerService;
+    private final FileSystemBusinessService fileSystemBusinessService;
 
-    public UserRestService(UserBusinessService userBusinessService, UserAuthorizationService userAuthorizationService, AccessTokenBusinessService accessTokenBusinessService, InputSanitizerService inputSanitizerService) {
+    public UserRestService(UserBusinessService userBusinessService, UserAuthorizationService userAuthorizationService, AccessTokenBusinessService accessTokenBusinessService, InputSanitizerService inputSanitizerService, FileSystemBusinessService fileSystemBusinessService) {
         this.userBusinessService = userBusinessService;
         this.userAuthorizationService = userAuthorizationService;
         this.accessTokenBusinessService = accessTokenBusinessService;
         this.inputSanitizerService = inputSanitizerService;
+        this.fileSystemBusinessService = fileSystemBusinessService;
     }
 
     @Override
@@ -82,7 +86,8 @@ public class UserRestService implements UserRestServiceInterface {
 
         AccessToken validAccessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
         userAuthorizationService.authenticateUserWithAccessTokenAndGroup(validAccessToken, ADMIN);
-        userBusinessService.registerNewUser(newUser);
+        UserEntity registeredUserEntity = userBusinessService.registerNewUser(newUser);
+        fileSystemBusinessService.createBasicFilesForNewUser(registeredUserEntity);
         return new ResponseEntity<>(new ServerResponse(HttpStatus.CREATED, "User successfully created."), HttpStatus.CREATED);
     }
 

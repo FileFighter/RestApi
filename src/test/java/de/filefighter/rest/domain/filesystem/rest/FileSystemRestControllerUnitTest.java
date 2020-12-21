@@ -1,10 +1,14 @@
 package de.filefighter.rest.domain.filesystem.rest;
 
-import de.filefighter.rest.domain.filesystem.data.dto.*;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -24,24 +28,22 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void getContentsOfFolder() {
-        Folder dummyFolder = new Folder();
-        File dummyFile = new File();
-        ResponseEntity<FolderContents> expectedModel = new ResponseEntity<>(FolderContents.builder()
-                .files(new File[]{dummyFile})
-                .folders(new Folder[]{dummyFolder}).build(), OK);
+        ArrayList<FileSystemItem> itemArrayList = new ArrayList<>();
+        itemArrayList.add(FileSystemItem.builder().build());
 
-        String path= "/root/data.txt";
+        ResponseEntity<ArrayList<FileSystemItem>> expectedModel = new ResponseEntity<>(itemArrayList, HttpStatus.OK);
+        String path = "/username/data.txt";
         String token = "token";
 
         when(fileSystemRestServiceMock.getContentsOfFolderByPathAndAccessToken(path, token)).thenReturn(expectedModel);
 
-        ResponseEntity<FolderContents> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
-        assertEquals(expectedModel, actualModel);
+        ResponseEntity<ArrayList<FileSystemItem>> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
+        assertEquals(itemArrayList, actualModel.getBody());
     }
 
     @Test
     void getFileOrFolderInfo() {
-        File file = new File();
+        FileSystemItem file = FileSystemItem.builder().build();
         ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         long id = 420;
@@ -55,7 +57,7 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void searchFileOrFolderByName() {
-        File file = new File();
+        FileSystemItem file = FileSystemItem.builder().build();
         ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         String name = "randomFile.exe";
@@ -69,7 +71,7 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void uploadFileOrFolder() {
-        File file = new File();
+        FileSystemItem file = FileSystemItem.builder().build();
         ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.builder().name("ugabuga").build();
@@ -83,7 +85,7 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void updateExistingFileOrFolder() {
-        File file = new File();
+        FileSystemItem file = FileSystemItem.builder().build();
         ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
 
         long id = 420L;

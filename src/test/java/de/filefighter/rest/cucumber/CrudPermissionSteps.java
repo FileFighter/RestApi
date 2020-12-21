@@ -1,33 +1,52 @@
 package de.filefighter.rest.cucumber;
 
 import de.filefighter.rest.RestApplicationIntegrationTest;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import io.cucumber.java.en.And;
-import io.cucumber.java.en.When;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 public class CrudPermissionSteps extends RestApplicationIntegrationTest {
 
-    @And("user {long} has permission of {string} for {string} with id {long}")
-    public void userHasPermissionOfForWithIdId(long userId, String readOrWrite, String fileOrFolder, long fsItemId) {
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    @And("group with the groupId {long} is allowed to VIEW the fileSystemItem with the fileSystemId {long}")
+    public void groupWithTheGroupIdIsAllowedToViewTheFileSystemItemWithTheFileSystemId(long groupId, long fileSystemId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("visibleForGroupIds", new long[]{groupId});
+        query.addCriteria(Criteria.where("fileSystemId").is(fileSystemId));
+
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }
 
-    @When("user with token {string} wants to change permissions of {string} with id {long} for user with id {long} to {string}")
-    public void userWithTokenWantsToChangePermissionsOfWithIdIdForUserWithIdTo(String accessTokenValue, String fileOrFolder, long fsItemId, long userId, String newPermission) {
+    @And("group with the groupId {long} is allowed to EDIT the fileSystemItem with the fileSystemId {long}")
+    public void groupWithTheGroupIdIsAllowedToEditTheFileSystemItemWithTheFileSystemId(long groupId, long fileSystemId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("editableForGroupIds", new long[]{groupId});
+        query.addCriteria(Criteria.where("fileSystemId").is(fileSystemId));
+
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }
 
-    @When("user with token {string} wants to remove permissions of {string} with id {long} for user {long}")
-    public void userWithTokenWantsToRemovePermissionsOfWithIdIdForUser(String accessTokenValue, String fileOrFolder, long fsItemId, long userId) {
+    @And("user with the userId {long} is allowed to VIEW the fileSystemItem with the fileSystemId {long}")
+    public void userWithTheUserIdIsAllowedToViewTheFileSystemItemWithTheFileSystemId(long userId, long fileSystemId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("visibleForUserIds", new long[]{userId});
+        query.addCriteria(Criteria.where("fileSystemId").is(fileSystemId));
+
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }
 
-    @And("user with id {long} has no permission for {string} with id {long}")
-    public void userWithIdHasNoPermissionForWithIdId(long userId, String fileOrFolder, long fsItemId) {
-    }
+    @And("user with the userId {long} is allowed to EDIT the fileSystemItem with the fileSystemId {long}")
+    public void userWithTheUserIdIsAllowedToEditTheFileSystemItemWithTheFileSystemId(long userId, long fileSystemId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("editableForUserIds", new long[]{userId});
+        query.addCriteria(Criteria.where("fileSystemId").is(fileSystemId));
 
-    @And("user {long} has no permission for {string} with id {long}")
-    public void userHasNoPermissionForWithId(long userId, String fileOrFolder, long fsItemId) {
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }
-
-    @When("user with token {string} wants to give {string} permission for {string} with id {long} to user {long}")
-    public void userWithTokenWantsToAddPermissionsOfWithIdForUserFor(String accessTokenValue, String permission, String fileOrFolder, long fsItemId, long userId) {
-    }
-
 }

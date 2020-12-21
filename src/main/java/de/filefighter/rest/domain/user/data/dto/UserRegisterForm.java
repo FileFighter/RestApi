@@ -11,7 +11,8 @@ public class UserRegisterForm {
     private String username;
     private String password;
     private String confirmationPassword;
-    private long[] groupIds;
+    @Builder.Default
+    private long[] groupIds = new long[0];
 
     @Override
     public String toString() {

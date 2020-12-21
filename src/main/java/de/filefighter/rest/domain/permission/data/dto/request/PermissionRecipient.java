@@ -5,12 +5,9 @@ import lombok.ToString;
 
 @Getter
 @ToString
-public class PermissionRecipient{
-    private final PermissionRecipientType permissionRecipientType;
-    private final long userOrGroupId;
+public class PermissionRecipient {
 
-    private PermissionRecipient(PermissionRecipientType permissionRecipientType, long userOrGroupId) {
-        this.permissionRecipientType = permissionRecipientType;
-        this.userOrGroupId = userOrGroupId;
-    }
+    private PermissionRecipientType permissionRecipientType;
+    private long userOrGroupId;
+
 }

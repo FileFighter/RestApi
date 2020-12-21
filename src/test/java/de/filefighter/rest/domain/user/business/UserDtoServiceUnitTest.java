@@ -18,11 +18,11 @@ class UserDtoServiceUnitTest {
 
     private final GroupRepository groupRepositoryMock = mock(GroupRepository.class);
     private final UserRepository userRepositoryMock = mock(UserRepository.class);
-    private UserDtoService userDtoService;
+    private UserDTOService userDtoService;
 
     @BeforeEach
     void setUp() {
-        userDtoService = new UserDtoService(groupRepositoryMock, userRepositoryMock);
+        userDtoService = new UserDTOService(groupRepositoryMock, userRepositoryMock);
     }
 
     @Test

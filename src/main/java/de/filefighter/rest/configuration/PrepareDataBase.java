@@ -21,8 +21,8 @@ import java.time.Instant;
 @Configuration
 public class PrepareDataBase {
 
-    private static final String MESSAGE_ON_SUCCESS = " was successful.";
-    private static final String MESSAGE_ON_FAILURE = " failed.";
+    private static final String MESSAGE_ON_SUCCESS = "was successful.";
+    private static final String MESSAGE_ON_FAILURE = "failed.";
 
     @Value("${server.port}")
     int serverPort;
@@ -32,7 +32,8 @@ public class PrepareDataBase {
 
     @Value("${filefighter.date}")
     String date;
-    
+
+    @SuppressWarnings("squid:S106")
     @Bean
     @Profile({"dev", "prod"})
     CommandLineRunner veryImportantFileFighterStartScript() {
@@ -40,17 +41,17 @@ public class PrepareDataBase {
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
             System.out.println();
-            System.out.println("  _____   _   _          _____   _           _       _                 ");
-            System.out.println(" |  ___| (_) | |   ___  |  ___| (_)   __ _  | |__   | |_    ___   _ __ ");
+            System.out.println("  _____   _   _          _____   _           _       _");
+            System.out.println(" |  ___| (_) | |   ___  |  ___| (_)   __ _  | |__   | |_    ___   _ __");
             System.out.println(" | |_    | | | |  / _ \\ | |_    | |  / _  | | '_ \\  | __|  / _ \\ | '__|");
-            System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |   ");
-            System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|   ");
-            System.out.println("                                     |___/                             ");
-            System.out.println("                  Version v" + version + " Last updated at " + date + "               ");
-            System.out.println("             Developed by Gimleux, Valentin, Open-Schnick.            ");
-            System.out.println("           Development Blog: https://filefighter.github.io            ");
-            System.out.println("       The code can be found at: https://www.github.com/filefighter    ");
-            System.out.println("                   Running on http://localhost:" + serverPort);
+            System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |");
+            System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|");
+            System.out.println("                                     |___/");
+            System.out.println("                 Version v" + version + " Last updated at " + date + "");
+            System.out.println("               Developed by Gimleux, Valentin, Open-Schnick.");
+            System.out.println("               Development Blog: https://blog.filefighter.de");
+            System.out.println("        The code can be found at: https://www.github.com/filefighter");
+            System.out.println("                    Running on http://localhost:" + serverPort);
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
             System.out.println();
@@ -83,19 +84,31 @@ public class PrepareDataBase {
                     .groupIds(new long[]{0, 1})
                     .build()));
 
-            log.info("Preloading default fsStructure: {}.", fileSystemRepository.save(FileSystemEntity
-                    .builder()
-                    .createdByUserId(0)
-                    .fileSystemId(0)
-                    .isFile(false)
-                    .path("/")
-                    .itemIds(new long[0])
-                    .lastUpdated(Instant.now().getEpochSecond())
-                    .name("root")
-                    .size(0)
-                    .typeId(FileSystemType.FOLDER.getId())
-                    .visibleForGroupIds(new long[]{-1, 0, 1})
-                    .build()));
+            log.info("Preloading default fsStructure: {} {}.", fileSystemRepository.save(FileSystemEntity
+                            .builder()
+                            .createdByUserId(0)
+                            .fileSystemId(0)
+                            .isFile(false)
+                            .path("/")
+                            .itemIds(new long[0])
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("root")
+                            .size(0)
+                            .typeId(FileSystemType.FOLDER.getId())
+                            .visibleForGroupIds(new long[]{-1, 0, 1})
+                            .itemIds(new long[]{1})
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(0)
+                            .fileSystemId(1)
+                            .isFile(true)
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("dummyFile.txt")
+                            .size(420)
+                            .typeId(FileSystemType.TEXT.getId())
+                            .editableFoGroupIds(new long[]{0})
+                            .visibleForGroupIds(new long[]{0})
+                            .build()));
 
             log.info("Inserting Users {}", (userRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             log.info("Inserting fsItems {}", (fileSystemRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
@@ -123,7 +136,7 @@ public class PrepareDataBase {
                             .lowercaseUsername("user1")
                             .password("12345")
                             .refreshToken("rft")
-                            .groupIds(new long[]{-1})
+                            .groupIds(new long[]{0})
                             .build()));
 
             log.info("Preloading default tokens: {} {}",
@@ -140,22 +153,33 @@ public class PrepareDataBase {
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
 
-            log.info("Preloading default fsItems: {} {}.",
+            log.info("Preloading default fsItems: {} {} {}.",
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
                             .fileSystemId(0)
                             .isFile(false)
                             .path("/")
-                            .itemIds(new long[]{1})
+                            .itemIds(new long[]{2})
                             .lastUpdated(Instant.now().getEpochSecond())
-                            .name("root")
+                            .name("HOME_User")
+                            .size(420)
+                            .typeId(FileSystemType.FOLDER.getId())
+                            .visibleForGroupIds(new long[]{0, 1})
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(1)
+                            .fileSystemId(1)
+                            .isFile(false)
+                            .path("/")
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("HOME_User1")
                             .size(420)
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{-1, 0, 1})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(0)
-                            .fileSystemId(1)
+                            .fileSystemId(2)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("dummyFile.txt")
@@ -165,7 +189,7 @@ public class PrepareDataBase {
                             .visibleForGroupIds(new long[]{0})
                             .build()));
 
-            log.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 3 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             log.info("Inserting token {}", (accessTokenRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             log.info("Inserting Users {}", (userRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
         };

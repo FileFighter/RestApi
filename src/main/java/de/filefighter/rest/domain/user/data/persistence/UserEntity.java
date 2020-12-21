@@ -1,17 +1,13 @@
 package de.filefighter.rest.domain.user.data.persistence;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Document(collection = "user")
-@Getter
-@ToString
+@Data
 @Builder
-@Setter
 public class UserEntity {
 
     @MongoId
@@ -21,6 +17,7 @@ public class UserEntity {
     private String lowercaseUsername; // Redundancy for performance tradeoff.
     private String password;
     private String refreshToken;
-    private long[] groupIds;
+    @Builder.Default
+    private long[] groupIds = new long[0];
 
 }
