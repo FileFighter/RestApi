@@ -12,9 +12,8 @@ import java.util.ArrayList;
 @Configuration
 public class CorsConfig {
 
-    // Cors again. For local testing only.
     @Bean
-    @Profile("dev")
+    @Profile({"dev","stage"})
     public CorsFilter corsFilter() {
         final CorsConfiguration config = new CorsConfiguration().applyPermitDefaultValues();
         ArrayList<String> allowedOrigins = new ArrayList<>();
