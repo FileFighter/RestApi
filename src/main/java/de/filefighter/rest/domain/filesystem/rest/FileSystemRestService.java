@@ -51,7 +51,7 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
         AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
         User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
 
-        return new ResponseEntity<>(fileSystemBusinessService.getFileSystemItemInfo(fsItemId, authenticatedUser), HttpStatus.FOUND);
+        return new ResponseEntity<>(fileSystemBusinessService.getFileSystemItemInfo(fsItemId, authenticatedUser), HttpStatus.OK);
     }
 
     @Override
