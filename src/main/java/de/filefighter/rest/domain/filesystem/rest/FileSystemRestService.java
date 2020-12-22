@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.filesystem.rest;
 
-import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -15,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+
+import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -33,7 +34,7 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
 
     @Override
     public ResponseEntity<ArrayList<FileSystemItem>> getContentsOfFolderByPathAndAccessToken(String path, String accessTokenValue) {
-        String cleanHeader = inputSanitizerService.sanitizeRequestHeader(RestConfiguration.AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
+        String cleanHeader = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
         String cleanValue = inputSanitizerService.sanitizeTokenValue(cleanHeader);
         AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
         User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
@@ -44,8 +45,13 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, String accessToken) {
-        return null;
+    public ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, String accessTokenValue) {
+        String cleanHeader = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
+        String cleanValue = inputSanitizerService.sanitizeTokenValue(cleanHeader);
+        AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
+        User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
+
+        return new ResponseEntity<>(fileSystemBusinessService.getFileSystemItemInfo(fsItemId, authenticatedUser), HttpStatus.OK);
     }
 
     @Override

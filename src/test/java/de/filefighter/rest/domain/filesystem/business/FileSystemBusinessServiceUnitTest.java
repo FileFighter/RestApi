@@ -4,6 +4,7 @@ import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
@@ -21,9 +22,9 @@ import static org.mockito.Mockito.when;
 class FileSystemBusinessServiceUnitTest {
 
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
-    private final UserBusinessService userBusinessService = mock(UserBusinessService.class);
+    private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final FileSystemTypeRepository fileSystemTypeRepository = mock(FileSystemTypeRepository.class);
-    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, userBusinessService, fileSystemTypeRepository);
+    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, userBusinessServiceMock, fileSystemTypeRepository);
 
     @Test
     void getFolderContentsByPathThrows() {
@@ -77,7 +78,7 @@ class FileSystemBusinessServiceUnitTest {
 
         when(fileSystemRepositoryMock.findByPath(path)).thenReturn(entities);
         when(fileSystemRepositoryMock.findByFileSystemId(fileIdInFolder)).thenReturn(FileSystemEntity.builder().createdByUserId(userId).build());
-        when(userBusinessService.getUserById(userId)).thenReturn(User.builder().build());
+        when(userBusinessServiceMock.getUserById(userId)).thenReturn(User.builder().build());
 
         ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(pathToRequest, user);
         assertEquals(1, fileSystemItems.size());
@@ -113,11 +114,45 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemRepositoryMock.findByFileSystemId(2)).thenReturn(dummyEntity);
         when(fileSystemRepositoryMock.findByFileSystemId(3)).thenReturn(dummyEntity);
         when(fileSystemRepositoryMock.findByFileSystemId(4)).thenReturn(FileSystemEntity.builder().createdByUserId(userId + 1).build());
-        when(userBusinessService.getUserById(userId)).thenReturn(User.builder().userId(userId).build());
+        when(userBusinessServiceMock.getUserById(userId)).thenReturn(User.builder().userId(userId).build());
 
         ArrayList<FileSystemItem> actual = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsOfEntities(arrayList, authenticatedUser, "/");
         assertEquals(4, actual.size());
     }
+
+    @Test
+    void getFileSystemItemInfoThrows() {
+        long id = 420;
+        User dummyUser = User.builder().userId(213421234).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(null);
+        FileSystemItemNotFoundException ex = assertThrows(FileSystemItemNotFoundException.class, () ->
+                fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser));
+        assertEquals("FileSystemItem with id " + id + " could not be found or you are not allowed to view it.", ex.getMessage());
+
+        when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(FileSystemEntity.builder().build());
+        ex = assertThrows(FileSystemItemNotFoundException.class, () ->
+                fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser));
+        assertEquals("FileSystemItem with id " + id + " could not be found or you are not allowed to view it.", ex.getMessage());
+    }
+
+    @Test
+    void getFileSystemItemInfoWorks() {
+        long id = 420;
+        long userId = 1234321;
+        String name = "Folder";
+        User dummyUser = User.builder().userId(userId).build();
+        FileSystemEntity entity = FileSystemEntity.builder().name(name).createdByUserId(userId).build();
+
+        when(userBusinessServiceMock.getUserById(userId)).thenReturn(dummyUser);
+        when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(entity);
+        FileSystemItem fileSystemItem = fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser);
+        assertEquals(name, fileSystemItem.getName());
+        assertEquals(userId, fileSystemItem.getCreatedByUserId());
+        assertNull(fileSystemItem.getPath());
+        assertFalse(fileSystemItem.isShared());
+    }
+
 
     @Test
     void removeTrailingWhiteSpaces() {
@@ -188,7 +223,7 @@ class FileSystemBusinessServiceUnitTest {
                 .typeId(typeId)
                 .build();
 
-        when(userBusinessService.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
+        when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
         when(fileSystemTypeRepository.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
 
         FileSystemItem actual = fileSystemBusinessService.createDTO(fileSystemEntity, authenticatedUser, basePath);

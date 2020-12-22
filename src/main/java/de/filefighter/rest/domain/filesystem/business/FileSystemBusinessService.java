@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
@@ -86,6 +87,17 @@ public class FileSystemBusinessService {
         return fileSystemItems;
     }
 
+    public FileSystemItem getFileSystemItemInfo(long fsItemId, User authenticatedUser) {
+        FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
+        if (null == fileSystemEntity)
+            throw new FileSystemItemNotFoundException(fsItemId);
+
+        if (!userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser))
+            throw new FileSystemItemNotFoundException(fsItemId);
+
+        return createDTO(fileSystemEntity, authenticatedUser, null);
+    }
+
     public String removeTrailingBackSlashes(String pathToFind) {
         char[] chars = pathToFind.toCharArray();
         // for the case of "/"
@@ -133,7 +145,7 @@ public class FileSystemBusinessService {
                 .name(fileSystemEntity.getName())
                 .size(fileSystemEntity.getSize())
                 .type(isAFolder ? FileSystemType.FOLDER : type)
-                .path(basePath + fileSystemEntity.getName())
+                .path(null == basePath ? null : basePath + fileSystemEntity.getName())
                 .isShared(isShared)
                 .build();
     }
