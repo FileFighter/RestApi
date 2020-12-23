@@ -14,6 +14,7 @@ public class SystemHealth {
     private final long userCount;
     private final double usedStorageInMb;
     private final DataIntegrity dataIntegrity;
+    private final String deployment;
     private final String version;
 
     public enum DataIntegrity {
