@@ -154,7 +154,7 @@
                         </goals>
                         <configuration>
                             <executable>bash</executable>
-                            <commandlineArgs>startDataBaseDocker.sh</commandlineArgs>
+                            <commandlineArgs>src/main/resources/startDataBaseDocker.sh</commandlineArgs>
                         </configuration>
                     </execution>
                 </executions>
