@@ -7,6 +7,7 @@ import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.env.Environment;
 
 import java.time.Instant;
 
@@ -19,12 +20,13 @@ class SystemHealthBusinessServiceUnitTest {
 
     private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final AccessTokenBusinessService accessTokenBusinessServiceMock = mock(AccessTokenBusinessService.class);
-    private final FileSystemBusinessService fileSystemBusinessService = mock(FileSystemBusinessService.class);
+    private final FileSystemBusinessService fileSystemBusinessServiceMock = mock(FileSystemBusinessService.class);
+    private final Environment environmentMock = mock(Environment.class);
     private SystemHealthBusinessService systemHealthBusinessService;
 
     @BeforeEach
     void setUp() {
-        systemHealthBusinessService = new SystemHealthBusinessService(userBusinessServiceMock, accessTokenBusinessServiceMock, fileSystemBusinessService);
+        systemHealthBusinessService = new SystemHealthBusinessService(userBusinessServiceMock, accessTokenBusinessServiceMock, fileSystemBusinessServiceMock, environmentMock);
     }
 
     @Test
@@ -33,7 +35,8 @@ class SystemHealthBusinessServiceUnitTest {
         double expectedSize = 1234.532;
 
         when(userBusinessServiceMock.getUserCount()).thenReturn(expectedUserCount);
-        when(fileSystemBusinessService.getTotalFileSize()).thenReturn(expectedSize);
+        when(fileSystemBusinessServiceMock.getTotalFileSize()).thenReturn(expectedSize);
+        when(environmentMock.getActiveProfiles()).thenReturn(new String[]{"test"});
 
         SystemHealth systemHealth = systemHealthBusinessService.getCurrentSystemHealthInfo();
 
@@ -50,9 +53,10 @@ class SystemHealthBusinessServiceUnitTest {
     }
 
     @Test
-    void calculateDataIntegrityReturnsStable(){
+    void calculateDataIntegrityReturnsStable() {
         when(userBusinessServiceMock.getUserCount()).thenReturn(2L);
         when(accessTokenBusinessServiceMock.getAccessTokenCount()).thenReturn(2L);
+        when(environmentMock.getActiveProfiles()).thenReturn(new String[]{"test"});
 
         DataIntegrity dataIntegrity = DataIntegrity.STABLE;
         DataIntegrity actual = systemHealthBusinessService.getCurrentSystemHealthInfo().getDataIntegrity();
@@ -67,12 +71,24 @@ class SystemHealthBusinessServiceUnitTest {
     }
 
     @Test
-    void calculateDataIntegrityReturnsRisk(){
+    void calculateDataIntegrityReturnsRisk() {
         when(userBusinessServiceMock.getUserCount()).thenReturn(2L);
         when(accessTokenBusinessServiceMock.getAccessTokenCount()).thenReturn(3L);
+        when(environmentMock.getActiveProfiles()).thenReturn(new String[]{"test"});
 
         DataIntegrity dataIntegrity = DataIntegrity.POSSIBLE_RISK;
         DataIntegrity actual = systemHealthBusinessService.getCurrentSystemHealthInfo().getDataIntegrity();
         assertEquals(dataIntegrity, actual);
+    }
+
+    @Test
+    void getDeploymentStatusWorks() {
+        String string0 = "dev";
+        String string1 = "non-prod";
+        String string2 = "stage";
+
+        when(environmentMock.getActiveProfiles()).thenReturn(new String[]{string0, string1, string2});
+
+        assertEquals(string0 + " " + string1 + " " + string2, systemHealthBusinessService.getDeploymentStatus());
     }
 }
