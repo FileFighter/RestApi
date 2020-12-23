@@ -6,6 +6,7 @@ import de.filefighter.rest.domain.health.data.SystemHealth.DataIntegrity;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -16,16 +17,19 @@ public class SystemHealthBusinessService {
     private final UserBusinessService userBusinessService;
     private final AccessTokenBusinessService accessTokenBusinessService;
     private final FileSystemBusinessService fileSystemBusinessService;
+    private final Environment environment;
+
     private final long serverStartedAt;
     private DataIntegrity cachedIntegrity = DataIntegrity.STABLE;
 
     @Value("${filefighter.version}")
     String version;
 
-    public SystemHealthBusinessService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService) {
+    public SystemHealthBusinessService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService, Environment environment) {
         this.userBusinessService = userBusinessService;
         this.accessTokenBusinessService = accessTokenBusinessService;
         this.fileSystemBusinessService = fileSystemBusinessService;
+        this.environment = environment;
         this.serverStartedAt = this.getCurrentEpochSeconds();
     }
 
@@ -36,8 +40,20 @@ public class SystemHealthBusinessService {
                 .userCount(userBusinessService.getUserCount())
                 .usedStorageInMb(fileSystemBusinessService.getTotalFileSize())
                 .dataIntegrity(calculateDataIntegrity())
+                .deployment(getDeploymentStatus())
                 .version("v" + this.version)
                 .build();
+    }
+
+    public String getDeploymentStatus() {
+        String[] profiles = environment.getActiveProfiles();
+
+        StringBuilder deploymentStatus = new StringBuilder();
+
+        for (String profile : profiles) {
+            deploymentStatus.append(profile).append(" ");
+        }
+        return deploymentStatus.toString().strip();
     }
 
     private DataIntegrity calculateDataIntegrity() {
