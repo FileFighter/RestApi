@@ -22,11 +22,6 @@ jobs:
           java-version: '11.0.8'
           architecture: x64
       -
-        name: Setup database for tests.
-        run: |
-          docker create -p 27017:27017 --name FileFighterDB mongo:latest
-          docker start FileFighterDB
-      -
         name: Build Docker Image
         run: mvn spring-boot:build-image -f pom.xml
       -
