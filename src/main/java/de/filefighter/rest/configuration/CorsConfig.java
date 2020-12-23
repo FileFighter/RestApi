@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class CorsConfig {
 
     @Bean
-    @Profile({"dev","stage"})
+    @Profile("dev")
     public CorsFilter corsFilter() {
         final CorsConfiguration config = new CorsConfiguration().applyPermitDefaultValues();
         ArrayList<String> allowedOrigins = new ArrayList<>();
