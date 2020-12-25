@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
@@ -10,7 +11,6 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.group.Groups;
-import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

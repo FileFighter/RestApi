@@ -1,4 +1,4 @@
-package de.filefighter.rest.rest.exceptions;
+package de.filefighter.rest.domain.common.exceptions;
 
 import de.filefighter.rest.rest.ServerResponse;
 import lombok.extern.log4j.Log4j2;

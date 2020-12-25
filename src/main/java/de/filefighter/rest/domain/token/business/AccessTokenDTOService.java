@@ -30,7 +30,7 @@ public class AccessTokenDTOService implements DTOServiceInterface<AccessToken, A
     public AccessTokenEntity findEntity(AccessToken dto) {
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserIdAndValue(dto.getUserId(), dto.getTokenValue());
         if (null == accessTokenEntity)
-            throw new AccessTokenNotFoundException("AccessTokenEntity does not exist for AccessToken with userId "+ dto.getUserId()+".");
+            throw new AccessTokenNotFoundException(dto.getUserId());
 
         return accessTokenEntity;
     }

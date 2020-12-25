@@ -1,13 +1,13 @@
 package de.filefighter.rest.domain.user.business;
 
-import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
+import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.domain.user.group.Groups;
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 

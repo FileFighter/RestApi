@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
+import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
@@ -12,7 +13,6 @@ import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.group.Groups;
-import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
@@ -132,7 +132,7 @@ public class FileSystemBusinessService {
     }
 
     public void deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
-
+        //WIP
     }
 
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {

@@ -1,11 +1,11 @@
 package de.filefighter.rest.domain.token.business;
 
+import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
-import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 

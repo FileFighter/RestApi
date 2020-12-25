@@ -1,12 +1,22 @@
 package de.filefighter.rest.domain.filesystem.exceptions;
 
-public class FileSystemContentsNotAccessibleException extends RuntimeException {
+import de.filefighter.rest.domain.common.exceptions.FileFighterException;
+
+public class FileSystemContentsNotAccessibleException extends RuntimeException implements FileFighterException {
+
+    private static final String ERROR_MESSAGE_PREFIX = "Folder does not exist, or you are not allowed to see the folder.";
+
 
     public FileSystemContentsNotAccessibleException() {
-        super("Folder does not exist, or you are not allowed to see the folder.");
+        super(ERROR_MESSAGE_PREFIX);
     }
 
     public FileSystemContentsNotAccessibleException(String reason) {
-        super("Folder contents could not be displayed. "+reason);
+        super(ERROR_MESSAGE_PREFIX + " " + reason);
+    }
+
+    @Override
+    public String getErrorMessagePrefix() {
+        return ERROR_MESSAGE_PREFIX;
     }
 }

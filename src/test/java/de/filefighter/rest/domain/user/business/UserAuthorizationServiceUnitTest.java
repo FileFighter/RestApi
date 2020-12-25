@@ -1,12 +1,12 @@
 package de.filefighter.rest.domain.user.business;
 
+import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.domain.user.group.Groups;
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
 import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
