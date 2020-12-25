@@ -70,7 +70,13 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<ServerResponse> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessToken) {
-        return null;
+    public ResponseEntity<ServerResponse> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessTokenValue) {
+        String cleanHeader = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
+        String cleanValue = inputSanitizerService.sanitizeTokenValue(cleanHeader);
+        AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
+        User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
+
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+        return new ResponseEntity<>(new ServerResponse(HttpStatus.NO_CONTENT, "FileSystemItem was deleted."), HttpStatus.NO_CONTENT);
     }
 }

@@ -131,6 +131,10 @@ public class FileSystemBusinessService {
         return false;
     }
 
+    public void deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
+
+    }
+
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
         User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
 
