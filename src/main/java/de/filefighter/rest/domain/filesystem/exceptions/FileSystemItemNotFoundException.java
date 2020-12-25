@@ -14,8 +14,7 @@ public class FileSystemItemNotFoundException extends RuntimeException implements
         super(ERROR_MESSAGE_PREFIX + " FileSystemId was " + fsItemId);
     }
 
-    @Override
-    public String getErrorMessagePrefix() {
+    public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }
 }

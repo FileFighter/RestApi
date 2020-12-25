@@ -30,17 +30,17 @@ class UserAuthorizationServiceUnitTest {
 
         RuntimeException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButIsNotSupportedEncoding));
-        assertEquals("Request didnt meet formal requirements. Found unsupported character in header.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix() + " Found unsupported character in header.", ex.getMessage());
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(onlyContainsUsername));
-        assertEquals("Request didnt meet formal requirements. Credentials didnt meet formal requirements.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix() + " Credentials didnt meet formal requirements.", ex.getMessage());
 
         when(userRepositoryMock.findByLowercaseUsernameAndPassword("user", "password")).thenReturn(null);
 
         ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithUsernameAndPassword(matchesButUserWasNotFound));
-        assertEquals("User could not be authenticated. No User found with this username and password.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " No User found with this username and password.", ex.getMessage());
     }
 
     @Test
@@ -65,7 +65,7 @@ class UserAuthorizationServiceUnitTest {
 
         UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithRefreshToken(authString));
-        assertEquals("User could not be authenticated. No user found for this Refresh Token.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " No user found for this Refresh Token.", ex.getMessage());
     }
 
     @Test
@@ -91,7 +91,7 @@ class UserAuthorizationServiceUnitTest {
 
         UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithAccessToken(accessToken));
-        assertEquals("User with the id " + userId + " could not be authenticated.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " UserId was " + userId, ex.getMessage());
     }
 
     @Test
@@ -114,13 +114,13 @@ class UserAuthorizationServiceUnitTest {
 
         UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
-        assertEquals("User with the id " + userId + " could not be authenticated.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " UserId was " + userId, ex.getMessage());
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{0}).build());
 
         ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 userAuthorizationService.authenticateUserWithAccessTokenAndGroup(accessToken, Groups.ADMIN));
-        assertEquals("User could not be authenticated. Not in necessary group.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix()+" Not in necessary group.", ex.getMessage());
     }
 
     @Test

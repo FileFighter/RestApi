@@ -37,21 +37,21 @@ class FileSystemBusinessServiceUnitTest {
 
         FileSystemContentsNotAccessibleException ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(notValid, dummyUser));
-        assertEquals("Folder contents could not be displayed. Path was not valid.", ex.getMessage());
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was not valid.", ex.getMessage());
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(wrongFormat, dummyUser));
-        assertEquals("Folder contents could not be displayed. Path was in wrong format.", ex.getMessage());
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was in wrong format.", ex.getMessage());
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(wrongFormat1, dummyUser));
-        assertEquals("Folder contents could not be displayed. Path was in wrong format. Use a leading backslash.", ex.getMessage());
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was in wrong format. Use a leading backslash.", ex.getMessage());
 
         when(fileSystemRepositoryMock.findByPath(validPath)).thenReturn(null);
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
-        assertEquals("Folder does not exist, or you are not allowed to see the folder.", ex.getMessage());
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
 
         ArrayList<FileSystemEntity> fileSystemEntityArrayList = new ArrayList<>();
         fileSystemEntityArrayList.add(FileSystemEntity.builder().isFile(true).build());
@@ -62,7 +62,7 @@ class FileSystemBusinessServiceUnitTest {
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
-        assertEquals("Folder does not exist, or you are not allowed to see the folder.", ex.getMessage());
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
     }
 
     @Test
@@ -97,7 +97,7 @@ class FileSystemBusinessServiceUnitTest {
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.getFolderContentsOfEntities(arrayList, authenticatedUser, "/"));
-        assertEquals("Internal Error occurred. FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.", ex.getMessage());
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.", ex.getMessage());
     }
 
     @Test
@@ -128,12 +128,12 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(null);
         FileSystemItemNotFoundException ex = assertThrows(FileSystemItemNotFoundException.class, () ->
                 fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser));
-        assertEquals("FileSystemItem with id " + id + " could not be found or you are not allowed to view it.", ex.getMessage());
+        assertEquals(FileSystemItemNotFoundException.getErrorMessagePrefix() + " FileSystemId was " + id, ex.getMessage());
 
         when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(FileSystemEntity.builder().build());
         ex = assertThrows(FileSystemItemNotFoundException.class, () ->
                 fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser));
-        assertEquals("FileSystemItem with id " + id + " could not be found or you are not allowed to view it.", ex.getMessage());
+        assertEquals(FileSystemItemNotFoundException.getErrorMessagePrefix() + " FileSystemId was " + id, ex.getMessage());
     }
 
     @Test
@@ -242,7 +242,7 @@ class FileSystemBusinessServiceUnitTest {
     void getTotalFileSizeThrows() {
         when(fileSystemRepositoryMock.findByPath("/")).thenReturn(null);
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, fileSystemBusinessService::getTotalFileSize);
-        assertEquals("Internal Error occurred. Couldn't find any Home directories!", ex.getMessage());
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Couldn't find any Home directories!", ex.getMessage());
     }
 
     @Test

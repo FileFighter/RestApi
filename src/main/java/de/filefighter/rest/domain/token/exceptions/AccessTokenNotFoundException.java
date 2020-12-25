@@ -7,11 +7,10 @@ public class AccessTokenNotFoundException extends RuntimeException implements Fi
     private static final String ERROR_MESSAGE_PREFIX = "AccessToken could not be found.";
 
     public AccessTokenNotFoundException(long userId) {
-        super(ERROR_MESSAGE_PREFIX + " The userId was " + userId);
+        super(ERROR_MESSAGE_PREFIX + " UserId was " + userId);
     }
 
-    @Override
-    public String getErrorMessagePrefix() {
+    public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }
 }

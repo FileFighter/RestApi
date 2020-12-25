@@ -12,8 +12,7 @@ public class RequestDidntMeetFormalRequirementsException extends RuntimeExceptio
         super(ERROR_MESSAGE_PREFIX + " " + reason);
     }
 
-    @Override
-    public String getErrorMessagePrefix() {
+    public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }
 }

@@ -14,8 +14,7 @@ public class UserNotAuthenticatedException extends RuntimeException implements F
         super(ERROR_MESSAGE_PREFIX+" UserId was "+userId);
     }
 
-    @Override
-    public String getErrorMessagePrefix() {
+    public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }
 }

@@ -14,8 +14,7 @@ public class UserNotUpdatedException extends RuntimeException implements FileFig
         super(ERROR_MESSAGE_PREFIX + " " + reason);
     }
 
-    @Override
-    public String getErrorMessagePrefix() {
+    public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }
 }

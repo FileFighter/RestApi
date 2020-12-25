@@ -1,5 +1,7 @@
 package de.filefighter.rest.domain.common.exceptions;
 
 public interface FileFighterException {
-    String getErrorMessagePrefix();
+    static String getErrorMessagePrefix() {
+        throw new IllegalArgumentException("Custom exception should overwrite this message.");
+    }
 }

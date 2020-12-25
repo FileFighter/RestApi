@@ -18,8 +18,7 @@ public class UserNotFoundException extends RuntimeException implements FileFight
         super(ERROR_MESSAGE_PREFIX + " Username was " + username);
     }
 
-    @Override
-    public String getErrorMessagePrefix() {
+    public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }
 }

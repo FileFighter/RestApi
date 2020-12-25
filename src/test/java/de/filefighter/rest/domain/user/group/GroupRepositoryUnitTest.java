@@ -16,7 +16,7 @@ class GroupRepositoryUnitTest {
         long id = 900;
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
                 groupRepository.getGroupById(id));
-        assertEquals("id " + id + " doesnt belong to a group.", ex.getMessage());
+        assertEquals("GroupId " + id + " doesnt belong to a group.", ex.getMessage());
     }
 
     @Test
