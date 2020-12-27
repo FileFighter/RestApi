@@ -46,7 +46,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
         for (JsonNode node : rootNode) {
             if (node.get("fileSystemId").asLong() == fsItemId &&
                     node.get("name").asText().equals(name) &&
-                    node.get("type").asText().equals("FOLDER"))
+                    node.get("type").asText().equals("FOLDER")) // WTF why check for folder
                 found = true;
         }
         assertTrue(found);
@@ -59,5 +59,27 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
             throw new AssertionError("Response was not an Array or empty.");
 
         assertTrue(rootNode.isEmpty());
+    }
+
+    @And("the response not contains the file with fileSystemId {long} and name {string}")
+    public void theResponseNotContainsTheFileWithFileSystemIdAndName(long fsItemId, String name) throws JsonProcessingException {
+
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        if
+        (rootNode.isEmpty()) {
+            assertTrue(true);
+        } else {
+            boolean notFound = true;
+            for (JsonNode node : rootNode) {
+                if (node.get("fileSystemId").asLong() == fsItemId &&
+                        node.get("name").asText().equals(name) &&
+                        node.get("type").asText().equals("FOLDER")) // WTF why check for folder
+                    notFound = false;
+            }
+            assertTrue(notFound);
+        }
     }
 }

@@ -27,6 +27,8 @@ Feature: View Folder
   Scenario: insufficient authorization
     Given user 9877 exists
     And accessToken with value "2345678" exists for user 9877
+    When user with token "2345678" wants to see the content of folder with path "/bla/fasel"
+    Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
 
   Scenario: shared folder (user)
