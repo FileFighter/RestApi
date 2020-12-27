@@ -6,6 +6,7 @@ import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDeletedException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
@@ -98,15 +99,24 @@ public class FileSystemBusinessService {
         return createDTO(fileSystemEntity, authenticatedUser, null);
     }
 
-    public String removeTrailingBackSlashes(String pathToFind) {
-        char[] chars = pathToFind.toCharArray();
-        // for the case of "/"
-        if (chars.length != 1 && chars[chars.length - 1] == '/') {
-            chars = Arrays.copyOf(chars, chars.length - 1);
-            return new String(chars);
+    public void deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
+        FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
+        if (null == fileSystemEntity)
+            throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
+
+        if (!userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser))
+            throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
+
+        if (fileSystemEntity.isFile()) {
+            // CASE 0 - File
+            fileSystemRepository.delete(fileSystemEntity);
+        } else {
+            // CASE 1 - Folder
+
         }
-        return pathToFind;
     }
+
+    // ---------------- HELPER -------------------
 
     public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
         // user created the item
@@ -131,8 +141,37 @@ public class FileSystemBusinessService {
         return false;
     }
 
-    public void deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
-        //WIP
+    private boolean userIsAllowedToEditFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
+        // user created the item
+        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
+            return true;
+
+        // user got the item shared.
+        for (long userId : fileSystemEntity.getEditableForUserIds()) {
+            if (userId == authenticatedUser.getUserId())
+                return true;
+        }
+
+        // user is in group that got the item shared.
+        long[] fileIsSharedToGroups = fileSystemEntity.getEditableFoGroupIds();
+        for (Groups group : authenticatedUser.getGroups()) {
+            for (long groupId : fileIsSharedToGroups) {
+                if (groupId == group.getGroupId())
+                    return true;
+
+            }
+        }
+        return false;
+    }
+
+    public String removeTrailingBackSlashes(String pathToFind) {
+        char[] chars = pathToFind.toCharArray();
+        // for the case of "/"
+        if (chars.length != 1 && chars[chars.length - 1] == '/') {
+            chars = Arrays.copyOf(chars, chars.length - 1);
+            return new String(chars);
+        }
+        return pathToFind;
     }
 
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
@@ -143,7 +182,7 @@ public class FileSystemBusinessService {
         boolean isAFolder = type == FileSystemType.FOLDER && !fileSystemEntity.isFile();
 
         return FileSystemItem.builder()
-                .createdByUserId(fileSystemEntity.getCreatedByUserId())
+                .createdByUser(ownerOfFileSystemItem)
                 .fileSystemId(fileSystemEntity.getFileSystemId())
                 .lastUpdated(fileSystemEntity.getLastUpdated())
                 .name(fileSystemEntity.getName())

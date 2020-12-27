@@ -148,7 +148,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(entity);
         FileSystemItem fileSystemItem = fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser);
         assertEquals(name, fileSystemItem.getName());
-        assertEquals(userId, fileSystemItem.getCreatedByUserId());
+        assertEquals(userId, fileSystemItem.getCreatedByUser().getUserId());
         assertNull(fileSystemItem.getPath());
         assertFalse(fileSystemItem.isShared());
     }
@@ -228,7 +228,7 @@ class FileSystemBusinessServiceUnitTest {
 
         FileSystemItem actual = fileSystemBusinessService.createDTO(fileSystemEntity, authenticatedUser, basePath);
 
-        assertEquals(createdByUserId, actual.getCreatedByUserId());
+        assertEquals(createdByUserId, actual.getCreatedByUser().getUserId());
         assertEquals(fileSystemId, actual.getFileSystemId());
         assertEquals(lastUpdated, actual.getLastUpdated());
         assertEquals(name, actual.getName());
