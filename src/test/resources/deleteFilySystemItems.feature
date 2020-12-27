@@ -26,7 +26,7 @@ Feature: FileSystem Delete
     Then response status code is 200
     When user with token "900000" wants to see the content of folder with path "/bla"
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
 
   Scenario: Folder and content Deletion with remaining content
     Given user with the userId 1234 is allowed to EDIT the fileSystemItem with the fileSystemId 42
@@ -50,7 +50,7 @@ Feature: FileSystem Delete
     Then response status code is 200
     When user with token "900000" wants to see the content of folder with path "/bla"
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
     When user with token "2000000" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
@@ -64,10 +64,10 @@ Feature: FileSystem Delete
     Then response status code is 200
     When user with token "900000" wants to see the content of folder with path "/bla/fasel"
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
     When user with token "900000" wants to see the content of folder with path "/bla"
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
 
   Scenario: recursion with remaining file
     Given fileSystemItem with the fileSystemId 1 exists, was created by user with userId 1234 and has the path "/bla/fasel"
@@ -91,16 +91,16 @@ Feature: FileSystem Delete
     Given user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
 
   Scenario: insufficient permission
     Given user 9877 exists
     And accessToken with value "2345678" exists for user 9877
     When user with token "2345678" wants to delete the fileSystemItem with the fileSystemId 42
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
 
   Scenario: Folder does not exist
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42432567
     Then response status code is 400
-    And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
