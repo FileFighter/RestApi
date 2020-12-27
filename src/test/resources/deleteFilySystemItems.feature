@@ -9,7 +9,6 @@ Feature: FileSystem Delete
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 72
     And fileSystemItem with the fileSystemId 72 exists, was created by user with userId 420 and has the name "wow.txt"
 
-
   Scenario: File Deletion
     Given user with the userId 1234 is allowed to EDIT the fileSystemItem with the fileSystemId 72
     When user with token "900000" wants to see the content of folder with path "/bla"
@@ -43,7 +42,6 @@ Feature: FileSystem Delete
     And the response not contains the file with fileSystemId 72 and name "wow.txt"
     And the response contains the file with fileSystemId 1080 and name "IwillStay.txt"
 
-
   Scenario: Folder and content Deletion with remaining content (invisible)
     And user 420 exists
     And accessToken with value "2000000" exists for user 1234
@@ -56,7 +54,6 @@ Feature: FileSystem Delete
     When user with token "2000000" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
-
 
   Scenario: recursion
     Given fileSystemItem with the fileSystemId 1 exists, was created by user with userId 1234 and has the path "/bla/fasel"
@@ -90,7 +87,6 @@ Feature: FileSystem Delete
     And the response contains the folder with fileSystemId 1 and name "fasel"
     And the response not contains the file with fileSystemId 2 and name "git.exe"
 
-
   Scenario: insufficient authorization
     Given user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 42
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42
@@ -103,7 +99,6 @@ Feature: FileSystem Delete
     When user with token "2345678" wants to delete the fileSystemItem with the fileSystemId 42
     Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
-
 
   Scenario: Folder does not exist
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42432567
