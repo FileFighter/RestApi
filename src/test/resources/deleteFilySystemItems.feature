@@ -76,7 +76,7 @@ Feature: FileSystem Delete
     Given fileSystemItem with the fileSystemId 1 exists, was created by user with userId 1234 and has the path "/bla/fasel"
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 1
     And fileSystemItem with the fileSystemId 2 exists, was created by user with userId 1234 and has the name "git.exe"
-    And fileSystemItem with the fileSystemId 1 is a folder and contains the fileSystemId 2
+    And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 2
     And fileSystemItem with the fileSystemId 3 exists, was created by user with userId 420 and has the name "subversion.exe"
     And fileSystemItem with the fileSystemId 1 is a folder and contains the fileSystemId 3
     And user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 3
@@ -85,10 +85,10 @@ Feature: FileSystem Delete
     When user with token "900000" wants to see the content of folder with path "/bla/fasel"
     Then response status code is 200
     And the response contains the file with fileSystemId 3 and name "subversion.exe"
-    And the response not contains the file with fileSystemId 3 and name "subversion.exe"
     When user with token "900000" wants to see the content of folder with path "/bla"
     Then response status code is 200
-    And the response contains an empty list for files and folders
+    And the response contains the folder with fileSystemId 1 and name "fasel"
+    And the response not contains the file with fileSystemId 2 and name "git.exe"
 
 
   Scenario: insufficient authorization

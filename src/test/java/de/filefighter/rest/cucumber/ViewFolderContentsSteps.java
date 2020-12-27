@@ -82,4 +82,21 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
             assertTrue(notFound);
         }
     }
+
+    @And("the response contains the folder with fileSystemId {long} and name {string}")
+    public void theResponseContainsTheFolderWithFileSystemIdAndName(int fileSystemId, String name) throws JsonProcessingException {
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            if (node.get("fileSystemId").asLong() == fileSystemId &&
+                    node.get("name").asText().equals(name) &&
+                    node.get("type").asText().equals("FOLDER"))
+                found = true;
+        }
+        assertTrue(found);
+
+    }
 }
