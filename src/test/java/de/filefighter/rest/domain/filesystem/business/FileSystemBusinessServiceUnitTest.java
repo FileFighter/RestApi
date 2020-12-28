@@ -86,38 +86,55 @@ class FileSystemBusinessServiceUnitTest {
 
     @Test
     void getFolderContentsOfEntityThrows() {
-        long fileSystemId = 420;
+        long fileSystemId0 = 420;
+        long fileSystemId1 = 1234;
 
         User authenticatedUser = User.builder().build();
-        FileSystemEntity foundFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId}).build();
-        ArrayList<FileSystemEntity> arrayList = new ArrayList<>();
-        arrayList.add(foundFolder);
+        FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1}).build();
 
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId)).thenReturn(null);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(FileSystemEntity.builder().build());
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(null);
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.getFolderContentsOfEntities(arrayList, authenticatedUser, "/"));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.", ex.getMessage());
+                fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FolderContents expected fileSystemItem with id " + fileSystemId1 + " but was empty.", ex.getMessage());
     }
 
     @Test
     void getFolderContentsOfEntityWorks() {
-        long userId = 420;
+        long fileSystemId0 = 420;
+        long fileSystemId1 = 1234;
+        long fileSystemId2 = 1231231234;
+        long userId = 123123321;
+
         User authenticatedUser = User.builder().userId(userId).build();
-        FileSystemEntity foundFolder = FileSystemEntity.builder().itemIds(new long[]{0, 1, 2, 3, 4}).build();
-        ArrayList<FileSystemEntity> arrayList = new ArrayList<>();
-        arrayList.add(foundFolder);
 
-        FileSystemEntity dummyEntity = FileSystemEntity.builder().createdByUserId(userId).build();
-        when(fileSystemRepositoryMock.findByFileSystemId(0)).thenReturn(dummyEntity);
-        when(fileSystemRepositoryMock.findByFileSystemId(1)).thenReturn(dummyEntity);
-        when(fileSystemRepositoryMock.findByFileSystemId(2)).thenReturn(dummyEntity);
-        when(fileSystemRepositoryMock.findByFileSystemId(3)).thenReturn(dummyEntity);
-        when(fileSystemRepositoryMock.findByFileSystemId(4)).thenReturn(FileSystemEntity.builder().createdByUserId(userId + 1).build());
-        when(userBusinessServiceMock.getUserById(userId)).thenReturn(User.builder().userId(userId).build());
+        FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
+        FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
+        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().createdByUserId(userId).build();
 
-        ArrayList<FileSystemItem> actual = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsOfEntities(arrayList, authenticatedUser, "/");
-        assertEquals(4, actual.size());
+
+        FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1, fileSystemId2}).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(fileSystemEntity0);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(fileSystemEntity1);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId2)).thenReturn(fileSystemEntity2);
+
+        ArrayList<FileSystemEntity> fs0 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false);
+        ArrayList<FileSystemEntity> fs1 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, true);
+        ArrayList<FileSystemEntity> fs2 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, true);
+        ArrayList<FileSystemEntity> fs3 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false);
+
+        assertEquals(2, fs0.size());
+        assertEquals(fileSystemEntity0, fs0.get(0));
+        assertEquals(2, fs1.size());
+        assertEquals(fileSystemEntity1, fs1.get(0));
+        assertEquals(1, fs2.size());
+        assertEquals(3, fs3.size());
+        // why can't I compare 3 objects at once :(
+        assertNotEquals(fs3.get(0), fs3.get(1));
+        assertNotEquals(fs3.get(1), fs3.get(2));
+        assertNotEquals(fs3.get(0), fs3.get(2));
     }
 
     @Test

@@ -62,29 +62,16 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // now only own or shared folders are left.
-        return getFolderContentsOfEntities(listOfFileSystemEntities, authenticatedUser, pathToFind);
-    }
+        ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
+        String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : (pathToFind + "/"); //NOSONAR
 
-    public List<FileSystemItem> getFolderContentsOfEntities(List<FileSystemEntity> listOfFileSystemEntities, User authenticatedUser, String pathToFind) {
-        List<FileSystemItem> fileSystemItems = new ArrayList<>();
-
-        for (FileSystemEntity fileSystemEntity : listOfFileSystemEntities) {
-            long[] folderContentItemIds = fileSystemEntity.getItemIds();
-
-            // check if the contents are visible.
-            for (long fileSystemId : folderContentItemIds) {
-                FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
-
-                if (null == fileSystemEntityInFolder)
-                    throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
-
-                if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                    String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : (pathToFind + "/"); //NOSONAR
-                    fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
-                }
+        // Well this is just O(n * m)
+        for (FileSystemEntity folder : listOfFileSystemEntities) {
+            ArrayList<FileSystemEntity> folderContents = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(folder, authenticatedUser, true, false);
+            for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
+                fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
             }
         }
-
         return fileSystemItems;
     }
 
@@ -117,6 +104,33 @@ public class FileSystemBusinessService {
     }
 
     // ---------------- HELPER -------------------
+
+    public List<FileSystemEntity> getFolderContentsOfEntityAndPermissions(FileSystemEntity fileSystemEntity, User authenticatedUser, boolean needsToBeVisible, boolean needsToBeEditable) {
+        long[] folderContentItemIds = fileSystemEntity.getItemIds();
+        List<FileSystemEntity> fileSystemEntities = new ArrayList<>(folderContentItemIds.length);
+
+        // check if the contents are visible / editable.
+        for (long fileSystemId : folderContentItemIds) {
+            FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
+
+            if (null == fileSystemEntityInFolder)
+                throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
+
+            if (needsToBeVisible && !needsToBeEditable && userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+                fileSystemEntities.add(fileSystemEntityInFolder);
+            }
+            if (needsToBeEditable && !needsToBeVisible && userIsAllowedToEditFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+                fileSystemEntities.add(fileSystemEntityInFolder);
+            }
+            if (needsToBeVisible && needsToBeEditable && userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+                fileSystemEntities.add(fileSystemEntityInFolder);
+            }
+            if (!needsToBeVisible && !needsToBeEditable) {
+                fileSystemEntities.add(fileSystemEntityInFolder);
+            }
+        }
+        return fileSystemEntities;
+    }
 
     public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
         // user created the item
@@ -175,7 +189,7 @@ public class FileSystemBusinessService {
     }
 
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
-        User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
+        User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId()); //TODO: surround with catch.
 
         boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
         FileSystemType type = fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId());
