@@ -13,6 +13,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
+import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Groups;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -155,7 +156,7 @@ public class FileSystemBusinessService {
         return false;
     }
 
-    private boolean userIsAllowedToEditFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
+    public boolean userIsAllowedToEditFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
         // user created the item
         if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
             return true;
@@ -189,7 +190,13 @@ public class FileSystemBusinessService {
     }
 
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
-        User ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId()); //TODO: surround with catch.
+        // for better responses and internal problem handling.
+        User ownerOfFileSystemItem;
+        try{
+            ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
+        }catch (UserNotFoundException exception){
+            throw new FileFighterDataException("Owner of a file could not be found.");
+        }
 
         boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
         FileSystemType type = fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId());

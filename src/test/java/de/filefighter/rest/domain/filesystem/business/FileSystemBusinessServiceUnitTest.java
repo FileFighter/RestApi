@@ -10,6 +10,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Groups;
 import org.junit.jupiter.api.Test;
 
@@ -113,7 +114,6 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
         FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().createdByUserId(userId).build();
 
-
         FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1, fileSystemId2}).build();
 
         when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(fileSystemEntity0);
@@ -211,6 +211,43 @@ class FileSystemBusinessServiceUnitTest {
         user = User.builder().userId(123).groups(new Groups[]{Groups.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
         assertFalse(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+    }
+
+    @Test
+    void userIsAllowedToEditFileSystemEntity() {
+        long userId = 1232783672;
+        User user = User.builder().userId(userId).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
+
+        // user created fileSystemItem
+        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+
+        // user got it shared.
+        fileSystemEntity = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
+        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+
+        //user is in group
+        user = User.builder().userId(0).groups(new Groups[]{Groups.ADMIN}).build();
+        fileSystemEntity = FileSystemEntity.builder().editableFoGroupIds(new long[]{1}).build();
+        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+
+        // user is not allowed.
+        user = User.builder().userId(123).groups(new Groups[]{Groups.UNDEFINED}).build();
+        fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).editableFoGroupIds(new long[]{1}).build();
+        assertFalse(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+    }
+
+    @Test
+    void createDTOThrows() {
+        long userId = 420;
+        FileSystemEntity entity = FileSystemEntity.builder().createdByUserId(userId).build();
+        User user = User.builder().build();
+
+        when(userBusinessServiceMock.getUserById(userId)).thenThrow(UserNotFoundException.class);
+
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
+                fileSystemBusinessService.createDTO(entity, user, null));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Owner of a file could not be found.", ex.getMessage());
     }
 
     @Test
