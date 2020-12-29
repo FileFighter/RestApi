@@ -110,24 +110,32 @@ public class FileSystemBusinessService {
                 ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(nextFolder, authenticatedUser, false, false);
                 int countOfChildEntities = foundEntities.size();
                 int countOfDeletedEntities = 0;
+                int invisibleEntities = 0;
 
                 for (FileSystemEntity fileSystemEntityToBeDeleted : foundEntities) {
                     // check here for permissions.
-                    if (userIsAllowedToEditFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser) && userIsAllowedToSeeFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
-                        if (fileSystemEntityToBeDeleted.isFile()) {
-                            // datei -> add to deletion, update parent folder, update count of deleted files and folders.
-                        } else {
-                            // folder -> add to set.
+                    if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
+                        if (userIsAllowedToEditFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
+                            if (fileSystemEntityToBeDeleted.isFile()) {
+                                // datei -> add to deletion, update parent folder, update count of deleted files and folders.
+                            } else {
+                                // folder -> add to set.
+                            }
+                            countOfDeletedEntities++;
                         }
-                        countOfDeletedEntities++;
+                    } else {
+                        invisibleEntities++;
                     }
                 }
 
                 if (countOfChildEntities != countOfDeletedEntities) {
                     // some entities could not be deleted because he is not allowed or cannot see them.
-                    // 1. non visible entities. (not fine -> empty folder)
+                    if (invisibleEntities > 0) {
+                        // 1. non visible entities. (not fine -> empty folder)
+                        // make parentFolder also invisible.
+                    }
                     // 2. visible but non deletable entities. (fine)
-                }else{
+                } else {
                     // remove the folder from set and delete it.
                 }
             }
