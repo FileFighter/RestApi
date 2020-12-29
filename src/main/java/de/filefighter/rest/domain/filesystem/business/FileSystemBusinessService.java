@@ -19,9 +19,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -96,11 +94,45 @@ public class FileSystemBusinessService {
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
         if (fileSystemEntity.isFile()) {
-            // CASE 0 - File
             fileSystemRepository.delete(fileSystemEntity);
         } else {
-            // CASE 1 - Folder
+            HashSet<FileSystemEntity> foundFolders = new HashSet<>();
+            foundFolders.add(fileSystemEntity);
+            Iterator<FileSystemEntity> iterator = foundFolders.iterator();
 
+            // Lists for change or deletion
+            ArrayList<FileSystemEntity> entitiesToBeDeleted = new ArrayList<>();
+            ArrayList<FileSystemEntity> entitiesToBeChanged = new ArrayList<>();
+
+            while (iterator.hasNext()) {
+                FileSystemEntity nextFolder = iterator.next();
+                // no permissions set for comparison.
+                ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(nextFolder, authenticatedUser, false, false);
+                int countOfChildEntities = foundEntities.size();
+                int countOfDeletedEntities = 0;
+
+                for (FileSystemEntity fileSystemEntityToBeDeleted : foundEntities) {
+                    // check here for permissions.
+                    if (userIsAllowedToEditFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser) && userIsAllowedToSeeFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
+                        if (fileSystemEntityToBeDeleted.isFile()) {
+                            // datei -> add to deletion, update parent folder, update count of deleted files and folders.
+                        } else {
+                            // folder -> add to set.
+                        }
+                        countOfDeletedEntities++;
+                    }
+                }
+
+                if (countOfChildEntities != countOfDeletedEntities) {
+                    // some entities could not be deleted because he is not allowed or cannot see them.
+                    // 1. non visible entities. (not fine -> empty folder)
+                    // 2. visible but non deletable entities. (fine)
+                }else{
+                    // remove the folder from set and delete it.
+                }
+            }
+            // delete the files
+            // query the changes.
         }
     }
 
@@ -192,9 +224,9 @@ public class FileSystemBusinessService {
     public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
         // for better responses and internal problem handling.
         User ownerOfFileSystemItem;
-        try{
+        try {
             ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
-        }catch (UserNotFoundException exception){
+        } catch (UserNotFoundException exception) {
             throw new FileFighterDataException("Owner of a file could not be found.");
         }
 
