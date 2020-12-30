@@ -104,6 +104,7 @@ public class FileSystemBusinessService {
             ArrayList<FileSystemEntity> entitiesToBeDeleted = new ArrayList<>();
             ArrayList<FileSystemEntity> entitiesToBeChanged = new ArrayList<>();
 
+            // I feel the ConcurrentModificationException coming.
             while (iterator.hasNext()) {
                 FileSystemEntity nextFolder = iterator.next();
                 // no permissions set for comparison.
@@ -117,9 +118,12 @@ public class FileSystemBusinessService {
                     if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
                         if (userIsAllowedToEditFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
                             if (fileSystemEntityToBeDeleted.isFile()) {
-                                // datei -> add to deletion, update parent folder, update count of deleted files and folders.
+                                // datei -> add to deletion, update parent folder
+                                entitiesToBeDeleted.add(fileSystemEntityToBeDeleted);
+                                nextFolder.setItemIds(Arrays.stream(nextFolder.getItemIds()).filter(id -> id != fileSystemEntityToBeDeleted.getFileSystemId()).toArray());
                             } else {
                                 // folder -> add to set.
+                                foundFolders.add(fileSystemEntityToBeDeleted);
                             }
                             countOfDeletedEntities++;
                         }
@@ -132,15 +136,21 @@ public class FileSystemBusinessService {
                     // some entities could not be deleted because he is not allowed or cannot see them.
                     if (invisibleEntities > 0) {
                         // 1. non visible entities. (not fine -> empty folder)
-                        // make parentFolder also invisible.
+                        // TODO: make parentFolder also invisible. BUT do it in way that "sums up" the rights of all files and folders way.
                     }
                     // 2. visible but non deletable entities. (fine)
+                    entitiesToBeChanged.add(nextFolder);
                 } else {
                     // remove the folder from set and delete it.
+                    foundFolders.remove(nextFolder);
+                    entitiesToBeDeleted.add(nextFolder);
                 }
             }
             // delete the files
-            // query the changes.
+            for(FileSystemEntity fsEntityToDelete: entitiesToBeDeleted){
+                fileSystemRepository.delete(fsEntityToDelete);
+            }
+            // TODO: query the changes.
         }
     }
 
