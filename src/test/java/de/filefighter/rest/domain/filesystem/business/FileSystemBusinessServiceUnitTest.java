@@ -140,6 +140,27 @@ class FileSystemBusinessServiceUnitTest {
     }
 
     @Test
+    void sumUpAllPermissionsOfFileSystemEntitiesWorks() {
+        FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().visibleForUserIds(new long[]{0, 2, 4}).visibleForGroupIds(new long[]{0, 2, 4}).editableForUserIds(new long[]{0, 2, 4}).editableFoGroupIds(new long[]{0, 2, 4}).build();
+        FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().visibleForUserIds(new long[]{1, 2, 3, 4}).visibleForGroupIds(new long[]{1, 2, 3, 4}).editableForUserIds(new long[]{1, 2, 3, 4}).editableFoGroupIds(new long[]{1, 2, 3, 4}).build();
+        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().visibleForUserIds(new long[]{1, 3}).visibleForGroupIds(new long[]{1, 3}).editableForUserIds(new long[]{1, 3}).editableFoGroupIds(new long[]{1, 3}).build();
+        FileSystemEntity fileSystemEntity3 = FileSystemEntity.builder().visibleForUserIds(new long[]{2, 4}).visibleForGroupIds(new long[]{2, 4}).editableForUserIds(new long[]{2, 4}).editableFoGroupIds(new long[]{2, 4}).build();
+
+        FileSystemEntity parentFileSystemEntity = FileSystemEntity.builder().visibleForUserIds(new long[]{-10, -99, 9}).build();
+        ArrayList<FileSystemEntity> fileSystemEntityArrayList = new ArrayList<>();
+        fileSystemEntityArrayList.add(fileSystemEntity0);
+        fileSystemEntityArrayList.add(fileSystemEntity1);
+        fileSystemEntityArrayList.add(fileSystemEntity2);
+        fileSystemEntityArrayList.add(fileSystemEntity3);
+
+        FileSystemEntity actualFileSystemEntity = fileSystemBusinessService.sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, fileSystemEntityArrayList);
+        assertEquals(5, actualFileSystemEntity.getVisibleForUserIds().length);
+        assertEquals(5, actualFileSystemEntity.getVisibleForGroupIds().length);
+        assertEquals(5, actualFileSystemEntity.getEditableForUserIds().length);
+        assertEquals(5, actualFileSystemEntity.getEditableFoGroupIds().length);
+    }
+
+    @Test
     void getFileSystemItemInfoThrows() {
         long id = 420;
         User dummyUser = User.builder().userId(213421234).build();

@@ -23,10 +23,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -191,25 +188,29 @@ public class FileSystemBusinessService {
         HashSet<Long> editableGroupIds = new HashSet<>();
 
         for (FileSystemEntity entity : fileSystemEntities) {
-            for (long id : entity.getVisibleForUserIds()) {
-                visibleForUserIds.add(id);
-            }
-            for (long id : entity.getVisibleForGroupIds()) {
-                visibleForGroupIds.add(id);
-            }
-            for (long id : entity.getEditableForUserIds()) {
-                editableForUserIds.add(id);
-            }
-            for (long id : entity.getEditableFoGroupIds()) {
-                editableGroupIds.add(id);
-            }
+            addPermissionsToSets(visibleForUserIds, visibleForGroupIds, editableForUserIds, editableGroupIds, entity);
         }
 
         parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(editableForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(editableGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setVisibleForGroupIds(Arrays.stream(visibleForGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setEditableForUserIds(Arrays.stream(editableForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setEditableFoGroupIds(Arrays.stream(editableGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
         return parentFileSystemEntity;
+    }
+
+    public void addPermissionsToSets(Set<Long> visibleForUserIds, Set<Long> visibleForGroupIds, Set<Long> editableForUserIds, Set<Long> editableGroupIds, FileSystemEntity fileSystemEntity) {
+        for (long i : fileSystemEntity.getVisibleForUserIds()) {
+            visibleForUserIds.add(i);
+        }
+        for (long i : fileSystemEntity.getVisibleForGroupIds()) {
+            visibleForGroupIds.add(i);
+        }
+        for (long i : fileSystemEntity.getEditableForUserIds()) {
+            editableForUserIds.add(i);
+        }
+        for (long i : fileSystemEntity.getEditableFoGroupIds()) {
+            editableGroupIds.add(i);
+        }
     }
 
     public List<FileSystemEntity> getFolderContentsOfEntityAndPermissions(FileSystemEntity fileSystemEntity, User authenticatedUser, boolean needsToBeVisible, boolean needsToBeEditable) {
