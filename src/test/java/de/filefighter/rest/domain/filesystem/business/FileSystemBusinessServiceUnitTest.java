@@ -13,6 +13,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Groups;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.util.ArrayList;
 
@@ -24,8 +25,9 @@ class FileSystemBusinessServiceUnitTest {
 
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
     private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
-    private final FileSystemTypeRepository fileSystemTypeRepository = mock(FileSystemTypeRepository.class);
-    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, userBusinessServiceMock, fileSystemTypeRepository);
+    private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
+    private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
+    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, userBusinessServiceMock, fileSystemTypeRepositoryMock, mongoTemplateMock);
 
     @Test
     void getFolderContentsByPathThrows() {
@@ -170,7 +172,6 @@ class FileSystemBusinessServiceUnitTest {
         assertFalse(fileSystemItem.isShared());
     }
 
-
     @Test
     void removeTrailingWhiteSpaces() {
         String doesNotRemove0 = "/";
@@ -278,7 +279,7 @@ class FileSystemBusinessServiceUnitTest {
                 .build();
 
         when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
-        when(fileSystemTypeRepository.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
 
         FileSystemItem actual = fileSystemBusinessService.createDTO(fileSystemEntity, authenticatedUser, basePath);
 

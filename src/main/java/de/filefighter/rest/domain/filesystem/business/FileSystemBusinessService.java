@@ -16,10 +16,19 @@ import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Groups;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 @Log4j2
 @Service
@@ -28,11 +37,13 @@ public class FileSystemBusinessService {
     private final FileSystemRepository fileSystemRepository;
     private final UserBusinessService userBusinessService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository) {
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
         this.userBusinessService = userBusinessService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
@@ -93,68 +104,113 @@ public class FileSystemBusinessService {
         if (!userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser))
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
-        if (fileSystemEntity.isFile()) {
-            fileSystemRepository.delete(fileSystemEntity);
+        recursivelyDeleteFileSystemEntity(fileSystemEntity, authenticatedUser);
+    }
+
+    /**
+     * Deletes the folder recursively.
+     *
+     * @param parentFileSystemEntity parentFolder.
+     * @param authenticatedUser      user that wants to delete
+     * @return true if the folder and all the folders / items were deleted.
+     */
+    @SuppressWarnings("squid:S3776")
+    public boolean recursivelyDeleteFileSystemEntity(FileSystemEntity parentFileSystemEntity, User authenticatedUser) {
+        boolean everythingWasDeleted = false;
+        if (parentFileSystemEntity.isFile()) {
+            fileSystemRepository.delete(parentFileSystemEntity);
+            everythingWasDeleted = true;
         } else {
-            HashSet<FileSystemEntity> foundFolders = new HashSet<>();
-            foundFolders.add(fileSystemEntity);
-            Iterator<FileSystemEntity> iterator = foundFolders.iterator();
+            ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
 
-            // Lists for change or deletion
-            ArrayList<FileSystemEntity> entitiesToBeDeleted = new ArrayList<>();
-            ArrayList<FileSystemEntity> entitiesToBeChanged = new ArrayList<>();
+            if (null == foundEntities || foundEntities.isEmpty()) {
+                fileSystemRepository.delete(parentFileSystemEntity);
+                everythingWasDeleted = true;
+            } else {
+                ArrayList<FileSystemEntity> invisibleEntities = new ArrayList<>();
+                ArrayList<FileSystemEntity> entitiesToBeDeleted = new ArrayList<>();
+                List<Long> newItemIds = LongStream.of(parentFileSystemEntity.getItemIds()).boxed().collect(Collectors.toList());
 
-            // I feel the ConcurrentModificationException coming.
-            while (iterator.hasNext()) {
-                FileSystemEntity nextFolder = iterator.next();
-                // no permissions set for comparison.
-                ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(nextFolder, authenticatedUser, false, false);
-                int countOfChildEntities = foundEntities.size();
-                int countOfDeletedEntities = 0;
-                int invisibleEntities = 0;
-
-                for (FileSystemEntity fileSystemEntityToBeDeleted : foundEntities) {
-                    // check here for permissions.
-                    if (userIsAllowedToSeeFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
-                        if (userIsAllowedToEditFileSystemEntity(fileSystemEntityToBeDeleted, authenticatedUser)) {
-                            if (fileSystemEntityToBeDeleted.isFile()) {
-                                // datei -> add to deletion, update parent folder
-                                entitiesToBeDeleted.add(fileSystemEntityToBeDeleted);
-                                nextFolder.setItemIds(Arrays.stream(nextFolder.getItemIds()).filter(id -> id != fileSystemEntityToBeDeleted.getFileSystemId()).toArray());
-                            } else {
-                                // folder -> add to set.
-                                foundFolders.add(fileSystemEntityToBeDeleted);
+                for (FileSystemEntity childrenEntity : foundEntities) {
+                    if (!childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) == FileSystemType.FOLDER) {
+                        if (recursivelyDeleteFileSystemEntity(childrenEntity, authenticatedUser)) {
+                            // there is no need to remove the child entity, because it was already deleted.
+                            newItemIds.remove(childrenEntity.getFileSystemId());
+                        }
+                    } else if (childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) != FileSystemType.FOLDER) {
+                        if (userIsAllowedToSeeFileSystemEntity(childrenEntity, authenticatedUser)) {
+                            if (userIsAllowedToEditFileSystemEntity(childrenEntity, authenticatedUser)) {
+                                entitiesToBeDeleted.add(childrenEntity);
+                                newItemIds.remove(childrenEntity.getFileSystemId());
                             }
-                            countOfDeletedEntities++;
+                            // otherwise the file stays as it is.
+                        } else {
+                            invisibleEntities.add(childrenEntity);
                         }
                     } else {
-                        invisibleEntities++;
+                        throw new FileFighterDataException("FileType was wrong. " + childrenEntity);
                     }
                 }
 
-                if (countOfChildEntities != countOfDeletedEntities) {
+                if (foundEntities.size() != entitiesToBeDeleted.size()) {
                     // some entities could not be deleted because he is not allowed or cannot see them.
-                    if (invisibleEntities > 0) {
-                        // 1. non visible entities. (not fine -> empty folder)
-                        // TODO: make parentFolder also invisible. BUT do it in way that "sums up" the rights of all files and folders way.
+                    if (!invisibleEntities.isEmpty()) {
+                        // some files do not include the current user to see them. By adding up all these permissions and applying them the the parent folder
+                        // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
+                        parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
                     }
-                    // 2. visible but non deletable entities. (fine)
-                    entitiesToBeChanged.add(nextFolder);
+                    // update itemIds.
+                    parentFileSystemEntity.setItemIds(newItemIds.stream().mapToLong(Long::longValue).toArray());
+
+                    // save changes of parentFolder to db.
+                    Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(parentFileSystemEntity.getFileSystemId()));
+                    Update newUpdate = new Update()
+                            .set("itemIds", parentFileSystemEntity.getItemIds())
+                            .set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
+                            .set("visibleForGroupIds", parentFileSystemEntity.getVisibleForGroupIds())
+                            .set("editableForUserIds", parentFileSystemEntity.getEditableForUserIds())
+                            .set("editableForGroupIds", parentFileSystemEntity.getEditableFoGroupIds());
+                    mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
                 } else {
-                    // remove the folder from set and delete it.
-                    foundFolders.remove(nextFolder);
-                    entitiesToBeDeleted.add(nextFolder);
+                    // No FileSystemEntities left in folder. -> can be deleted.
+                    fileSystemRepository.delete(parentFileSystemEntity);
+                    everythingWasDeleted = true;
                 }
+                fileSystemRepository.deleteAll(entitiesToBeDeleted);
             }
-            // delete the files
-            for(FileSystemEntity fsEntityToDelete: entitiesToBeDeleted){
-                fileSystemRepository.delete(fsEntityToDelete);
-            }
-            // TODO: query the changes.
         }
+        return everythingWasDeleted;
     }
 
     // ---------------- HELPER -------------------
+
+    public FileSystemEntity sumUpAllPermissionsOfFileSystemEntities(FileSystemEntity parentFileSystemEntity, List<FileSystemEntity> fileSystemEntities) {
+        HashSet<Long> visibleForUserIds = new HashSet<>();
+        HashSet<Long> visibleForGroupIds = new HashSet<>();
+        HashSet<Long> editableForUserIds = new HashSet<>();
+        HashSet<Long> editableGroupIds = new HashSet<>();
+
+        for (FileSystemEntity entity : fileSystemEntities) {
+            for (long id : entity.getVisibleForUserIds()) {
+                visibleForUserIds.add(id);
+            }
+            for (long id : entity.getVisibleForGroupIds()) {
+                visibleForGroupIds.add(id);
+            }
+            for (long id : entity.getEditableForUserIds()) {
+                editableForUserIds.add(id);
+            }
+            for (long id : entity.getEditableFoGroupIds()) {
+                editableGroupIds.add(id);
+            }
+        }
+
+        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(editableForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(editableGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        return parentFileSystemEntity;
+    }
 
     public List<FileSystemEntity> getFolderContentsOfEntityAndPermissions(FileSystemEntity fileSystemEntity, User authenticatedUser, boolean needsToBeVisible, boolean needsToBeEditable) {
         long[] folderContentItemIds = fileSystemEntity.getItemIds();

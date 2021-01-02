@@ -35,11 +35,11 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     MongoTemplate mongoTemplate;
 
     @Autowired
-    public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
+    public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.accessTokenRepository = accessTokenRepository;
         this.fileSystemRepository = fileSystemRepository;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper;
     }
 
     @Given("database is empty")
