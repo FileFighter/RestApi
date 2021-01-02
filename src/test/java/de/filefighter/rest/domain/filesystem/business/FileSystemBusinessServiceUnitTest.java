@@ -73,7 +73,7 @@ class FileSystemBusinessServiceUnitTest {
         long userId = 420;
         long fileIdInFolder = 123;
         User user = User.builder().userId(userId).build();
-        FileSystemEntity foundFolder = FileSystemEntity.builder().createdByUserId(userId).itemIds(new long[]{fileIdInFolder}).build();
+        FileSystemEntity foundFolder = FileSystemEntity.builder().createdByUserId(userId).typeId(0).itemIds(new long[]{fileIdInFolder}).build();
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
         entities.add(foundFolder);
 

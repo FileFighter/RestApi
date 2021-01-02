@@ -46,7 +46,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
         for (JsonNode node : rootNode) {
             if (node.get("fileSystemId").asLong() == fsItemId &&
                     node.get("name").asText().equals(name) &&
-                    node.get("type").asText().equals("FOLDER")) // WTF why check for folder
+                    !node.get("type").asText().equals("FOLDER"))
                 found = true;
         }
         assertTrue(found);
@@ -97,6 +97,5 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
                 found = true;
         }
         assertTrue(found);
-
     }
 }

@@ -69,6 +69,7 @@ Feature: View Folder
 
   Scenario: empty directory
     Given fileSystemItem with the fileSystemId 44 exists, was created by user with userId 420 and has the path "/empty"
+    And fileSystemItem with the fileSystemId 44 is a folder
     And user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 44
     When user with token "900000" wants to see the content of folder with path "/empty"
     Then response status code is 200

@@ -16,7 +16,8 @@ public class FileSystemEntity {
     private long fileSystemId = -1;
     private String name;
     private String path;
-    private long typeId;
+    @Builder.Default
+    private long typeId = -1;
     private double size;
     private boolean isFile;
     @Builder.Default
