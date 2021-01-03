@@ -98,7 +98,7 @@ public class FileSystemBusinessService {
         if (null == fileSystemEntity)
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
-        if (!userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser))
+        if (!(userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser)))
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
         recursivelyDeleteFileSystemEntity(fileSystemEntity, authenticatedUser);
@@ -107,17 +107,17 @@ public class FileSystemBusinessService {
     /**
      * Deletes the folder recursively.
      *
-     * @param parentFileSystemEntity parentFolder.
+     * @param parentFileSystemEntity parent fileSystem entity, can be both folder and file.
      * @param authenticatedUser      user that wants to delete
      * @return true if the folder and all the folders / items were deleted.
      */
     @SuppressWarnings("squid:S3776")
     public boolean recursivelyDeleteFileSystemEntity(FileSystemEntity parentFileSystemEntity, User authenticatedUser) {
         boolean everythingWasDeleted = false;
-        if (parentFileSystemEntity.isFile()) {
+        if (parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) != FileSystemType.FOLDER) {
             fileSystemRepository.delete(parentFileSystemEntity);
             everythingWasDeleted = true;
-        } else {
+        } else if (!parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) == FileSystemType.FOLDER) {
             ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
 
             if (null == foundEntities || foundEntities.isEmpty()) {
@@ -126,47 +126,59 @@ public class FileSystemBusinessService {
             } else {
                 ArrayList<FileSystemEntity> invisibleEntities = new ArrayList<>();
                 ArrayList<FileSystemEntity> entitiesToBeDeleted = new ArrayList<>();
-                List<Long> newItemIds = LongStream.of(parentFileSystemEntity.getItemIds()).boxed().collect(Collectors.toList());
+                List<Long> updatedItemIds = LongStream.of(parentFileSystemEntity.getItemIds()).boxed().collect(Collectors.toList());
+                int deletedEntities = 0;
 
                 for (FileSystemEntity childrenEntity : foundEntities) {
-                    if (!childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) == FileSystemType.FOLDER) {
-                        if (recursivelyDeleteFileSystemEntity(childrenEntity, authenticatedUser)) {
-                            // there is no need to remove the child entity, because it was already deleted.
-                            newItemIds.remove(childrenEntity.getFileSystemId());
-                        }
-                    } else if (childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) != FileSystemType.FOLDER) {
-                        if (userIsAllowedToSeeFileSystemEntity(childrenEntity, authenticatedUser)) {
-                            if (userIsAllowedToEditFileSystemEntity(childrenEntity, authenticatedUser)) {
+                    if (userIsAllowedToSeeFileSystemEntity(childrenEntity, authenticatedUser)) {
+                        if (userIsAllowedToEditFileSystemEntity(childrenEntity, authenticatedUser)) {
+
+                            // Folder.
+                            if (!childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) == FileSystemType.FOLDER) {
+                                if (recursivelyDeleteFileSystemEntity(childrenEntity, authenticatedUser)) {
+                                    // there is no need to remove the child entity, because it was already deleted in the recursive function call.
+                                    // if it wasn't removed (if = false) we don't remove the folder and we don't delete it.
+                                    updatedItemIds.remove(childrenEntity.getFileSystemId());
+                                    deletedEntities++;
+                                }
+                                // File
+                            } else if (childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) != FileSystemType.FOLDER) {
                                 entitiesToBeDeleted.add(childrenEntity);
-                                newItemIds.remove(childrenEntity.getFileSystemId());
+                                updatedItemIds.remove(childrenEntity.getFileSystemId());
+                                deletedEntities++;
+                            } else {
+                                throw new FileFighterDataException("FileType was wrong. " + childrenEntity);
                             }
-                            // otherwise the file stays as it is.
-                        } else {
-                            invisibleEntities.add(childrenEntity);
                         }
+                        // otherwise the item stays as it is.
                     } else {
-                        throw new FileFighterDataException("FileType was wrong. " + childrenEntity);
+                        invisibleEntities.add(childrenEntity);
                     }
                 }
 
-                if (foundEntities.size() != entitiesToBeDeleted.size()) {
-                    // some entities could not be deleted because he is not allowed or cannot see them.
-                    if (!invisibleEntities.isEmpty()) {
-                        // some files do not include the current user to see them. By adding up all these permissions and applying them the the parent folder
-                        // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
-                        parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
-                    }
+                // some entities could not be deleted because he is not allowed or cannot see them.
+                if (foundEntities.size() != deletedEntities) {
+
                     // update itemIds.
-                    parentFileSystemEntity.setItemIds(newItemIds.stream().mapToLong(Long::longValue).toArray());
+                    parentFileSystemEntity.setItemIds(updatedItemIds.stream().mapToLong(Long::longValue).toArray());
 
                     // save changes of parentFolder to db.
                     Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(parentFileSystemEntity.getFileSystemId()));
-                    Update newUpdate = new Update()
-                            .set("itemIds", parentFileSystemEntity.getItemIds())
-                            .set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
-                            .set("visibleForGroupIds", parentFileSystemEntity.getVisibleForGroupIds())
-                            .set("editableForUserIds", parentFileSystemEntity.getEditableForUserIds())
-                            .set("editableForGroupIds", parentFileSystemEntity.getEditableFoGroupIds());
+                    Update newUpdate = new Update().set("itemIds", parentFileSystemEntity.getItemIds());
+
+                    // only problem appears when there are only invisible entities left.
+                    boolean onlyInvisibleEntitiesAreLeftAfterRemovingDeletableEntities = !invisibleEntities.isEmpty() && (invisibleEntities.size() == updatedItemIds.size());
+                    if (onlyInvisibleEntitiesAreLeftAfterRemovingDeletableEntities) {
+                        // some files do not include the current user to see them. By adding up all these permissions and applying them the the parent folder
+                        // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
+                        // TODO: what are we doing if the user createdTheFolder? (we can only make it invisible if somebody else created the folder.)
+                        parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
+
+                        newUpdate.set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
+                                .set("visibleForGroupIds", parentFileSystemEntity.getVisibleForGroupIds())
+                                .set("editableForUserIds", parentFileSystemEntity.getEditableForUserIds())
+                                .set("editableForGroupIds", parentFileSystemEntity.getEditableFoGroupIds());
+                    }
                     mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
                 } else {
                     // No FileSystemEntities left in folder. -> can be deleted.
@@ -175,6 +187,8 @@ public class FileSystemBusinessService {
                 }
                 fileSystemRepository.deleteAll(entitiesToBeDeleted);
             }
+        } else {
+            throw new FileFighterDataException("FileType was wrong. " + parentFileSystemEntity);
         }
         return everythingWasDeleted;
     }
