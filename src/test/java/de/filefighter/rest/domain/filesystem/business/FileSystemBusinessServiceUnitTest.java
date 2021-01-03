@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDeletedException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
@@ -13,13 +14,14 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Groups;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class FileSystemBusinessServiceUnitTest {
 
@@ -158,6 +160,174 @@ class FileSystemBusinessServiceUnitTest {
         assertEquals(5, actualFileSystemEntity.getVisibleForGroupIds().length);
         assertEquals(5, actualFileSystemEntity.getEditableForUserIds().length);
         assertEquals(5, actualFileSystemEntity.getEditableFoGroupIds().length);
+    }
+
+    @Test
+    void deleteFileSystemItemByIdThrows() {
+        long fsItemId = 12332123;
+        long userId = 123123123;
+        User authenticatedUser = User.builder().userId(userId).build();
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(null);
+        FileSystemItemCouldNotBeDeletedException ex = assertThrows(FileSystemItemCouldNotBeDeletedException.class, () ->
+                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
+        assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + fsItemId, ex.getMessage());
+
+        FileSystemEntity foundEntity = FileSystemEntity.builder().build();
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        ex = assertThrows(FileSystemItemCouldNotBeDeletedException.class, () ->
+                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
+        assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + fsItemId, ex.getMessage());
+
+        foundEntity = FileSystemEntity.builder().createdByUserId(userId).isFile(true).typeId(0).build();
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        FileFighterDataException ex1 = assertThrows(FileFighterDataException.class, () ->
+                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FileType was wrong. " + foundEntity, ex1.getMessage());
+
+        long folderContentId = 13287132;
+        FileSystemEntity folderContentEntity = FileSystemEntity.builder().createdByUserId(userId).isFile(true).typeId(0).build();
+        when(fileSystemRepositoryMock.findByFileSystemId(folderContentId)).thenReturn(folderContentEntity);
+        foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{folderContentId}).build();
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        ex1 = assertThrows(FileFighterDataException.class, () ->
+                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FileType was wrong. " + folderContentEntity, ex1.getMessage());
+    }
+
+    @Test
+    void deleteFileSystemItemByIdWorksWithFile() {
+        long fsItemId = 12332123;
+        long userId = 243724328;
+        User authenticatedUser = User.builder().userId(userId).build();
+        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(1).isFile(true).createdByUserId(userId).build();
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+        verify(fileSystemRepositoryMock, times(1)).delete(foundEntity);
+    }
+
+    @Test
+    void deleteFileSystemItemByIdWorksWithFolder() {
+        long fsItemId = 12332123;
+        long userId = 243724328;
+        User authenticatedUser = User.builder().userId(userId).build();
+        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+
+        foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[0]).build();
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+        verify(fileSystemRepositoryMock, times(2)).delete(foundEntity);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteFileSystemItemByIdWorksWithFolderWhenAllItemsCanBeDeleted() {
+        long fsItemId = 12332123;
+        long userId = 243724328;
+        User authenticatedUser = User.builder().userId(userId).build();
+        long itemId0 = 1233212;
+        long itemId1 = 9872317;
+        long itemId2 = 1923847;
+        FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().isFile(false).typeId(0).createdByUserId(userId).fileSystemId(itemId0).build();
+        FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().fileSystemId(itemId1).createdByUserId(userId).isFile(true).build();
+        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().fileSystemId(itemId2).createdByUserId(userId).isFile(true).build();
+        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(fileSystemEntity0);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(fileSystemEntity1);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(fileSystemEntity2);
+
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+
+        verify(fileSystemRepositoryMock, times(1)).delete(foundEntity);
+        verify(fileSystemRepositoryMock, times(1)).delete(fileSystemEntity0); // empty folder
+
+        // https://stackoverflow.com/questions/11802801/using-mockito-how-do-i-verify-a-method-was-a-called-with-a-certain-argument
+        ArgumentCaptor<ArrayList<FileSystemEntity>> savedCaptor = ArgumentCaptor.forClass(ArrayList.class);
+        verify(fileSystemRepositoryMock).deleteAll(savedCaptor.capture());
+        assertTrue(savedCaptor.getValue().contains(fileSystemEntity1));
+        assertTrue(savedCaptor.getValue().contains(fileSystemEntity2));
+        assertEquals(2, savedCaptor.getValue().size());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteFileSystemItemByIdWorksWithFolderWhenSomeItemsCannotBeDeleted() {
+        long fsItemId = 12332123;
+        long userId = 243724328;
+        User authenticatedUser = User.builder().userId(userId).build();
+        long itemId0 = 1233212;
+        long itemId1 = 9872317;
+        long itemId2 = 1923847;
+        long itemId3 = 9817232;
+        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2, itemId3}).build();
+        FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).createdByUserId(userId).fileSystemId(itemId0).build();
+        FileSystemEntity invisibleFile = FileSystemEntity.builder().fileSystemId(itemId1).isFile(true).build();
+        FileSystemEntity visibleNonEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).visibleForUserIds(new long[]{userId}).isFile(true).build();
+        FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId3).createdByUserId(userId).isFile(true).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(invisibleFile);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(visibleNonEditableFile);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId3)).thenReturn(visibleEditableFile);
+
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+
+        // verify deleted entities.
+        ArgumentCaptor<ArrayList<FileSystemEntity>> arrayListArgumentCaptor = ArgumentCaptor.forClass(ArrayList.class);
+        verify(fileSystemRepositoryMock, times(1)).deleteAll(arrayListArgumentCaptor.capture());
+        assertTrue(arrayListArgumentCaptor.getValue().contains(visibleEditableFile));
+        assertEquals(1, arrayListArgumentCaptor.getValue().size());
+
+        ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
+        verify(mongoTemplateMock, times(1)).findAndModify(any(), updateArgumentCaptor.capture(), any());
+        assertEquals("{ \"$set\" : { \"itemIds\" : [ " + itemId1 + ", " + itemId2 + " ] } }", updateArgumentCaptor.getValue().toString()); // no better way to assert requested changes.
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void deleteFileSystemItemByIdWorksWithFolderOnlyInvisible() {
+        long fsItemId = 12332123;
+        long userId = 243724328;
+        User authenticatedUser = User.builder().userId(userId).build();
+        long itemId0 = 1233212;
+        long itemId1 = 9872317;
+        long itemId2 = 1923847;
+        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build(); // TODO: implement this edge case. (created by.)
+        FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).createdByUserId(userId).fileSystemId(itemId0).build();
+        FileSystemEntity invisibleFile = FileSystemEntity.builder().fileSystemId(itemId1).isFile(true).visibleForUserIds(new long[]{userId - 1}).build();
+        FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).createdByUserId(userId).isFile(true).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(invisibleFile);
+        when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(visibleEditableFile);
+
+        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+
+        // verify deleted entities.
+        ArgumentCaptor<ArrayList<FileSystemEntity>> arrayListArgumentCaptor = ArgumentCaptor.forClass(ArrayList.class);
+        verify(fileSystemRepositoryMock, times(1)).deleteAll(arrayListArgumentCaptor.capture());
+        assertTrue(arrayListArgumentCaptor.getValue().contains(visibleEditableFile));
+        assertEquals(1, arrayListArgumentCaptor.getValue().size());
+        verify(fileSystemRepositoryMock, times(1)).delete(visibleEditableEmptyFolder);
+
+        ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
+        verify(mongoTemplateMock, times(1)).findAndModify(any(), updateArgumentCaptor.capture(), any());
+        assertEquals("{ \"$set\" : { \"itemIds\" : [ " + itemId1 + " ], \"visibleForUserIds\" : [ " + (userId - 1) + " ], \"visibleForGroupIds\" : [  ], \"editableForUserIds\" : [  ], \"editableForGroupIds\" : [  ] } }", updateArgumentCaptor.getValue().toString()); // no better way to assert requested changes.
     }
 
     @Test
