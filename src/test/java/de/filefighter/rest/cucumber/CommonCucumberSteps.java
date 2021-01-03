@@ -111,7 +111,8 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdIsAFolderAndContainsTheFileSystemId(long fileSystemIdFolder, long fileSystemId) {
         Query query = new Query();
         Update newUpdate = new Update()
-                .set("itemIds", new long[]{fileSystemId})
+                .push("itemIds", fileSystemId)
+                .set("isFile", false)
                 .set("typeId", 0);
         query.addCriteria(Criteria.where("fileSystemId").is(fileSystemIdFolder));
 
