@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import java.util.HashMap;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
@@ -61,25 +62,22 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
         assertTrue(rootNode.isEmpty());
     }
 
-    @And("the response not contains the file with fileSystemId {long} and name {string}")
+    @And("the response does not contains the file with fileSystemId {long} and name {string}")
     public void theResponseNotContainsTheFileWithFileSystemIdAndName(long fsItemId, String name) throws JsonProcessingException {
 
         ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
         if (!rootNode.isContainerNode())
-            throw new AssertionError("Response was not an Array or empty.");
+            throw new AssertionError("Response was not an Array.");
 
-        if
-        (rootNode.isEmpty()) {
-            assertTrue(true);
-        } else {
-            boolean notFound = true;
+        // if it's empty is also okay.
+        if (!rootNode.isEmpty()) {
+            boolean found = false;
             for (JsonNode node : rootNode) {
-                if (node.get("fileSystemId").asLong() == fsItemId &&
-                        node.get("name").asText().equals(name) &&
-                        node.get("type").asText().equals("FOLDER")) // WTF why check for folder
-                    notFound = false;
+                if (node.get("fileSystemId").asLong() == fsItemId && node.get("name").asText().equals(name)) {
+                    found = true;
+                }
             }
-            assertTrue(notFound);
+            assertFalse(found);
         }
     }
 

@@ -115,12 +115,14 @@ public class FileSystemBusinessService {
     public boolean recursivelyDeleteFileSystemEntity(FileSystemEntity parentFileSystemEntity, User authenticatedUser) {
         boolean everythingWasDeleted = false;
         if (parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) != FileSystemType.FOLDER) {
+            // 1. Base of recursion
             fileSystemRepository.delete(parentFileSystemEntity);
             everythingWasDeleted = true;
         } else if (!parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) == FileSystemType.FOLDER) {
             ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
 
             if (null == foundEntities || foundEntities.isEmpty()) {
+                // 2. Base of recursion
                 fileSystemRepository.delete(parentFileSystemEntity);
                 everythingWasDeleted = true;
             } else {
@@ -135,6 +137,7 @@ public class FileSystemBusinessService {
 
                             // Folder.
                             if (!childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) == FileSystemType.FOLDER) {
+                                // Step of recursion
                                 if (recursivelyDeleteFileSystemEntity(childrenEntity, authenticatedUser)) {
                                     // there is no need to remove the child entity, because it was already deleted in the recursive function call.
                                     // if it wasn't removed (if = false) we don't remove the folder and we don't delete it.
@@ -143,6 +146,7 @@ public class FileSystemBusinessService {
                                 }
                                 // File
                             } else if (childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) != FileSystemType.FOLDER) {
+                                // 3. Base of recursion
                                 entitiesToBeDeleted.add(childrenEntity);
                                 updatedItemIds.remove(childrenEntity.getFileSystemId());
                                 deletedEntities++;

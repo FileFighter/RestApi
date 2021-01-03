@@ -43,7 +43,7 @@ Feature: FileSystem Delete
     Then response status code is 200
     And response contains key "message" and value "Not everything got deleted, because you are not allowed to edit some files."
     When user with token "900000" wants to see the content of folder with path "/bla"
-    And the response not contains the file with fileSystemId 72 and name "wow.txt"
+    And the response does not contains the file with fileSystemId 72 and name "wow.txt"
     And the response contains the file with fileSystemId 1080 and name "IwillStay.txt"
 
   Scenario: Folder and content Deletion with remaining content (invisible)
@@ -89,7 +89,7 @@ Feature: FileSystem Delete
     When user with token "900000" wants to see the content of folder with path "/bla"
     Then response status code is 200
     And the response contains the folder with fileSystemId 1 and name "fasel"
-    And the response not contains the file with fileSystemId 2 and name "git.exe"
+    And the response does not contains the file with fileSystemId 2 and name "git.exe"
 
   Scenario: insufficient authorization
     Given user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 42
