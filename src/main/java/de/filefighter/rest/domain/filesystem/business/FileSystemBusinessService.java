@@ -36,7 +36,7 @@ public class FileSystemBusinessService {
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final MongoTemplate mongoTemplate;
 
-    private static final String DELETION_FAILED_MSG="Failed to delete FileSystemEntity with id ";
+    private static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
 
     public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
@@ -120,8 +120,8 @@ public class FileSystemBusinessService {
             // 1. Base of recursion
             // Delete File and update parentFolder.
             Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
-            if(countDeleted != 1)
-                throw new FileFighterDataException(DELETION_FAILED_MSG+ parentFileSystemEntity.getFileSystemId());
+            if (countDeleted != 1)
+                throw new FileFighterDataException(DELETION_FAILED_MSG + parentFileSystemEntity.getFileSystemId());
 
             // update.
             Query query = new Query().addCriteria(Criteria.where("itemIds").is(parentFileSystemEntity.getFileSystemId()));
@@ -135,13 +135,12 @@ public class FileSystemBusinessService {
             if (null == foundEntities || foundEntities.isEmpty()) {
                 // 2. Base of recursion
                 Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
-                if(countDeleted != 1)
-                    throw new FileFighterDataException(DELETION_FAILED_MSG+ parentFileSystemEntity.getFileSystemId());
+                if (countDeleted != 1)
+                    throw new FileFighterDataException(DELETION_FAILED_MSG + parentFileSystemEntity.getFileSystemId());
 
                 everythingWasDeleted = true;
             } else {
                 ArrayList<FileSystemEntity> invisibleEntities = new ArrayList<>();
-                ArrayList<FileSystemEntity> entitiesToBeDeleted = new ArrayList<>();
                 List<Long> updatedItemIds = LongStream.of(parentFileSystemEntity.getItemIds()).boxed().collect(Collectors.toList());
                 int deletedEntities = 0;
 
@@ -161,7 +160,10 @@ public class FileSystemBusinessService {
                                 // File
                             } else if (childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) != FileSystemType.FOLDER) {
                                 // 3. Base of recursion
-                                entitiesToBeDeleted.add(childrenEntity);
+                                Long countDeleted = fileSystemRepository.deleteByFileSystemId(childrenEntity.getFileSystemId());
+                                if (countDeleted != 1)
+                                    throw new FileFighterDataException(DELETION_FAILED_MSG + childrenEntity.getFileSystemId());
+
                                 updatedItemIds.remove(childrenEntity.getFileSystemId());
                                 deletedEntities++;
                             } else {
@@ -202,13 +204,11 @@ public class FileSystemBusinessService {
                 } else {
                     // No FileSystemEntities left in folder. -> can be deleted.
                     Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
-                    if(countDeleted != 1)
-                        throw new FileFighterDataException(DELETION_FAILED_MSG+ parentFileSystemEntity.getFileSystemId());
+                    if (countDeleted != 1)
+                        throw new FileFighterDataException(DELETION_FAILED_MSG + parentFileSystemEntity.getFileSystemId());
 
                     everythingWasDeleted = true;
                 }
-                //TODO: check if this works.
-                fileSystemRepository.deleteAll(entitiesToBeDeleted);
             }
         } else {
             throw new FileFighterDataException("FileType was wrong. " + parentFileSystemEntity);
