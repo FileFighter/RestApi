@@ -36,6 +36,8 @@ public class FileSystemBusinessService {
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final MongoTemplate mongoTemplate;
 
+    private static final String DELETION_FAILED_MSG="Failed to delete FileSystemEntity with id ";
+
     public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
         this.userBusinessService = userBusinessService;
@@ -93,7 +95,7 @@ public class FileSystemBusinessService {
         return createDTO(fileSystemEntity, authenticatedUser, null);
     }
 
-    public void deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
+    public boolean deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
         FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
         if (null == fileSystemEntity)
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
@@ -101,7 +103,7 @@ public class FileSystemBusinessService {
         if (!(userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser)))
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
-        recursivelyDeleteFileSystemEntity(fileSystemEntity, authenticatedUser);
+        return recursivelyDeleteFileSystemEntity(fileSystemEntity, authenticatedUser);
     }
 
     /**
@@ -116,14 +118,26 @@ public class FileSystemBusinessService {
         boolean everythingWasDeleted = false;
         if (parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) != FileSystemType.FOLDER) {
             // 1. Base of recursion
-            fileSystemRepository.delete(parentFileSystemEntity);
+            // Delete File and update parentFolder.
+            Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
+            if(countDeleted != 1)
+                throw new FileFighterDataException(DELETION_FAILED_MSG+ parentFileSystemEntity.getFileSystemId());
+
+            // update.
+            Query query = new Query().addCriteria(Criteria.where("itemIds").is(parentFileSystemEntity.getFileSystemId()));
+            Update newUpdate = new Update().pull("itemIds", parentFileSystemEntity.getFileSystemId());
+            mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
+
             everythingWasDeleted = true;
         } else if (!parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) == FileSystemType.FOLDER) {
             ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
 
             if (null == foundEntities || foundEntities.isEmpty()) {
                 // 2. Base of recursion
-                fileSystemRepository.delete(parentFileSystemEntity);
+                Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
+                if(countDeleted != 1)
+                    throw new FileFighterDataException(DELETION_FAILED_MSG+ parentFileSystemEntity.getFileSystemId());
+
                 everythingWasDeleted = true;
             } else {
                 ArrayList<FileSystemEntity> invisibleEntities = new ArrayList<>();
@@ -175,7 +189,8 @@ public class FileSystemBusinessService {
                     if (onlyInvisibleEntitiesAreLeftAfterRemovingDeletableEntities) {
                         // some files do not include the current user to see them. By adding up all these permissions and applying them the the parent folder
                         // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
-                        // TODO: what are we doing if the user createdTheFolder? (we can only make it invisible if somebody else created the folder.)
+                        // TODO: what are we doing if the user that wants to delete is the user that created the folder? (we can only make it invisible if somebody else created the folder.)
+                        // TODO: -> solution: Owner of a folder have the necessary permissions for all recursive children.
                         parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
 
                         newUpdate.set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
@@ -186,9 +201,13 @@ public class FileSystemBusinessService {
                     mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
                 } else {
                     // No FileSystemEntities left in folder. -> can be deleted.
-                    fileSystemRepository.delete(parentFileSystemEntity);
+                    Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
+                    if(countDeleted != 1)
+                        throw new FileFighterDataException(DELETION_FAILED_MSG+ parentFileSystemEntity.getFileSystemId());
+
                     everythingWasDeleted = true;
                 }
+                //TODO: check if this works.
                 fileSystemRepository.deleteAll(entitiesToBeDeleted);
             }
         } else {

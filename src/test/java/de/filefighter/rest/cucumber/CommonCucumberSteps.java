@@ -89,12 +89,13 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 
-    @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} and has the path {string}")
-    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path) {
+    @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} has the path {string} and name {string}")
+    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .path(path)
                 .createdByUserId(userId)
                 .fileSystemId(fileSystemId)
+                .name(name)
                 .build());
     }
 

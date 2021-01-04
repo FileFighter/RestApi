@@ -76,7 +76,11 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
         AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
         User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
 
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-        return new ResponseEntity<>(new ServerResponse(HttpStatus.NO_CONTENT, "FileSystemItem was deleted."), HttpStatus.NO_CONTENT);
+        boolean everythingWasDeleted = fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+        if(everythingWasDeleted){
+            return new ResponseEntity<>(new ServerResponse(HttpStatus.OK, "Successfully deleted all requested FileSystemItems."), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(new ServerResponse(HttpStatus.OK, "Not everything got deleted, because you are not allowed to edit some files."), HttpStatus.OK);
+        }
     }
 }
