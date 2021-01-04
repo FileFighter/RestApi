@@ -19,7 +19,8 @@ public class FileSystemEntity {
     @Builder.Default
     private long typeId = -1;
     private double size;
-    private boolean isFile;
+    @Builder.Default
+    private boolean isFile = true;
     @Builder.Default
     private long createdByUserId = -1; //uploadedBy
     private long lastUpdated;

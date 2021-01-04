@@ -82,7 +82,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
     }
 
     @And("the response contains the folder with fileSystemId {long} and name {string}")
-    public void theResponseContainsTheFolderWithFileSystemIdAndName(int fileSystemId, String name) throws JsonProcessingException {
+    public void theResponseContainsTheFolderWithFileSystemIdAndName(long fileSystemId, String name) throws JsonProcessingException {
         ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
         if (!rootNode.isContainerNode() || rootNode.isEmpty())
             throw new AssertionError("Response was not an Array or empty.");
