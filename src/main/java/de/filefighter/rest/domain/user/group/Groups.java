@@ -3,7 +3,8 @@ package de.filefighter.rest.domain.user.group;
 public enum Groups {
     UNDEFINED(-1, "No group"),
     FAMILY(0, "Family"),
-    ADMIN(1, "Admin");
+    ADMIN(1, "Admin"),
+    SYSTEM(999, "FileFighter System Users");
 
     private final long groupId;
     private final String displayName;
