@@ -71,12 +71,25 @@ public class PrepareDataBase {
     }
 
     @Bean
+    CommandLineRunner createRuntimeUser(UserRepository userRepository) {
+        return args -> log.info("Adding system runtime user. {}", userRepository.save(UserEntity
+                .builder()
+                .userId(0L)
+                .username("FileFighter")
+                .lowercaseUsername("filefighter")
+                .password(null)
+                .refreshToken(null)
+                .groupIds(new long[0])
+                .build()));
+    }
+
+    @Bean
     @Profile("prod")
     CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
             log.info("Preloading default admin user: {}.", userRepository.save(UserEntity
                     .builder()
-                    .userId(0L)
+                    .userId(1L)
                     .username("Admin")
                     .lowercaseUsername("admin")
                     .password("admin")
@@ -92,14 +105,14 @@ public class PrepareDataBase {
                             .path("/")
                             .itemIds(new long[0])
                             .lastUpdated(Instant.now().getEpochSecond())
-                            .name("root")
+                            .name("HOME_Admin")
                             .size(0)
                             .typeId(FileSystemType.FOLDER.getId())
                             .visibleForGroupIds(new long[]{-1, 0, 1})
                             .itemIds(new long[]{1})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(0)
+                            .createdByUserId(1)
                             .fileSystemId(1)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
@@ -122,7 +135,7 @@ public class PrepareDataBase {
             log.info("Preloading default users: {} {}.",
                     userRepository.save(UserEntity
                             .builder()
-                            .userId(0)
+                            .userId(1)
                             .username("user")
                             .lowercaseUsername("user")
                             .password("1234")
@@ -131,7 +144,7 @@ public class PrepareDataBase {
                             .build()),
                     userRepository.save(UserEntity
                             .builder()
-                            .userId(1)
+                            .userId(2)
                             .username("user1")
                             .lowercaseUsername("user1")
                             .password("12345")
@@ -142,13 +155,13 @@ public class PrepareDataBase {
             log.info("Preloading default tokens: {} {}",
                     accessTokenRepository.save(AccessTokenEntity
                             .builder()
-                            .userId(0)
+                            .userId(1)
                             .value("token")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()),
                     accessTokenRepository.save(AccessTokenEntity
                             .builder()
-                            .userId(1)
+                            .userId(2)
                             .value("token1234")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
@@ -167,7 +180,7 @@ public class PrepareDataBase {
                             .visibleForGroupIds(new long[]{0, 1})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(1)
+                            .createdByUserId(0)
                             .fileSystemId(1)
                             .isFile(false)
                             .path("/")
@@ -178,7 +191,7 @@ public class PrepareDataBase {
                             .visibleForGroupIds(new long[]{-1, 0, 1})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(0)
+                            .createdByUserId(1)
                             .fileSystemId(2)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
