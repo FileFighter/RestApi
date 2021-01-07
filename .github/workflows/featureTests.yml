@@ -1,0 +1,25 @@
+name: Tests (Feature)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feature/**'
+    paths:
+      - 'src/**'
+      - 'pom.xml'
+      - '.github/workflows/featureTests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.0.8'
+          architecture: x64
+      - name: Run Tests and update Sonar
+        run: |
+          mvn clean verify
