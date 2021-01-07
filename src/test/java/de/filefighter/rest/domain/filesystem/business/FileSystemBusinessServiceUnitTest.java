@@ -202,9 +202,10 @@ class FileSystemBusinessServiceUnitTest {
         User authenticatedUser = User.builder().userId(userId).build();
         FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(1).isFile(true).createdByUserId(userId).build();
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when()
 
         fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-        verify(fileSystemRepositoryMock, times(1)).delete(foundEntity);
+        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fsItemId);
     }
 
     @Test
@@ -222,7 +223,7 @@ class FileSystemBusinessServiceUnitTest {
         foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[0]).build();
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
         fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-        verify(fileSystemRepositoryMock, times(2)).delete(foundEntity);
+        verify(fileSystemRepositoryMock, times(2)).deleteByFileSystemId(fsItemId);
     }
 
     @Test
@@ -247,8 +248,8 @@ class FileSystemBusinessServiceUnitTest {
 
         fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
 
-        verify(fileSystemRepositoryMock, times(1)).delete(foundEntity);
-        verify(fileSystemRepositoryMock, times(1)).delete(fileSystemEntity0); // empty folder
+        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fsItemId);
+        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId0); // empty folder
 
         // https://stackoverflow.com/questions/11802801/using-mockito-how-do-i-verify-a-method-was-a-called-with-a-certain-argument
         ArgumentCaptor<ArrayList<FileSystemEntity>> savedCaptor = ArgumentCaptor.forClass(ArrayList.class);
@@ -323,7 +324,7 @@ class FileSystemBusinessServiceUnitTest {
         verify(fileSystemRepositoryMock, times(1)).deleteAll(arrayListArgumentCaptor.capture());
         assertTrue(arrayListArgumentCaptor.getValue().contains(visibleEditableFile));
         assertEquals(1, arrayListArgumentCaptor.getValue().size());
-        verify(fileSystemRepositoryMock, times(1)).delete(visibleEditableEmptyFolder);
+        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId0);
 
         ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
         verify(mongoTemplateMock, times(1)).findAndModify(any(), updateArgumentCaptor.capture(), any());
