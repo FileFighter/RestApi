@@ -181,6 +181,11 @@ class FileSystemBusinessServiceUnitTest {
         // user created fileSystemItem
         assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
 
+        // user created containing folder
+        fileSystemEntity.setCreatedByUserId(1203891230);
+        fileSystemEntity.setOwnerIds(new long[]{userId});
+        assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+
         // user got it shared.
         fileSystemEntity = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
         assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
