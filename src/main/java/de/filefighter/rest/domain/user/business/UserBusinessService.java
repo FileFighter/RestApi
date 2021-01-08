@@ -114,6 +114,9 @@ public class UserBusinessService {
 
         for (long id : userGroups) {
             try {
+                if (id == Groups.SYSTEM.getGroupId())
+                    throw new UserNotRegisteredException("New users cannot be in group '" + Groups.SYSTEM.getDisplayName() + "'.");
+
                 groupRepository.getGroupById(id);
             } catch (IllegalArgumentException exception) {
                 throw new UserNotRegisteredException("One or more groups do not exist.");
@@ -162,10 +165,12 @@ public class UserBusinessService {
         if (null == userEntityToUpdate)
             throw new UserNotUpdatedException("User does not exist, use register endpoint.");
 
+        if (Arrays.stream(userEntityToUpdate.getGroupIds()).asDoubleStream().anyMatch(id -> id == Groups.SYSTEM.getGroupId()))
+            throw new UserNotUpdatedException("Runtime users cannot be modified.");
+
         Update newUpdate = new Update();
 
         boolean changesWereMade = updateUserName(newUpdate, userToUpdate.getUsername());
-
         boolean usernameIsValid = stringIsValid(userToUpdate.getUsername());
         String lowerCaseUsername = usernameIsValid ? userToUpdate.getUsername().toLowerCase() : userEntityToUpdate.getLowercaseUsername();
         boolean passwordWasUpdated = updatePassword(newUpdate, userToUpdate.getPassword(), userToUpdate.getConfirmationPassword(), lowerCaseUsername);
@@ -186,6 +191,8 @@ public class UserBusinessService {
         if (null != groupIds && groupIds.length != 0) {
             try {
                 for (Groups group : groupRepository.getGroupsByIds(groupIds)) {
+                    if (group == Groups.SYSTEM)
+                        throw new UserNotUpdatedException("Users cannot be added to the '" + Groups.SYSTEM.getDisplayName() + "' Group");
                     if (group == Groups.ADMIN && !authenticatedUserIsAdmin)
                         throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName() + ".");
                 }
