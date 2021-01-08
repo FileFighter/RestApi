@@ -153,8 +153,8 @@ public class FileSystemBusinessService {
     public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
         fileSystemRepository.save(FileSystemEntity
                 .builder()
-                .createdByUserId(registeredUserEntity.getUserId())
-                .typeId(0)
+                .createdByUserId(0)
+                .typeId(FileSystemType.FOLDER.getId())
                 .isFile(false)
                 .name("HOME_" + registeredUserEntity.getUsername())
                 .path("/")
