@@ -202,7 +202,7 @@ class FileSystemBusinessServiceUnitTest {
         User authenticatedUser = User.builder().userId(userId).build();
         FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(1).isFile(true).createdByUserId(userId).build();
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when()
+        //TODO: when()
 
         fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
         verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fsItemId);
@@ -418,6 +418,11 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
 
         // user created fileSystemItem
+        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+
+        // user created containing folder
+        fileSystemEntity.setCreatedByUserId(1203891230);
+        fileSystemEntity.setOwnerIds(new long[]{userId});
         assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
 
         // user got it shared.
