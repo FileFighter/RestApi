@@ -75,7 +75,7 @@ public class PrepareDataBase {
 
     @Bean
     CommandLineRunner createRuntimeUser(UserRepository userRepository) {
-        return args -> log.info("Adding system runtime user. {}", userRepository.save(UserEntity
+        return args -> log.info("Preloading system runtime user. {}", userRepository.save(UserEntity
                 .builder()
                 .userId(0L)
                 .username("FileFighter")
