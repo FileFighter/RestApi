@@ -277,9 +277,14 @@ public class FileSystemBusinessService {
         return fileSystemEntities;
     }
 
+    // TODO: also for edit.
     public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
         // user created the item
         if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
+            return true;
+
+        // user created containing folder.
+        if(null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
             return true;
 
         // user got the item shared.
@@ -361,8 +366,8 @@ public class FileSystemBusinessService {
     public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
         fileSystemRepository.save(FileSystemEntity
                 .builder()
-                .createdByUserId(registeredUserEntity.getUserId())
-                .typeId(0)
+                .createdByUserId(0)
+                .typeId(FileSystemType.FOLDER.getId())
                 .isFile(false)
                 .name("HOME_" + registeredUserEntity.getUsername())
                 .path("/")

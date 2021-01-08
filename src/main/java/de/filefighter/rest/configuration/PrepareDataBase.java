@@ -2,7 +2,6 @@ package de.filefighter.rest.configuration;
 
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
-import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
@@ -16,6 +15,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import java.time.Instant;
+
+import static de.filefighter.rest.domain.filesystem.type.FileSystemType.FOLDER;
+import static de.filefighter.rest.domain.filesystem.type.FileSystemType.TEXT;
+import static de.filefighter.rest.domain.user.group.Groups.*;
 
 @Log4j2
 @Configuration
@@ -71,17 +74,30 @@ public class PrepareDataBase {
     }
 
     @Bean
+    CommandLineRunner createRuntimeUser(UserRepository userRepository) {
+        return args -> log.info("Preloading system runtime user. {}", userRepository.save(UserEntity
+                .builder()
+                .userId(0L)
+                .username("FileFighter")
+                .lowercaseUsername("filefighter")
+                .password(null)
+                .refreshToken(null)
+                .groupIds(new long[]{SYSTEM.getGroupId()})
+                .build()));
+    }
+
+    @Bean
     @Profile("prod")
     CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
             log.info("Preloading default admin user: {}.", userRepository.save(UserEntity
                     .builder()
-                    .userId(0L)
+                    .userId(1L)
                     .username("Admin")
                     .lowercaseUsername("admin")
                     .password("admin")
                     .refreshToken("refreshToken1234")
-                    .groupIds(new long[]{0, 1})
+                    .groupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
                     .build()));
 
             log.info("Preloading default fsStructure: {} {}.", fileSystemRepository.save(FileSystemEntity
@@ -92,22 +108,22 @@ public class PrepareDataBase {
                             .path("/")
                             .itemIds(new long[0])
                             .lastUpdated(Instant.now().getEpochSecond())
-                            .name("root")
+                            .name("HOME_Admin")
                             .size(0)
-                            .typeId(FileSystemType.FOLDER.getId())
-                            .visibleForGroupIds(new long[]{-1, 0, 1})
+                            .typeId(FOLDER.getId())
+                            .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .itemIds(new long[]{1})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(0)
+                            .createdByUserId(1)
                             .fileSystemId(1)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("dummyFile.txt")
                             .size(420)
-                            .typeId(FileSystemType.TEXT.getId())
-                            .editableFoGroupIds(new long[]{0})
-                            .visibleForGroupIds(new long[]{0})
+                            .typeId(TEXT.getId())
+                            .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
+                            .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                             .build()));
 
             log.info("Inserting Users {}", (userRepository.findAll().size() == 1 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
@@ -122,33 +138,33 @@ public class PrepareDataBase {
             log.info("Preloading default users: {} {}.",
                     userRepository.save(UserEntity
                             .builder()
-                            .userId(0)
+                            .userId(1)
                             .username("user")
                             .lowercaseUsername("user")
                             .password("1234")
                             .refreshToken("rft1234")
-                            .groupIds(new long[]{1})
+                            .groupIds(new long[]{ADMIN.getGroupId()})
                             .build()),
                     userRepository.save(UserEntity
                             .builder()
-                            .userId(1)
+                            .userId(2)
                             .username("user1")
                             .lowercaseUsername("user1")
                             .password("12345")
                             .refreshToken("rft")
-                            .groupIds(new long[]{0})
+                            .groupIds(new long[]{FAMILY.getGroupId()})
                             .build()));
 
             log.info("Preloading default tokens: {} {}",
                     accessTokenRepository.save(AccessTokenEntity
                             .builder()
-                            .userId(0)
+                            .userId(1)
                             .value("token")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()),
                     accessTokenRepository.save(AccessTokenEntity
                             .builder()
-                            .userId(1)
+                            .userId(2)
                             .value("token1234")
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
@@ -163,30 +179,30 @@ public class PrepareDataBase {
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("HOME_User")
                             .size(420)
-                            .typeId(FileSystemType.FOLDER.getId())
-                            .visibleForGroupIds(new long[]{0, 1})
+                            .typeId(FOLDER.getId())
+                            .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(1)
+                            .createdByUserId(0)
                             .fileSystemId(1)
                             .isFile(false)
                             .path("/")
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("HOME_User1")
                             .size(420)
-                            .typeId(FileSystemType.FOLDER.getId())
-                            .visibleForGroupIds(new long[]{-1, 0, 1})
+                            .typeId(FOLDER.getId())
+                            .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(0)
+                            .createdByUserId(1)
                             .fileSystemId(2)
                             .isFile(true)
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("dummyFile.txt")
                             .size(420)
-                            .typeId(FileSystemType.TEXT.getId())
-                            .editableFoGroupIds(new long[]{0})
-                            .visibleForGroupIds(new long[]{0})
+                            .typeId(TEXT.getId())
+                            .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
+                            .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                             .build()));
 
             log.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 3 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
