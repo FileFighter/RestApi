@@ -250,6 +250,11 @@ class UserBusinessServiceUnitTest {
         ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
         assertEquals("User could not be registered. One or more groups do not exist.", ex.getMessage());
+
+        userRegisterForm.setGroupIds(new long[]{Groups.SYSTEM.getGroupId()});
+        ex = assertThrows(UserNotRegisteredException.class, () ->
+                userBusinessService.registerNewUser(userRegisterForm));
+        assertEquals("User could not be registered. New users cannot be in group '" + Groups.SYSTEM.getDisplayName() + "'.", ex.getMessage());
     }
 
     @Test
@@ -298,6 +303,11 @@ class UserBusinessServiceUnitTest {
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
         assertEquals("User could not get updated. User does not exist, use register endpoint.", ex.getMessage());
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{Groups.SYSTEM.getGroupId()}).build());
+        ex = assertThrows(UserNotUpdatedException.class, () ->
+                userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
+        assertEquals("User could not get updated. Runtime users cannot be modified.", ex.getMessage());
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
         ex = assertThrows(UserNotUpdatedException.class, () ->
@@ -414,6 +424,13 @@ class UserBusinessServiceUnitTest {
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
         assertEquals("User could not get updated. One or more groups do not exist.", ex.getMessage());
+
+        long[] systemUser = new long[]{Groups.SYSTEM.getGroupId()};
+        userRegisterForm.setGroupIds(systemUser);
+        when(groupRepositoryMock.getGroupsByIds(systemUser)).thenReturn(new Groups[]{Groups.SYSTEM});
+        ex = assertThrows(UserNotUpdatedException.class, () ->
+                userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+        assertEquals("User could not get updated. Users cannot be added to the '" + Groups.SYSTEM.getDisplayName() + "' Group", ex.getMessage());
     }
 
     @Test
