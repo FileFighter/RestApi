@@ -8,4 +8,4 @@ Backend REST API for FileFighter
 [![Security Rating](https://sonar.filefighter.de/api/project_badges/measure?project=de.filefighter%3Arest&metric=security_rating)](https://sonar.filefighter.de/dashboard?id=de.filefighter%3Arest)  
 ![Latest Release](https://github.com/FileFighter/RestApi/workflows/Latest%20Release/badge.svg)
 ![Stable Release](https://github.com/FileFighter/RestApi/workflows/Stable%20Release/badge.svg)
-![Tests](https://github.com/FileFighter/RestApi/workflows/Tests/badge.svg)
+![Tests (Master)](https://github.com/FileFighter/RestApi/workflows/Tests%20(Master)/badge.svg)
