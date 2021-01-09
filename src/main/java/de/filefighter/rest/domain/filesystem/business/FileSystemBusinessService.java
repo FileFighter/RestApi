@@ -192,8 +192,8 @@ public class FileSystemBusinessService {
                     if (onlyInvisibleEntitiesAreLeftAfterRemovingDeletableEntities) {
                         // some files do not include the current user to see them. By adding up all these permissions and applying them the the parent folder
                         // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
-                        // what are we doing if the user that wants to delete is the user that created the folder? (we can only make it invisible if somebody else created the folder.)
-                        // This case cannot happen, because he the owner has all rights on all files except ones created by runtime users.
+                        // EdgeCase: that the user who requests the deletion is owner of the folder but cannot see cannot happen anymore,
+                        // because he the owner has all rights on all files except ones created by runtime users.
                         parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
 
                         newUpdate.set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
