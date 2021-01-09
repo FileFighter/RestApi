@@ -17,11 +17,11 @@ Feature: FileSystem CRUD
     When user requests fileSystemInfo with fileSystemId 1234 and accessTokenValue "900000"
     Then response status code is 400
     And response contains key "status" and value "Bad Request"
-    And response contains key "message" and value "FileSystemItem with id 1234 could not be found or you are not allowed to view it."
+    And response contains key "message" and value "FileSystemItem could not be found or you are not allowed to view it. FileSystemId was 1234"
 
   Scenario: Get FileSystemItem does not work, because user is not allowed
     Given fileSystemItem with the fileSystemId 1234 exists, was created by user with userId 9999999 and has the name "dummyFile.pdf"
     When user requests fileSystemInfo with fileSystemId 1234 and accessTokenValue "900000"
     Then response status code is 400
     And response contains key "status" and value "Bad Request"
-    And response contains key "message" and value "FileSystemItem with id 1234 could not be found or you are not allowed to view it."
+    And response contains key "message" and value "FileSystemItem could not be found or you are not allowed to view it. FileSystemId was 1234"

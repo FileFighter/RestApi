@@ -29,8 +29,8 @@ public class UserAuthorizationSteps extends RestApplicationIntegrationTest {
     private final AccessTokenRepository accessTokenRepository;
 
     @Autowired
-    public UserAuthorizationSteps(AccessTokenRepository accessTokenRepository) {
-        this.objectMapper = new ObjectMapper();
+    public UserAuthorizationSteps(AccessTokenRepository accessTokenRepository, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.accessTokenRepository = accessTokenRepository;
     }
 

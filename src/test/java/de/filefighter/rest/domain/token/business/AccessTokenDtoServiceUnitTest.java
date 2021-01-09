@@ -48,7 +48,7 @@ class AccessTokenDtoServiceUnitTest {
         AccessTokenNotFoundException ex = assertThrows(AccessTokenNotFoundException.class, () ->
                 accessTokenDtoService.findEntity(dummyToken)
         );
-        assertEquals("AccessTokenEntity does not exist for AccessToken with userId "+userId+".", ex.getMessage());
+        assertEquals(AccessTokenNotFoundException.getErrorMessagePrefix() + " UserId was " + userId, ex.getMessage());
     }
 
     @Test

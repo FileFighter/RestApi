@@ -9,4 +9,6 @@ import java.util.ArrayList;
 public interface FileSystemRepository extends MongoRepository<FileSystemEntity, String> {
     FileSystemEntity findByFileSystemId(long fileSystemId);
     ArrayList<FileSystemEntity> findByPath(String path);
+    Long deleteByFileSystemId (long fileSystemId);
 }
+

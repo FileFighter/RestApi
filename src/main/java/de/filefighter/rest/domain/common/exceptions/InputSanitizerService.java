@@ -1,6 +1,5 @@
-package de.filefighter.rest.domain.common;
+package de.filefighter.rest.domain.common.exceptions;
 
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -77,7 +77,7 @@ public class PrepareDataBase {
     CommandLineRunner createRuntimeUser(UserRepository userRepository) {
         return args -> log.info("Preloading system runtime user. {}", userRepository.save(UserEntity
                 .builder()
-                .userId(0L)
+                .userId(RestConfiguration.RUNTIME_USER_ID)
                 .username("FileFighter")
                 .lowercaseUsername("filefighter")
                 .password(null)
@@ -102,7 +102,7 @@ public class PrepareDataBase {
 
             log.info("Preloading default fsStructure: {} {}.", fileSystemRepository.save(FileSystemEntity
                             .builder()
-                            .createdByUserId(0)
+                            .createdByUserId(RestConfiguration.RUNTIME_USER_ID)
                             .fileSystemId(0)
                             .isFile(false)
                             .path("/")
@@ -171,7 +171,7 @@ public class PrepareDataBase {
 
             log.info("Preloading default fsItems: {} {} {}.",
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(0)
+                            .createdByUserId(RestConfiguration.RUNTIME_USER_ID)
                             .fileSystemId(0)
                             .isFile(false)
                             .path("/")
@@ -183,7 +183,7 @@ public class PrepareDataBase {
                             .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .build()),
                     fileSystemRepository.save(FileSystemEntity.builder()
-                            .createdByUserId(0)
+                            .createdByUserId(RestConfiguration.RUNTIME_USER_ID)
                             .fileSystemId(1)
                             .isFile(false)
                             .path("/")

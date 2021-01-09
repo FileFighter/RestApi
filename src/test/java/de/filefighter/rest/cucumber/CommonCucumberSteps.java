@@ -35,11 +35,11 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     MongoTemplate mongoTemplate;
 
     @Autowired
-    public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
+    public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.accessTokenRepository = accessTokenRepository;
         this.fileSystemRepository = fileSystemRepository;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper;
     }
 
     @Given("database is empty")
@@ -89,12 +89,13 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
     }
 
-    @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} and has the path {string}")
-    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path) {
+    @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} has the path {string} and name {string}")
+    public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .path(path)
                 .createdByUserId(userId)
                 .fileSystemId(fileSystemId)
+                .name(name)
                 .build());
     }
 
@@ -110,8 +111,20 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     @And("fileSystemItem with the fileSystemId {long} is a folder and contains the fileSystemId {long}")
     public void fileSystemItemWithTheFileSystemIdIsAFolderAndContainsTheFileSystemId(long fileSystemIdFolder, long fileSystemId) {
         Query query = new Query();
-        Update newUpdate = new Update().set("itemIds", new long[]{fileSystemId});
+        Update newUpdate = new Update()
+                .push("itemIds", fileSystemId)
+                .set("isFile", false)
+                .set("typeId", 0);
         query.addCriteria(Criteria.where("fileSystemId").is(fileSystemIdFolder));
+
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} is a folder")
+    public void fileSystemItemWithTheFileSystemIdIsAFolder(long fileSystemId) {
+        Query query = new Query();
+        Update newUpdate = new Update().set("typeId", 0).set("isFile", false);
+        query.addCriteria(Criteria.where("fileSystemId").is(fileSystemId));
 
         mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }

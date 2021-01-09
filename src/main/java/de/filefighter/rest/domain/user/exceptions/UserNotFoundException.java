@@ -1,16 +1,24 @@
 package de.filefighter.rest.domain.user.exceptions;
 
-public class UserNotFoundException extends RuntimeException {
+import de.filefighter.rest.domain.common.exceptions.FileFighterException;
 
-    public UserNotFoundException(){
-        super("User not found.");
+public class UserNotFoundException extends RuntimeException implements FileFighterException {
+
+    private static final String ERROR_MESSAGE_PREFIX = "User not found.";
+
+    public UserNotFoundException() {
+        super(ERROR_MESSAGE_PREFIX);
     }
 
-    public UserNotFoundException(long id) {
-        super("Could not find user with userId " + id+".");
+    public UserNotFoundException(long userId) {
+        super(ERROR_MESSAGE_PREFIX + " UserId was " + userId);
     }
 
-    public UserNotFoundException(String message) {
-        super(message);
+    public UserNotFoundException(String username) {
+        super(ERROR_MESSAGE_PREFIX + " Username was " + username);
+    }
+
+    public static String getErrorMessagePrefix() {
+        return ERROR_MESSAGE_PREFIX;
     }
 }

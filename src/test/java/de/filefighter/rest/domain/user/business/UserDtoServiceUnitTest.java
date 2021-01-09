@@ -50,7 +50,7 @@ class UserDtoServiceUnitTest {
 
         UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
                 userDtoService.findEntity(user));
-        assertEquals("Could not find user with userId 0.", ex.getMessage());
+        assertEquals(UserNotFoundException.getErrorMessagePrefix()+" UserId was " + userId, ex.getMessage());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.common;
 
-import de.filefighter.rest.rest.exceptions.RequestDidntMeetFormalRequirementsException;
+import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
+import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,11 +26,11 @@ class InputSanitizerServiceUnitTest {
 
         RequestDidntMeetFormalRequirementsException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 InputSanitizerService.sanitizeString(string0));
-        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" String was empty.", ex.getMessage());
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 InputSanitizerService.sanitizeString(string1));
-        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" String was empty.", ex.getMessage());
     }
 
     @Test
@@ -53,19 +54,19 @@ class InputSanitizerServiceUnitTest {
 
         RequestDidntMeetFormalRequirementsException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string0));
-        assertEquals("Request didnt meet formal requirements. Header does not contain a valid String.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" Header does not contain a valid String.", ex.getMessage());
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string1));
-        assertEquals("Request didnt meet formal requirements. Header does not contain a valid String.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" Header does not contain a valid String.", ex.getMessage());
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string2));
-        assertEquals("Request didnt meet formal requirements. Header does not contain '" + header + "', or format is invalid.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" Header does not contain '" + header + "', or format is invalid.", ex.getMessage());
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeRequestHeader(header, string3));
-        assertEquals("Request didnt meet formal requirements. Header does not contain '" + header + "', or format is invalid.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" Header does not contain '" + header + "', or format is invalid.", ex.getMessage());
     }
 
 
@@ -87,11 +88,11 @@ class InputSanitizerServiceUnitTest {
 
         RequestDidntMeetFormalRequirementsException ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeTokenValue(string0));
-        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" String was empty.", ex.getMessage());
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 inputSanitizerService.sanitizeTokenValue(string1));
-        assertEquals("Request didnt meet formal requirements. String was empty.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix()+" String was empty.", ex.getMessage());
 
     }
 
