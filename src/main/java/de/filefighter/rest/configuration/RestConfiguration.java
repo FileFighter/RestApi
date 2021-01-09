@@ -10,6 +10,7 @@ public class RestConfiguration {
     public static final String FS_PATH_HEADER = "X-FF-PATH";
     public static final String USER_BASE_URI = "/users/";
     public static final String DEFAULT_ERROR_URI = "/error";
+    public static final long RUNTIME_USER_ID = 0;
 
     private RestConfiguration(){
         // Cannot be instantiated.

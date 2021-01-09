@@ -7,7 +7,7 @@ Feature: View Folder
     And user 1234 exists
     And user 420 exists
     And accessToken with value "900000" exists for user 1234
-    And fileSystemItem with the fileSystemId 42 exists, was created by user with userId 420 and has the path "/bla"
+    And fileSystemItem with the fileSystemId 42 exists, was created by user with userId 420 has the path "/bla" and name "bla"
     And fileSystemItem with the fileSystemId 72 exists, was created by user with userId 420 and has the name "wow.txt"
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 72
 
@@ -68,7 +68,7 @@ Feature: View Folder
     And the response contains the file with fileSystemId 72 and name "wow.txt"
 
   Scenario: empty directory
-    Given fileSystemItem with the fileSystemId 44 exists, was created by user with userId 420 and has the path "/empty"
+    Given fileSystemItem with the fileSystemId 44 exists, was created by user with userId 420 has the path "/empty" and name "emptyFolder"
     And fileSystemItem with the fileSystemId 44 is a folder
     And user with the userId 1234 is allowed to VIEW the fileSystemItem with the fileSystemId 44
     When user with token "900000" wants to see the content of folder with path "/empty"

@@ -123,7 +123,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     @And("fileSystemItem with the fileSystemId {long} is a folder")
     public void fileSystemItemWithTheFileSystemIdIsAFolder(long fileSystemId) {
         Query query = new Query();
-        Update newUpdate = new Update().set("typeId", 0);
+        Update newUpdate = new Update().set("typeId", 0).set("isFile", false);
         query.addCriteria(Criteria.where("fileSystemId").is(fileSystemId));
 
         mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);

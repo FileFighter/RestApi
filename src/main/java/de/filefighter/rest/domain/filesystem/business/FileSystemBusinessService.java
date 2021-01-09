@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -191,8 +192,8 @@ public class FileSystemBusinessService {
                     if (onlyInvisibleEntitiesAreLeftAfterRemovingDeletableEntities) {
                         // some files do not include the current user to see them. By adding up all these permissions and applying them the the parent folder
                         // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
-                        // TODO: what are we doing if the user that wants to delete is the user that created the folder? (we can only make it invisible if somebody else created the folder.)
-                        // TODO: -> solution: Owner of a folder have the necessary permissions for all recursive children.
+                        // what are we doing if the user that wants to delete is the user that created the folder? (we can only make it invisible if somebody else created the folder.)
+                        // This case cannot happen, because he the owner has all rights on all files except ones created by runtime users.
                         parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
 
                         newUpdate.set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
@@ -283,7 +284,7 @@ public class FileSystemBusinessService {
             return true;
 
         // user created containing folder.
-        if(null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
+        if (null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
             return true;
 
         // user got the item shared.
@@ -305,12 +306,16 @@ public class FileSystemBusinessService {
     }
 
     public boolean userIsAllowedToEditFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
+        // file was created by runtime user.
+        if (fileSystemEntity.getCreatedByUserId() == RestConfiguration.RUNTIME_USER_ID)
+            return false;
+
         // user created the item
         if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
             return true;
 
         // user created containing folder.
-        if(null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
+        if (null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
             return true;
 
         // user got the item shared.
