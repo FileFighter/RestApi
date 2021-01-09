@@ -1,11 +1,11 @@
 package de.filefighter.rest.domain.token.business;
 
+import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.persistence.AccessTokenEntity;
 import de.filefighter.rest.domain.token.data.persistence.AccessTokenRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
-import de.filefighter.rest.rest.exceptions.FileFighterDataException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -97,7 +97,7 @@ class AccessTokenBusinessServiceUnitTest {
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
                 accessTokenBusinessService.getValidAccessTokenForUser(dummyUser));
-        assertEquals("Internal Error occurred. AccessToken for userId " + dummyId + " could not be deleted.", ex.getMessage());
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " AccessToken for userId " + dummyId + " could not be deleted.", ex.getMessage());
     }
 
     @Test
@@ -110,7 +110,7 @@ class AccessTokenBusinessServiceUnitTest {
         UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 accessTokenBusinessService.findAccessTokenByValueAndUserId(tokenValue, userId)
         );
-        assertEquals("User with the id " + userId + " could not be authenticated.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " UserId was " + userId, ex.getMessage());
     }
 
     @Test
@@ -137,7 +137,7 @@ class AccessTokenBusinessServiceUnitTest {
         UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 accessTokenBusinessService.findAccessTokenByValue(validFormat)
         );
-        assertEquals("User could not be authenticated. AccessToken not found.", ex.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix()+" AccessToken not found.", ex.getMessage());
     }
 
     @Test

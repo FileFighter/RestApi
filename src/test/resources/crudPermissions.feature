@@ -1,4 +1,4 @@
-#Feature: CRUD Permissions
+Feature: CRUD Permissions
 #  As a user and owner a file
 #  I want want to be able to give or revoke other users permissions to either see or see and edit certain files or folders, so they can work together on the same files
 #
@@ -95,3 +95,30 @@
 #  When user with token "900000" wants to give "edit" permission for "file" with id 111 to user 1234
 #  Then response status code is 405
 #  And response contains key "message" and value "User with id 1234 is already owner of file with id 111."
+
+
+# Scenario: Recursion (Should be discussed, maybe a flag for setting the permission recursive???)
+#   Given fileSystemItem with the fileSystemId 1 exists, was created by user with userId 1234 and has the path "/r"
+#   And fileSystemItem with the fileSystemId 1 is a folder and contains the fileSystemId 2
+#   And fileSystemItem with the fileSystemId 3 exists, was created by user with userId 1234 and has the path "/r/ProgrammerHumor"
+#   And fileSystemItem with the fileSystemId 2 is a folder and contains the fileSystemId 3
+#   And fileSystemItem with the fileSystemId 3 exists, was created by user with userId 1234 and has the name "JonnysFavourites.zip"
+#   When user with token "900000" wants to give VIEW permission for fileSystemItem with id 1 to user 9877
+#   Then response status code is 200
+#   When user with token "2345678" wants to see the content of folder with path "/r/ProgrammerHumor"
+#   Then response status code is 200
+#   And the response contains the file with fileSystemId 3 and name "JonnysFavourites.zip"
+#   When user with token "2345678" wants to delete the fileSystemItem with the fileSystemId 2
+#   Then response status code is 400
+#   And response contains key "message" and value "Folder does not exist, or you are not allowed to edit the folder."
+#   When user with token "2345678" wants to remove VIEW permission for fileSystemItem with id 3 for user 9877
+#   Then response status code is 200
+#   When user with token "2345678" wants to see the content of folder with path "/r/ProgrammerHumor"
+#   Then response status code is 200
+#   And the response contains an empty list for files and folders
+#   When user with token "900000" wants to give EDIT permission for fileSystemItem with id 1 to user 9877
+#   Then response status code is 200
+
+
+
+

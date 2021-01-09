@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.filesystem.rest;
 
-import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
@@ -70,7 +70,17 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<ServerResponse> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessToken) {
-        return null;
+    public ResponseEntity<ServerResponse> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessTokenValue) {
+        String cleanHeader = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenValue);
+        String cleanValue = inputSanitizerService.sanitizeTokenValue(cleanHeader);
+        AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(cleanValue);
+        User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
+
+        boolean everythingWasDeleted = fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+        if(everythingWasDeleted){
+            return new ResponseEntity<>(new ServerResponse(HttpStatus.OK, "Successfully deleted all requested FileSystemItems."), HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(new ServerResponse(HttpStatus.OK, "Not everything got deleted, because you are not allowed to edit some files."), HttpStatus.OK);
+        }
     }
 }

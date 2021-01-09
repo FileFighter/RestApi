@@ -27,12 +27,12 @@ Feature: Find User with Username
   Scenario: Failed to find another user because username has spelling errors
     When user with accessToken "accessToken1" searches user with search-value "benguin"
     Then response status code is 404
-    And response contains key "message" and value "User with username 'benguin' not found."
+    And response contains key "message" and value "User not found. Username was benguin"
     And response contains key "status" and value "Not Found"
 
   #kinda same but still
   Scenario: Failed to find another user because username does not exist
     When user with accessToken "accessToken1" searches user with search-value "bielefeld"
     Then response status code is 404
-    And response contains key "message" and value "User with username 'bielefeld' not found."
+    And response contains key "message" and value "User not found. Username was bielefeld"
     And response contains key "status" and value "Not Found"

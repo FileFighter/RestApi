@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import java.util.HashMap;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
@@ -46,7 +47,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
         for (JsonNode node : rootNode) {
             if (node.get("fileSystemId").asLong() == fsItemId &&
                     node.get("name").asText().equals(name) &&
-                    node.get("type").asText().equals("FOLDER"))
+                    !node.get("type").asText().equals("FOLDER"))
                 found = true;
         }
         assertTrue(found);
@@ -59,5 +60,40 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
             throw new AssertionError("Response was not an Array or empty.");
 
         assertTrue(rootNode.isEmpty());
+    }
+
+    @And("the response does not contains the file with fileSystemId {long} and name {string}")
+    public void theResponseNotContainsTheFileWithFileSystemIdAndName(long fsItemId, String name) throws JsonProcessingException {
+
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode())
+            throw new AssertionError("Response was not an Array.");
+
+        // if it's empty is also okay.
+        if (!rootNode.isEmpty()) {
+            boolean found = false;
+            for (JsonNode node : rootNode) {
+                if (node.get("fileSystemId").asLong() == fsItemId && node.get("name").asText().equals(name)) {
+                    found = true;
+                }
+            }
+            assertFalse(found);
+        }
+    }
+
+    @And("the response contains the folder with fileSystemId {long} and name {string}")
+    public void theResponseContainsTheFolderWithFileSystemIdAndName(long fileSystemId, String name) throws JsonProcessingException {
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            if (node.get("fileSystemId").asLong() == fileSystemId &&
+                    node.get("name").asText().equals(name) &&
+                    node.get("type").asText().equals("FOLDER"))
+                found = true;
+        }
+        assertTrue(found);
     }
 }

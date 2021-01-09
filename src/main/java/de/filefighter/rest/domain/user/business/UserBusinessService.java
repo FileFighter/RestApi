@@ -22,7 +22,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
+import static de.filefighter.rest.domain.common.exceptions.InputSanitizerService.stringIsValid;
 
 @Service
 public class UserBusinessService {
@@ -77,7 +77,7 @@ public class UserBusinessService {
     public User findUserByUsername(String username) {
         UserEntity entity = getUserWithUsername(username);
         if (null == entity)
-            throw new UserNotFoundException("User with username '" + username + "' not found.");
+            throw new UserNotFoundException(username);
 
         return userDtoService.createDto(entity);
     }

@@ -1,4 +1,4 @@
-package de.filefighter.rest.rest.exceptions;
+package de.filefighter.rest.domain.filesystem.exceptions;
 
 import de.filefighter.rest.rest.ServerResponse;
 import lombok.extern.log4j.Log4j2;
@@ -11,13 +11,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Log4j2
 @ControllerAdvice
-public class RequestDidntMeetFormalRequirementsAdvise {
+public class FileSystemItemCouldNotBeDeletedAdvise {
 
     @ResponseBody
-    @ExceptionHandler(RequestDidntMeetFormalRequirementsException.class)
+    @ExceptionHandler(FileSystemItemCouldNotBeDeletedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    ResponseEntity<ServerResponse> requestDidntMeetFormalRequirements(RequestDidntMeetFormalRequirementsException ex) {
+    ResponseEntity<ServerResponse> fileSystemContentsNotAccessibleAdvise(FileSystemItemCouldNotBeDeletedException ex) {
         log.warn(ex.getMessage());
         return new ResponseEntity<>(new ServerResponse(HttpStatus.BAD_REQUEST, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
+
 }

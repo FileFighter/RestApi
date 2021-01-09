@@ -12,7 +12,7 @@ public class GroupRepository {
                 return group;
             }
         }
-        throw new IllegalArgumentException("id "+id+" doesnt belong to a group.");
+        throw new IllegalArgumentException("GroupId "+id+" doesnt belong to a group.");
     }
 
     public Groups[] getGroupsByIds(long... ids){

@@ -1,4 +1,4 @@
-package de.filefighter.rest.rest.exceptions;
+package de.filefighter.rest.domain.common.exceptions;
 
 import de.filefighter.rest.domain.health.business.SystemHealthBusinessService;
 import de.filefighter.rest.domain.health.data.SystemHealth;

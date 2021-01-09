@@ -13,11 +13,20 @@ public class CrudFileSystemSteps extends RestApplicationIntegrationTest {
     @When("user requests fileSystemInfo with fileSystemId {long} and accessTokenValue {string}")
     public void userRequestsFileSystemInfoWithFileSystemIdAndUserId(long fileSystemId, String accessTokenValue) {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessTokenValue;
-        String url = BASE_API_URI + USER_BASE_URI + "auth";
 
         HashMap<String, String> authHeader = new HashMap<>();
         authHeader.put("Authorization", authHeaderString);
 
         executeRestApiCall(HttpMethod.GET, BASE_API_URI + FS_BASE_URI + fileSystemId + "/info", authHeader);
+    }
+
+    @When("user with token {string} wants to delete the fileSystemItem with the fileSystemId {long}")
+    public void userWithTokenWantsToDeleteTheFileSystemItemWithTheFileSystemId(String accessTokenValue, long fileSystemId) {
+        String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessTokenValue;
+
+        HashMap<String, String> authHeader = new HashMap<>();
+        authHeader.put("Authorization", authHeaderString);
+
+        executeRestApiCall(HttpMethod.DELETE, BASE_API_URI + FS_BASE_URI + fileSystemId + "/delete", authHeader);
     }
 }

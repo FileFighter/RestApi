@@ -1,11 +1,20 @@
 package de.filefighter.rest.domain.user.exceptions;
 
-public class UserNotUpdatedException extends RuntimeException{
+import de.filefighter.rest.domain.common.exceptions.FileFighterException;
+
+public class UserNotUpdatedException extends RuntimeException implements FileFighterException {
+
+    private static final String ERROR_MESSAGE_PREFIX = "User could not get updated.";
+
     public UserNotUpdatedException() {
-        super("User could not get updated");
+        super(ERROR_MESSAGE_PREFIX);
     }
 
     public UserNotUpdatedException(String reason) {
-        super("User could not get updated. "+reason);
+        super(ERROR_MESSAGE_PREFIX + " " + reason);
+    }
+
+    public static String getErrorMessagePrefix() {
+        return ERROR_MESSAGE_PREFIX;
     }
 }
