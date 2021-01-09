@@ -118,3 +118,30 @@ Feature: FileSystem Delete
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42432567
     Then response status code is 400
     And response contains key "message" and value "FileSystemEntity could not be deleted. FileSystemId was 42432567"
+
+  Scenario: Folder was created by runtime user.
+    Given database is empty
+    # If this fails check the runtime user id.
+    And fileSystemItem with the fileSystemId 0 exists, was created by user with userId 0 has the path "/" and name "HOME_kevin"
+    And user with userId 123123123 exists and has username "kevin", password "securePassword123"
+    And user with the userId 123123123 is allowed to VIEW the fileSystemItem with the fileSystemId 0
+    And user with the userId 123123123 is allowed to EDIT the fileSystemItem with the fileSystemId 0
+    And accessToken with value "token" exists for user 123123123
+    When user with token "token" wants to delete the fileSystemItem with the fileSystemId 0
+    Then response status code is 400
+    And response contains key "message" and value "FileSystemEntity could not be deleted. FileSystemId was 0"
+
+  Scenario: File was created by runtime user.
+    Given database is empty
+    And user with userId 123123123 exists and has username "kevin", password "securePassword123"
+    And user with the userId 123123123 is allowed to VIEW the fileSystemItem with the fileSystemId 2
+    And user with the userId 123123123 is allowed to EDIT the fileSystemItem with the fileSystemId 2
+    And accessToken with value "token" exists for user 123123123
+    And fileSystemItem with the fileSystemId 0 exists, was created by user with userId 123123123 has the path "/foo" and name "foo"
+    And fileSystemItem with the fileSystemId 0 is a folder and contains the fileSystemId 1
+    And fileSystemItem with the fileSystemId 1 exists, was created by user with userId 123123123 has the path "/foo/bar" and name "bar"
+    And fileSystemItem with the fileSystemId 1 is a folder and contains the fileSystemId 2
+    And fileSystemItem with the fileSystemId 2 exists, was created by user with userId 0 and has the name "veryImportantDocumentDon'tDeleteMePls.exe"
+    When user with token "token" wants to delete the fileSystemItem with the fileSystemId 0
+    Then response status code is 200
+    And response contains key "message" and value "Not everything got deleted, because you are not allowed to edit some files."
