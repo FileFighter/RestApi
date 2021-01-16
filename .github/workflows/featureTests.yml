@@ -20,6 +20,6 @@ jobs:
         with:
           java-version: '11.0.8'
           architecture: x64
-      - name: Run Tests and update Sonar
+      - name: Run Tests
         run: |
           mvn clean verify
