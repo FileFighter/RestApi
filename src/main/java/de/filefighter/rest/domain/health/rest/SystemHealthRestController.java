@@ -1,13 +1,13 @@
 package de.filefighter.rest.domain.health.rest;
 
 import de.filefighter.rest.domain.health.data.SystemHealth;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Api(value = "System Health", tags = { "SystemHealth" })
+@Tag(name = "SystemHealth", description = "SystemHealth Controller")
 public class SystemHealthRestController {
 
     private final SystemHealthRestInterface healthRestService;
@@ -17,7 +17,7 @@ public class SystemHealthRestController {
     }
 
     @GetMapping("/health")
-    public ResponseEntity<SystemHealth> getSystemHealthInfo(){
+    public ResponseEntity<SystemHealth> getSystemHealthInfo() {
         return healthRestService.getSystemHealth();
     }
 }

@@ -1,15 +1,15 @@
 package de.filefighter.rest.rest;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
 
 import static de.filefighter.rest.configuration.RestConfiguration.DEFAULT_ERROR_URI;
 
-@ApiIgnore
+@Hidden
 @RestController
 public class RestErrorController implements ErrorController {
 

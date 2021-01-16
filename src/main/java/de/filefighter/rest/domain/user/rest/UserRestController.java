@@ -5,7 +5,7 @@ import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
 import de.filefighter.rest.rest.ServerResponse;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 @Log4j2
 @RestController
-@Api(value = "User Rest Controller", tags = {"User"})
+@Tag(name = "User", description = "User Controller")
 @RequestMapping(BASE_API_URI)
 public class UserRestController {
 
