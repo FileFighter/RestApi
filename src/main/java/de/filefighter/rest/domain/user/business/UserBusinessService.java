@@ -127,6 +127,7 @@ public class UserBusinessService {
         return userRepository.save(UserEntity.builder()
                 .lowercaseUsername(username.toLowerCase())
                 .username(username)
+                .groupIds(userGroups)
                 .password(password)
                 .refreshToken(AccessTokenBusinessService.generateRandomTokenValue())
                 .userId(generateRandomUserId())
