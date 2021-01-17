@@ -3,7 +3,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.rest.ServerResponse;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import static de.filefighter.rest.configuration.RestConfiguration.*;
 
 @Log4j2
 @RestController
-@Api(value = "FileSystem Rest Controller", tags = {"FileSystem"})
+@Tag(name = "FileSystem", description = "FileSystem Controller")
 @RequestMapping(BASE_API_URI)
 public class FileSystemRestController {
 

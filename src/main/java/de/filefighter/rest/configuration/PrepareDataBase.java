@@ -36,31 +36,6 @@ public class PrepareDataBase {
     @Value("${filefighter.date}")
     String date;
 
-    @SuppressWarnings("squid:S106")
-    @Bean
-    @Profile({"dev", "prod"})
-    CommandLineRunner veryImportantFileFighterStartScript() {
-        return args -> {
-            System.out.println();
-            System.out.println("-------------------------------< REST API >-------------------------------");
-            System.out.println();
-            System.out.println("  _____   _   _          _____   _           _       _");
-            System.out.println(" |  ___| (_) | |   ___  |  ___| (_)   __ _  | |__   | |_    ___   _ __");
-            System.out.println(" | |_    | | | |  / _ \\ | |_    | |  / _  | | '_ \\  | __|  / _ \\ | '__|");
-            System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |");
-            System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|");
-            System.out.println("                                     |___/");
-            System.out.println("                 Version v" + version + " Last updated at " + date + "");
-            System.out.println("               Developed by Gimleux, Valentin, Open-Schnick.");
-            System.out.println("               Development Blog: https://blog.filefighter.de");
-            System.out.println("        The code can be found at: https://www.github.com/filefighter");
-            System.out.println("                    Running on http://localhost:" + serverPort);
-            System.out.println();
-            System.out.println("-------------------------------< REST API >-------------------------------");
-            System.out.println();
-        };
-    }
-
     @Bean
     CommandLineRunner cleanDataBase(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
         return args -> {
@@ -207,7 +182,32 @@ public class PrepareDataBase {
 
             log.info("Inserting FileSystemItems {}", (fileSystemRepository.findAll().size() == 3 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
             log.info("Inserting token {}", (accessTokenRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
-            log.info("Inserting Users {}", (userRepository.findAll().size() == 2 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE));
+            log.info("Inserting Users {}", (userRepository.findAll().size() == 3 ? MESSAGE_ON_SUCCESS : MESSAGE_ON_FAILURE)); // because of the runtime user.
+        };
+    }
+
+    @Bean
+    @Profile({"dev", "prod"})
+    @SuppressWarnings("squid:S106")
+    CommandLineRunner veryImportantFileFighterStartScript() {
+        return args -> {
+            System.out.println();
+            System.out.println("-------------------------------< REST API >-------------------------------");
+            System.out.println();
+            System.out.println("  _____   _   _          _____   _           _       _");
+            System.out.println(" |  ___| (_) | |   ___  |  ___| (_)   __ _  | |__   | |_    ___   _ __");
+            System.out.println(" | |_    | | | |  / _ \\ | |_    | |  / _  | | '_ \\  | __|  / _ \\ | '__|");
+            System.out.println(" |  _|   | | | | |  __/ |  _|   | | | (_| | | | | | | |_  |  __/ | |");
+            System.out.println(" |_|     |_| |_|  \\___| |_|     |_|  \\__, | |_| |_|  \\__|  \\___| |_|");
+            System.out.println("                                     |___/");
+            System.out.println("                 Version v" + version + " Last updated at " + date + "");
+            System.out.println("               Developed by Gimleux, Valentin, Open-Schnick.");
+            System.out.println("               Development Blog: https://blog.filefighter.de");
+            System.out.println("        The code can be found at: https://www.github.com/filefighter");
+            System.out.println("                    Running on http://localhost:" + serverPort);
+            System.out.println();
+            System.out.println("-------------------------------< REST API >-------------------------------");
+            System.out.println();
         };
     }
 }
