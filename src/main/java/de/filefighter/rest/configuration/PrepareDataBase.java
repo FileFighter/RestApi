@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.Date;
 
 import static de.filefighter.rest.configuration.RestConfiguration.RUNTIME_USER_ID;
-import static de.filefighter.rest.domain.filesystem.type.FileSystemType.FOLDER;
-import static de.filefighter.rest.domain.filesystem.type.FileSystemType.TEXT;
+import static de.filefighter.rest.domain.filesystem.type.FileSystemType.*;
+import static de.filefighter.rest.domain.user.group.Groups.UNDEFINED;
 import static de.filefighter.rest.domain.user.group.Groups.*;
 
 @SuppressWarnings({"squid:S1192", "squid:S106"})
@@ -208,16 +208,16 @@ public class PrepareDataBase {
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
 
-            log.info("Inserting default fsItems: {} {} {}.",
+            log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}.",
                     fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(RUNTIME_USER_ID)
                             .fileSystemId(0)
                             .isFile(false)
                             .path("/")
-                            .itemIds(new long[]{2})
+                            .itemIds(new long[]{2, 3})
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("HOME_User")
-                            .size(840)
+                            .size(4866)
                             .typeId(FOLDER.getId())
                             .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .build()),
@@ -228,7 +228,7 @@ public class PrepareDataBase {
                             .path("/")
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("HOME_User1")
-                            .size(420)
+                            .size(0)
                             .typeId(FOLDER.getId())
                             .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .build()),
@@ -242,7 +242,43 @@ public class PrepareDataBase {
                             .typeId(TEXT.getId())
                             .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                             .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
-                            .build()));
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(1)
+                            .fileSystemId(3)
+                            .isFile(false)
+                            .path("/somefolder")
+                            .name("SomeFolder")
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .size(4446)
+                            .typeId(FOLDER.getId())
+                            .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
+                            .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
+                            .itemIds(new long[]{4, 5})
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(1)
+                            .fileSystemId(4)
+                            .isFile(true)
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("secretFileInSomeFolder.txt")
+                            .size(3214)
+                            .typeId(TEXT.getId())
+                            .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
+                            .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
+                            .build()),
+                    fileSystemRepository.save(FileSystemEntity.builder()
+                            .createdByUserId(1)
+                            .fileSystemId(5)
+                            .isFile(true)
+                            .lastUpdated(Instant.now().getEpochSecond())
+                            .name("definitelyNotPorn.mp4")
+                            .size(1232)
+                            .typeId(VIDEO.getId())
+                            .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
+                            .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
+                            .build())
+            );
 
             if (userRepository.findAll().size() == 3) {
                 log.info("Inserting Users " + MESSAGE_ON_SUCCESS);
@@ -250,7 +286,7 @@ public class PrepareDataBase {
                 log.error("Inserting Users " + MESSAGE_ON_FAILURE);
             }
 
-            if (fileSystemRepository.findAll().size() == 3) {
+            if (fileSystemRepository.findAll().size() == 6) {
                 log.info("Inserting FileSystemEntities " + MESSAGE_ON_SUCCESS);
             } else {
                 log.error("Inserting FileSystemEntities " + MESSAGE_ON_FAILURE);

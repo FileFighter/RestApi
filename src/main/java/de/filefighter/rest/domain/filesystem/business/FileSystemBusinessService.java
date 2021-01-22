@@ -58,7 +58,7 @@ public class FileSystemBusinessService {
         if (!path.equals("/") && !"".equals(pathWithoutSlashes[0]))
             throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
 
-        String pathToFind = removeTrailingBackSlashes(path);
+        String pathToFind = removeTrailingBackSlashes(path).toLowerCase();
 
         // find the folder with matching path.
         ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
