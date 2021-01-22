@@ -38,7 +38,7 @@ public class SystemHealthBusinessService {
         return SystemHealth.builder()
                 .uptimeInSeconds(currentEpoch - serverStartedAt)
                 .userCount(userBusinessService.getUserCount())
-                .usedStorageInMb(fileSystemBusinessService.getTotalFileSize())
+                .usedStorageInBytes(fileSystemBusinessService.getTotalFileSize())
                 .dataIntegrity(calculateDataIntegrity())
                 .deployment(getDeploymentStatus())
                 .version("v" + this.version)

@@ -267,7 +267,7 @@ public class PrepareDataBase {
                             .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                             .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                             .build()),
-                    FileSystemEntity.builder()
+                    fileSystemRepository.save(FileSystemEntity.builder()
                             .createdByUserId(1)
                             .fileSystemId(5)
                             .isFile(true)
@@ -277,7 +277,7 @@ public class PrepareDataBase {
                             .typeId(VIDEO.getId())
                             .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                             .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
-                            .build()
+                            .build())
             );
 
             if (userRepository.findAll().size() == 3) {
