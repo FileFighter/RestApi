@@ -8,8 +8,8 @@ import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
+import de.filefighter.rest.domain.user.group.Group;
 import de.filefighter.rest.domain.user.group.GroupRepository;
-import de.filefighter.rest.domain.user.group.Groups;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -251,10 +251,10 @@ class UserBusinessServiceUnitTest {
                 userBusinessService.registerNewUser(userRegisterForm));
         assertEquals(UserNotRegisteredException.getErrorMessagePrefix()+" One or more groups do not exist.", ex.getMessage());
 
-        userRegisterForm.setGroupIds(new long[]{Groups.SYSTEM.getGroupId()});
+        userRegisterForm.setGroupIds(new long[]{Group.SYSTEM.getGroupId()});
         ex = assertThrows(UserNotRegisteredException.class, () ->
                 userBusinessService.registerNewUser(userRegisterForm));
-        assertEquals(UserNotRegisteredException.getErrorMessagePrefix()+" New users cannot be in group '" + Groups.SYSTEM.getDisplayName() + "'.", ex.getMessage());
+        assertEquals(UserNotRegisteredException.getErrorMessagePrefix() + " New users cannot be in group '" + Group.SYSTEM.getDisplayName() + "'.", ex.getMessage());
     }
 
     @Test
@@ -293,18 +293,18 @@ class UserBusinessServiceUnitTest {
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser1));
         assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" Authenticated User is not allowed.", ex.getMessage());
 
-        authenticatedUser.setGroups(new Groups[]{Groups.UNDEFINED});
+        authenticatedUser.setGroups(new Group[]{Group.UNDEFINED});
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
         assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" Only Admins are allowed to update other users.", ex.getMessage());
 
         //user not found with id.
-        authenticatedUser.setGroups(new Groups[]{Groups.ADMIN});
+        authenticatedUser.setGroups(new Group[]{Group.ADMIN});
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
         assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" User does not exist, use register endpoint.", ex.getMessage());
 
-        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{Groups.SYSTEM.getGroupId()}).build());
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(UserEntity.builder().groupIds(new long[]{Group.SYSTEM.getGroupId()}).build());
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm1, authenticatedUser));
         assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" Runtime users cannot be modified.", ex.getMessage());
@@ -319,7 +319,7 @@ class UserBusinessServiceUnitTest {
     void updateUserNameThrows() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
@@ -342,7 +342,7 @@ class UserBusinessServiceUnitTest {
     void updateUserNameWorks() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().username("newUserName").build();
         long userId = 420;
-        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
 
@@ -353,7 +353,7 @@ class UserBusinessServiceUnitTest {
     void updatePasswordThrows() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
@@ -395,7 +395,7 @@ class UserBusinessServiceUnitTest {
         String password = "validPassword1234";
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().password(password).confirmationPassword(password).build();
         long userId = 420;
-        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("UGABUGA").build();
 
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
@@ -406,13 +406,13 @@ class UserBusinessServiceUnitTest {
     void updateGroupsThrows() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         long[] groups = new long[]{0};
         userRegisterForm.setGroupIds(groups);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
-        when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Groups[]{Groups.ADMIN});
+        when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Group[]{Group.ADMIN});
         UserNotUpdatedException ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
         assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" Only admins can add users to group Admin.", ex.getMessage());
@@ -425,25 +425,25 @@ class UserBusinessServiceUnitTest {
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
         assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" One or more groups do not exist.", ex.getMessage());
 
-        long[] systemUser = new long[]{Groups.SYSTEM.getGroupId()};
+        long[] systemUser = new long[]{Group.SYSTEM.getGroupId()};
         userRegisterForm.setGroupIds(systemUser);
-        when(groupRepositoryMock.getGroupsByIds(systemUser)).thenReturn(new Groups[]{Groups.SYSTEM});
+        when(groupRepositoryMock.getGroupsByIds(systemUser)).thenReturn(new Group[]{Group.SYSTEM});
         ex = assertThrows(UserNotUpdatedException.class, () ->
                 userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
-        assertEquals(UserNotUpdatedException.getErrorMessagePrefix()+" Users cannot be added to the '" + Groups.SYSTEM.getDisplayName() + "' Group", ex.getMessage());
+        assertEquals(UserNotUpdatedException.getErrorMessagePrefix() + " Users cannot be added to the '" + Group.SYSTEM.getDisplayName() + "' Group", ex.getMessage());
     }
 
     @Test
     void updateGroupsWorks() {
         final UserRegisterForm userRegisterForm = UserRegisterForm.builder().build();
         long userId = 420;
-        User authenticatedUser = User.builder().userId(userId).groups(new Groups[]{Groups.FAMILY}).build();
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
         UserEntity dummyEntity = UserEntity.builder().userId(userId).lowercaseUsername("password").build();
 
         long[] groups = new long[]{0};
         userRegisterForm.setGroupIds(groups);
         when(userRepositoryMock.findByUserId(userId)).thenReturn(dummyEntity);
-        when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Groups[]{Groups.FAMILY});
+        when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Group[]{Group.FAMILY});
         assertDoesNotThrow(() -> userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
     }
 

@@ -1,13 +1,14 @@
-package de.filefighter.rest.domain.user.business;
+package de.filefighter.rest.domain.authentication;
 
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
+import de.filefighter.rest.domain.user.business.UserDTOService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
-import de.filefighter.rest.domain.user.group.Groups;
+import de.filefighter.rest.domain.user.group.Group;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +17,12 @@ import java.util.Base64;
 
 @Log4j2
 @Service
-public class UserAuthorizationService {
+public class AuthenticationBusinessService {
 
     private final UserRepository userRepository;
     private final UserDTOService userDtoService;
 
-    public UserAuthorizationService(UserRepository userRepository, UserDTOService userDtoService) {
+    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
     }
@@ -67,7 +68,7 @@ public class UserAuthorizationService {
         return userDtoService.createDto(userEntity);
     }
 
-    public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, Groups groups) {
+    public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, Group groups) {
         UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
         if (null == userEntity)
             throw new UserNotAuthenticatedException(accessToken.getUserId());

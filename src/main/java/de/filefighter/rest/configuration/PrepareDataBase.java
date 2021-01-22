@@ -25,7 +25,7 @@ import java.util.Date;
 import static de.filefighter.rest.configuration.RestConfiguration.RUNTIME_USER_ID;
 import static de.filefighter.rest.domain.filesystem.type.FileSystemType.FOLDER;
 import static de.filefighter.rest.domain.filesystem.type.FileSystemType.TEXT;
-import static de.filefighter.rest.domain.user.group.Groups.*;
+import static de.filefighter.rest.domain.user.group.Group.*;
 
 @SuppressWarnings({"squid:S1192", "squid:S106"})
 @Log4j2
