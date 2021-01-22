@@ -84,7 +84,7 @@ public class PrepareDataBase {
                             .itemIds(new long[0])
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("HOME_Admin")
-                            .size(0)
+                            .size(420)
                             .typeId(FOLDER.getId())
                             .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .itemIds(new long[]{1})
@@ -153,7 +153,7 @@ public class PrepareDataBase {
                             .itemIds(new long[]{2})
                             .lastUpdated(Instant.now().getEpochSecond())
                             .name("HOME_User")
-                            .size(420)
+                            .size(840)
                             .typeId(FOLDER.getId())
                             .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
                             .build()),
