@@ -41,7 +41,7 @@ class SystemHealthBusinessServiceUnitTest {
         SystemHealth systemHealth = systemHealthBusinessService.getCurrentSystemHealthInfo();
 
         assertTrue(systemHealth.getUptimeInSeconds() >= 0);
-        assertEquals(expectedSize, systemHealth.getUsedStorageInMb());
+        assertEquals(expectedSize, systemHealth.getUsedStorageInBytes());
         assertEquals(expectedUserCount, systemHealth.getUserCount());
     }
 
