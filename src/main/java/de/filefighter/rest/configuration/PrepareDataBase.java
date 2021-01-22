@@ -147,6 +147,8 @@ public class PrepareDataBase {
             } else if (foundUsers.isEmpty() ^ foundFileSystemEntities.isEmpty()) {
                 // Exclusive "or".
                 throw new FileFighterDataException("The Database failed the sanity check, contact the developers or reinstall FileFighter.");
+            } else {
+                log.info("Checked Database, found Entities, didn't change anything.");
             }
         };
     }
