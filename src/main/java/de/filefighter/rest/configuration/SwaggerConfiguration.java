@@ -24,6 +24,6 @@ public class SwaggerConfiguration {
                         .email("dev@filefighter.de")
                         .url("https://blog.filefighter.de")
                         .name("FileFighter Development Team"))
-                .license(new License().name("MIT").url("https://github.com/filefighter/restapi/blob/master/LICENSE")));
+                .license(new License().name("GPL v3.0").url("https://github.com/filefighter/restapi/blob/master/LICENSE")));
     }
 }
