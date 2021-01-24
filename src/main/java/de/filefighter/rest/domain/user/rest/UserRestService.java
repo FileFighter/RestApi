@@ -1,11 +1,11 @@
 package de.filefighter.rest.domain.user.rest;
 
+import de.filefighter.rest.domain.authentication.AuthenticationService;
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
-import de.filefighter.rest.domain.user.business.UserAuthorizationService;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.dto.UserRegisterForm;
@@ -15,65 +15,48 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BASIC_PREFIX;
-import static de.filefighter.rest.configuration.RestConfiguration.AUTHORIZATION_BEARER_PREFIX;
-import static de.filefighter.rest.domain.user.group.Groups.ADMIN;
+import static de.filefighter.rest.domain.user.group.Group.ADMIN;
 
 
 @Service
 public class UserRestService implements UserRestServiceInterface {
 
     private final UserBusinessService userBusinessService;
-    private final UserAuthorizationService userAuthorizationService;
     private final AccessTokenBusinessService accessTokenBusinessService;
-    private final InputSanitizerService inputSanitizerService;
     private final FileSystemBusinessService fileSystemBusinessService;
+    private final AuthenticationService authenticationService;
 
-    public UserRestService(UserBusinessService userBusinessService, UserAuthorizationService userAuthorizationService, AccessTokenBusinessService accessTokenBusinessService, InputSanitizerService inputSanitizerService, FileSystemBusinessService fileSystemBusinessService) {
+    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService) {
         this.userBusinessService = userBusinessService;
-        this.userAuthorizationService = userAuthorizationService;
         this.accessTokenBusinessService = accessTokenBusinessService;
-        this.inputSanitizerService = inputSanitizerService;
         this.fileSystemBusinessService = fileSystemBusinessService;
+        this.authenticationService = authenticationService;
     }
 
     @Override
     public ResponseEntity<User> getUserByUserIdAuthenticateWithAccessToken(String accessTokenWithHeader, long userId) {
-        String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenWithHeader);
-        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
-
-        AccessToken validAccessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
-        userAuthorizationService.authenticateUserWithAccessToken(validAccessToken);
+        authenticationService.bearerAuthenticationWithAccessToken(accessTokenWithHeader);
         User user = userBusinessService.getUserById(userId);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<RefreshToken> getRefreshTokenWithUsernameAndPassword(String base64encodedUserAndPasswordWithHeader) {
-        String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BASIC_PREFIX, base64encodedUserAndPasswordWithHeader);
-
-        User authenticatedUser = userAuthorizationService.authenticateUserWithUsernameAndPassword(sanitizedHeaderValue);
+        User authenticatedUser = authenticationService.basicAuthentication(base64encodedUserAndPasswordWithHeader);
         RefreshToken refreshToken = userBusinessService.getRefreshTokenForUser(authenticatedUser);
         return new ResponseEntity<>(refreshToken, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<AccessToken> getAccessTokenByRefreshToken(String refreshTokenWithHeader) {
-        String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, refreshTokenWithHeader);
-        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
-
-        User user = userAuthorizationService.authenticateUserWithRefreshToken(sanitizedTokenString);
-        AccessToken accessToken = accessTokenBusinessService.getValidAccessTokenForUser(user);
+        User authenticatedUser = authenticationService.bearerAuthenticationWithRefreshToken(refreshTokenWithHeader);
+        AccessToken accessToken = accessTokenBusinessService.getValidAccessTokenForUser(authenticatedUser);
         return new ResponseEntity<>(accessToken, HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<ServerResponse> updateUserByUserIdAuthenticateWithAccessToken(UserRegisterForm updatedUser, long userId, String accessTokenHeader) {
-        String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenHeader);
-        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
-
-        AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
-        User authenticatedUser = userAuthorizationService.authenticateUserWithAccessToken(accessToken);
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenHeader);
         userBusinessService.updateUser(userId, updatedUser, authenticatedUser);
         ServerResponse response = new ServerResponse(HttpStatus.CREATED, "User successfully updated.");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -81,11 +64,7 @@ public class UserRestService implements UserRestServiceInterface {
 
     @Override
     public ResponseEntity<ServerResponse> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessTokenHeader) {
-        String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenHeader);
-        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
-
-        AccessToken validAccessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
-        userAuthorizationService.authenticateUserWithAccessTokenAndGroup(validAccessToken, ADMIN);
+        authenticationService.bearerAuthenticationWithAccessTokenAndGroup(accessTokenHeader, ADMIN);
         UserEntity registeredUserEntity = userBusinessService.registerNewUser(newUser);
         fileSystemBusinessService.createBasicFilesForNewUser(registeredUserEntity);
         return new ResponseEntity<>(new ServerResponse(HttpStatus.CREATED, "User successfully created."), HttpStatus.CREATED);
@@ -93,12 +72,8 @@ public class UserRestService implements UserRestServiceInterface {
 
     @Override
     public ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessTokenHeader) {
-        String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, accessTokenHeader);
-        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
         String sanitizedUserName = InputSanitizerService.sanitizeString(username);
-
-        AccessToken accessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
-        userAuthorizationService.authenticateUserWithAccessToken(accessToken);
+        authenticationService.bearerAuthenticationWithAccessToken(accessTokenHeader);
         User foundUser = userBusinessService.findUserByUsername(sanitizedUserName);
         return new ResponseEntity<>(foundUser, HttpStatus.OK);
     }

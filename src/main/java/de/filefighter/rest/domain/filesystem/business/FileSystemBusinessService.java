@@ -15,7 +15,7 @@ import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import de.filefighter.rest.domain.user.group.Groups;
+import de.filefighter.rest.domain.user.group.Group;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -114,7 +114,7 @@ public class FileSystemBusinessService {
      * @param authenticatedUser      user that wants to delete
      * @return true if the folder and all the folders / items were deleted.
      */
-    @SuppressWarnings("squid:S3776")
+    @SuppressWarnings({"squid:S3776", "squid:S1192"})
     public boolean recursivelyDeleteFileSystemEntity(FileSystemEntity parentFileSystemEntity, User authenticatedUser) {
         boolean everythingWasDeleted = false;
         if (parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) != FileSystemType.FOLDER) {
@@ -295,7 +295,7 @@ public class FileSystemBusinessService {
 
         // user is in group that got the item shared.
         long[] fileIsSharedToGroups = fileSystemEntity.getVisibleForGroupIds();
-        for (Groups group : authenticatedUser.getGroups()) {
+        for (Group group : authenticatedUser.getGroups()) {
             for (long groupId : fileIsSharedToGroups) {
                 if (groupId == group.getGroupId())
                     return true;
@@ -326,7 +326,7 @@ public class FileSystemBusinessService {
 
         // user is in group that got the item shared.
         long[] fileIsSharedToGroups = fileSystemEntity.getEditableFoGroupIds();
-        for (Groups group : authenticatedUser.getGroups()) {
+        for (Group group : authenticatedUser.getGroups()) {
             for (long groupId : fileIsSharedToGroups) {
                 if (groupId == group.getGroupId())
                     return true;

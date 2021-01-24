@@ -13,7 +13,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import de.filefighter.rest.domain.user.group.Groups;
+import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -433,12 +433,12 @@ class FileSystemBusinessServiceUnitTest {
         assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
 
         //user is in group
-        user = User.builder().userId(123897123).groups(new Groups[]{Groups.ADMIN}).build();
+        user = User.builder().userId(123897123).groups(new Group[]{Group.ADMIN}).build();
         fileSystemEntity = FileSystemEntity.builder().fileSystemId(9872347).visibleForGroupIds(new long[]{1}).build();
         assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
 
         // user is not allowed.
-        user = User.builder().userId(123).groups(new Groups[]{Groups.UNDEFINED}).build();
+        user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
         assertFalse(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
     }
@@ -465,12 +465,12 @@ class FileSystemBusinessServiceUnitTest {
         assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
 
         //user is in group
-        user = User.builder().userId(0).groups(new Groups[]{Groups.ADMIN}).build();
+        user = User.builder().userId(0).groups(new Group[]{Group.ADMIN}).build();
         fileSystemEntity = FileSystemEntity.builder().editableFoGroupIds(new long[]{1}).build();
         assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
 
         // user is not allowed.
-        user = User.builder().userId(123).groups(new Groups[]{Groups.UNDEFINED}).build();
+        user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).editableFoGroupIds(new long[]{1}).build();
         assertFalse(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
     }

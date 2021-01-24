@@ -21,10 +21,10 @@ class GroupRepositoryUnitTest {
 
     @Test
     void getGroupByIdWorksCorrectly() {
-        Groups expectedGroup = Groups.FAMILY;
+        Group expectedGroup = Group.FAMILY;
         long groupId = expectedGroup.getGroupId();
 
-        Groups actualGroup = groupRepository.getGroupById(groupId);
+        Group actualGroup = groupRepository.getGroupById(groupId);
 
         assertEquals(expectedGroup, actualGroup);
     }
@@ -37,8 +37,8 @@ class GroupRepositoryUnitTest {
 
     @Test
     void getGroupsByIdsReturnsArray() {
-        Groups[] expectedGroups = new Groups[]{Groups.FAMILY, Groups.ADMIN};
-        Groups[] actualGroups = groupRepository.getGroupsByIds(0, 1);
+        Group[] expectedGroups = new Group[]{Group.FAMILY, Group.ADMIN};
+        Group[] actualGroups = groupRepository.getGroupsByIds(0, 1);
 
         // contents are equal
         assertEquals(0, Arrays.compare(expectedGroups, actualGroups));

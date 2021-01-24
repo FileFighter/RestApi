@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.user.group;
 
-public enum Groups {
+public enum Group {
     UNDEFINED(-1, "No group"),
     FAMILY(0, "Family"),
     ADMIN(1, "Admin"),
@@ -9,7 +9,7 @@ public enum Groups {
     private final long groupId;
     private final String displayName;
 
-    Groups(long groupId, String displayName) {
+    Group(long groupId, String displayName) {
         this.groupId = groupId;
         this.displayName = displayName;
     }
