@@ -36,4 +36,6 @@ jobs:
           IMAGE_ID=$(docker images rest -q)
           VERSION=feature
           docker tag $IMAGE_ID filefighter/rest:$VERSION
+          docker tag $IMAGE_ID filefighter/rest:stable
           docker push filefighter/rest:$VERSION
+          docker push filefighter/rest:stable
