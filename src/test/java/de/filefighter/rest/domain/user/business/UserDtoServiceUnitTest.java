@@ -4,8 +4,8 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
+import de.filefighter.rest.domain.user.group.Group;
 import de.filefighter.rest.domain.user.group.GroupRepository;
-import de.filefighter.rest.domain.user.group.Groups;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ class UserDtoServiceUnitTest {
         long[] groups = new long[]{0};
         UserEntity dummyEntity = UserEntity.builder().userId(userId).groupIds(groups).username(username).build();
 
-        when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Groups[]{Groups.FAMILY});
+        when(groupRepositoryMock.getGroupsByIds(groups)).thenReturn(new Group[]{Group.FAMILY});
 
         User actualUser = userDtoService.createDto(dummyEntity);
         assertEquals(userId, actualUser.getUserId());

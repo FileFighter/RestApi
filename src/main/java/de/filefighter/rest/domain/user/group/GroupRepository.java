@@ -4,23 +4,23 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GroupRepository {
-    private final Groups[] groups = Groups.values();
+    private final Group[] groups = Group.values();
 
-    public Groups getGroupById(long id) {
-        for (Groups group : groups) {
+    public Group getGroupById(long id) {
+        for (Group group : groups) {
             if (group.getGroupId() == id) {
                 return group;
             }
         }
-        throw new IllegalArgumentException("GroupId "+id+" doesnt belong to a group.");
+        throw new IllegalArgumentException("GroupId " + id + " doesnt belong to a group.");
     }
 
-    public Groups[] getGroupsByIds(long... ids){
-        Groups[] groupArray;
-        if(null == ids || ids.length == 0){
-            return new Groups[0];
+    public Group[] getGroupsByIds(long... ids) {
+        Group[] groupArray;
+        if (null == ids || ids.length == 0) {
+            return new Group[0];
         }
-        groupArray = new Groups[ids.length];
+        groupArray = new Group[ids.length];
 
         for (int i = 0; i < ids.length; i++) {
             groupArray[i] = this.getGroupById(ids[i]);

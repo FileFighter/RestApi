@@ -9,8 +9,8 @@ import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
+import de.filefighter.rest.domain.user.group.Group;
 import de.filefighter.rest.domain.user.group.GroupRepository;
-import de.filefighter.rest.domain.user.group.Groups;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -114,8 +114,8 @@ public class UserBusinessService {
 
         for (long id : userGroups) {
             try {
-                if (id == Groups.SYSTEM.getGroupId())
-                    throw new UserNotRegisteredException("New users cannot be in group '" + Groups.SYSTEM.getDisplayName() + "'.");
+                if (id == Group.SYSTEM.getGroupId())
+                    throw new UserNotRegisteredException("New users cannot be in group '" + Group.SYSTEM.getDisplayName() + "'.");
 
                 groupRepository.getGroupById(id);
             } catch (IllegalArgumentException exception) {
@@ -158,7 +158,7 @@ public class UserBusinessService {
         if (null == authenticatedUser.getGroups())
             throw new UserNotUpdatedException("Authenticated User is not allowed.");
 
-        boolean authenticatedUserIsAdmin = Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Groups.ADMIN);
+        boolean authenticatedUserIsAdmin = Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Group.ADMIN);
         if (userId != authenticatedUser.getUserId() && !authenticatedUserIsAdmin)
             throw new UserNotUpdatedException("Only Admins are allowed to update other users.");
 
@@ -166,7 +166,7 @@ public class UserBusinessService {
         if (null == userEntityToUpdate)
             throw new UserNotUpdatedException("User does not exist, use register endpoint.");
 
-        if (Arrays.stream(userEntityToUpdate.getGroupIds()).asDoubleStream().anyMatch(id -> id == Groups.SYSTEM.getGroupId()))
+        if (Arrays.stream(userEntityToUpdate.getGroupIds()).asDoubleStream().anyMatch(id -> id == Group.SYSTEM.getGroupId()))
             throw new UserNotUpdatedException("Runtime users cannot be modified.");
 
         Update newUpdate = new Update();
@@ -191,11 +191,11 @@ public class UserBusinessService {
     private boolean updateGroups(Update newUpdate, long[] groupIds, boolean authenticatedUserIsAdmin) {
         if (null != groupIds && groupIds.length != 0) {
             try {
-                for (Groups group : groupRepository.getGroupsByIds(groupIds)) {
-                    if (group == Groups.SYSTEM)
-                        throw new UserNotUpdatedException("Users cannot be added to the '" + Groups.SYSTEM.getDisplayName() + "' Group");
-                    if (group == Groups.ADMIN && !authenticatedUserIsAdmin)
-                        throw new UserNotUpdatedException("Only admins can add users to group " + Groups.ADMIN.getDisplayName() + ".");
+                for (Group group : groupRepository.getGroupsByIds(groupIds)) {
+                    if (group == Group.SYSTEM)
+                        throw new UserNotUpdatedException("Users cannot be added to the '" + Group.SYSTEM.getDisplayName() + "' Group");
+                    if (group == Group.ADMIN && !authenticatedUserIsAdmin)
+                        throw new UserNotUpdatedException("Only admins can add users to group " + Group.ADMIN.getDisplayName() + ".");
                 }
             } catch (IllegalArgumentException exception) {
                 throw new UserNotUpdatedException("One or more groups do not exist.");
