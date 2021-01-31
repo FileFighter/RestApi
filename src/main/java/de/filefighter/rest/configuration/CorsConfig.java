@@ -25,7 +25,7 @@ public class CorsConfig {
     }
 
     @Bean
-    @Profile("dev")
+    @Profile({"dev","stage"})
     public CorsFilter corsFilterDev() {
         final CorsConfiguration config = new CorsConfiguration().applyPermitDefaultValues();
         ArrayList<String> allowedOrigins = new ArrayList<>();
