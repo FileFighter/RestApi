@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -45,8 +46,9 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(FileSystemItemUpdate fileSystemItemUpdate, String accessToken) {
-        return null;
+    public ResponseEntity<List<FileSystemItem>> uploadFileSystemItemWithAccessToken(List<FileSystemItemUpdate> fileSystemItemsToUpload, String accessToken) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
+        return new ResponseEntity<>(fileSystemBusinessService.uploadFileSystemItems(fileSystemItemsToUpload, authenticatedUser), HttpStatus.CREATED);
     }
 
     @Override

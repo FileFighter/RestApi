@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
@@ -44,27 +45,27 @@ public class FileSystemRestController {
         return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, accessToken);
     }
 
-    @GetMapping(FS_BASE_URI+"search")
+    @GetMapping(FS_BASE_URI + "search")
     public ResponseEntity<FileSystemItem> searchFileOrFolderByName(
             @RequestParam(name = "name", defaultValue = "name") String name,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
         log.info("Searching for file or folder with name {}", name);
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
     }
 
-    @PostMapping(FS_BASE_URI+"upload")
-    public ResponseEntity<FileSystemItem> uploadFileOrFolder(
-            @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
+    @PostMapping(FS_BASE_URI + "upload")
+    public ResponseEntity<List<FileSystemItem>> uploadFileOrFolder(
+            @RequestBody List<FileSystemItemUpdate> fileSystemItems,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
-        log.info("Tried uploading new FileSystemItem {}", fileSystemItemUpdate);
-        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, accessToken);
+        log.info("Tried uploading new FileSystemItems {}", fileSystemItems);
+        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItems, accessToken);
     }
 
-    @PutMapping(FS_BASE_URI+"{fsItemId}/update")
+    @PutMapping(FS_BASE_URI + "{fsItemId}/update")
     public ResponseEntity<FileSystemItem> updateExistingFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,

@@ -4,6 +4,7 @@ import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
@@ -402,5 +403,9 @@ public class FileSystemBusinessService {
 
     public long generateNextFileSystemId() {
         return getFileSystemEntityCount() + 1;
+    }
+
+    public List<FileSystemItem> uploadFileSystemItems(List<FileSystemItemUpdate> fileSystemItemsToUpload, User authenticatedUser) {
+        return null;
     }
 }

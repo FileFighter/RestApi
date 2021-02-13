@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -72,14 +73,17 @@ class FileSystemRestControllerUnitTest {
     @Test
     void uploadFileOrFolder() {
         FileSystemItem file = FileSystemItem.builder().build();
-        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
+        ArrayList<FileSystemItem> expectedList = new ArrayList<>();
+        expectedList.add(file);
+        ResponseEntity<List<FileSystemItem>> expectedModel = new ResponseEntity<>(expectedList, OK);
 
-        FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.builder().name("ugabuga").build();
+        ArrayList<FileSystemItemUpdate> requestBody = new ArrayList<>();
+        requestBody.add(FileSystemItemUpdate.builder().name("ugabuga").build());
         String token = "token";
 
-        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(requestBody, token)).thenReturn(expectedModel);
 
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(fileSystemItemUpdate, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.uploadFileOrFolder(requestBody, token);
         assertEquals(expectedModel, actualModel);
     }
 
