@@ -55,14 +55,14 @@ public class FileSystemRestController {
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
     }
 
-    @PostMapping(FS_BASE_URI + "upload")
+    @PostMapping(FS_BASE_URI + "{fsItemId}/upload")
     public ResponseEntity<List<FileSystemItem>> uploadFileOrFolder(
+            @PathVariable long fsItemId,
             @RequestBody List<FileSystemItemUpdate> fileSystemItems,
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ) {
+            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
 
         log.info("Tried uploading new FileSystemItems {}", fileSystemItems);
-        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItems, accessToken);
+        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fsItemId, fileSystemItems, accessToken);
     }
 
     @PutMapping(FS_BASE_URI + "{fsItemId}/update")
@@ -70,17 +70,17 @@ public class FileSystemRestController {
             @PathVariable long fsItemId,
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
         log.info("Tried updating FileSystemItem {} with {}.", fsItemId, fileSystemItemUpdate);
         return fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
     }
 
-    @DeleteMapping(FS_BASE_URI+"{fsItemId}/delete")
+    @DeleteMapping(FS_BASE_URI + "{fsItemId}/delete")
     public ResponseEntity<ServerResponse> deleteFileOrFolder(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
         log.info("Tried deleting FileSystemItem with id {}", fsItemId);
         return fileSystemRestService.deleteFileSystemItemWithIdAndAccessToken(fsItemId, accessToken);

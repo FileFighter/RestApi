@@ -405,7 +405,7 @@ public class FileSystemBusinessService {
         return getFileSystemEntityCount() + 1;
     }
 
-    public List<FileSystemItem> uploadFileSystemItems(List<FileSystemItemUpdate> fileSystemItemsToUpload, User authenticatedUser) {
+    public List<FileSystemItem> uploadFileSystemItems(Long rootItemId, List<FileSystemItemUpdate> fileSystemItemsToUpload, User authenticatedUser) {
         return null;
     }
 }

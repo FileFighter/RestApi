@@ -46,9 +46,9 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<List<FileSystemItem>> uploadFileSystemItemWithAccessToken(List<FileSystemItemUpdate> fileSystemItemsToUpload, String accessToken) {
+    public ResponseEntity<List<FileSystemItem>> uploadFileSystemItemWithAccessToken(long rootItemId, List<FileSystemItemUpdate> fileSystemItemsToUpload, String accessToken) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
-        return new ResponseEntity<>(fileSystemBusinessService.uploadFileSystemItems(fileSystemItemsToUpload, authenticatedUser), HttpStatus.CREATED);
+        return new ResponseEntity<>(fileSystemBusinessService.uploadFileSystemItems(rootItemId, fileSystemItemsToUpload, authenticatedUser), HttpStatus.CREATED);
     }
 
     @Override

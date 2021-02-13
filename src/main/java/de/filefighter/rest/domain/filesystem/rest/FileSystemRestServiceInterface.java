@@ -16,7 +16,7 @@ public interface FileSystemRestServiceInterface {
 
     ResponseEntity<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken);
 
-    ResponseEntity<List<FileSystemItem>> uploadFileSystemItemWithAccessToken(List<FileSystemItemUpdate> fileSystemItemUpdate, String accessToken);
+    ResponseEntity<List<FileSystemItem>> uploadFileSystemItemWithAccessToken(long rootItemId, List<FileSystemItemUpdate> fileSystemItemUpdate, String accessToken);
 
     ResponseEntity<FileSystemItem> updatedFileSystemItemWithIdAndAccessToken(long fsItemId, FileSystemItemUpdate fileSystemItemUpdate, String accessToken);
 
