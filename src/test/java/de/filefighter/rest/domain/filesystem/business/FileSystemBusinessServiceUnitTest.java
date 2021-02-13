@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 
+import static de.filefighter.rest.domain.filesystem.data.InteractionType.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -415,32 +416,32 @@ class FileSystemBusinessServiceUnitTest {
     }
 
     @Test
-    void userIsAllowedToSeeFileSystemEntity() {
+    void userIsAllowedToReadFileSystemEntity() {
         long userId = 1232783672;
         User user = User.builder().userId(userId).build();
         FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
 
         // user created fileSystemItem
-        assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user created containing folder
         fileSystemEntity.setCreatedByUserId(1203891230);
         fileSystemEntity.setOwnerIds(new long[]{userId});
-        assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user got it shared.
         fileSystemEntity = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         //user is in group
         user = User.builder().userId(123897123).groups(new Group[]{Group.ADMIN}).build();
         fileSystemEntity = FileSystemEntity.builder().fileSystemId(9872347).visibleForGroupIds(new long[]{1}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user is not allowed.
         user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
-        assertFalse(fileSystemBusinessService.userIsAllowedToSeeFileSystemEntity(fileSystemEntity, user));
+        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
     }
 
     @Test
@@ -450,29 +451,31 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
 
         // fileSystemEntity was created by runtime user.
-        assertFalse(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).build(), user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).build(), user, CHANGE));
+
+        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).build(), user, DELETE));
 
         // user created fileSystemItem
-        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user created containing folder
         fileSystemEntity.setCreatedByUserId(1203891230);
         fileSystemEntity.setOwnerIds(new long[]{userId});
-        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user got it shared.
         fileSystemEntity = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         //user is in group
         user = User.builder().userId(0).groups(new Group[]{Group.ADMIN}).build();
         fileSystemEntity = FileSystemEntity.builder().editableFoGroupIds(new long[]{1}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user is not allowed.
         user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).editableFoGroupIds(new long[]{1}).build();
-        assertFalse(fileSystemBusinessService.userIsAllowedToEditFileSystemEntity(fileSystemEntity, user));
+        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
     }
 
     @Test

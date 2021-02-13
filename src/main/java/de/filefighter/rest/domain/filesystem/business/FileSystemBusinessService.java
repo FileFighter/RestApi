@@ -3,6 +3,7 @@ package de.filefighter.rest.domain.filesystem.business;
 import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
+import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
@@ -10,6 +11,7 @@ import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemReposito
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDeletedException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemsCouldNotBeUploadedException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
@@ -67,7 +69,7 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // remove all not accessible items.
-        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !userIsAllowedToSeeFileSystemEntity(entity, authenticatedUser));
+        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ));
 
         if (listOfFileSystemEntities.isEmpty())
             throw new FileSystemContentsNotAccessibleException();
@@ -91,7 +93,7 @@ public class FileSystemBusinessService {
         if (null == fileSystemEntity)
             throw new FileSystemItemNotFoundException(fsItemId);
 
-        if (!userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser))
+        if (!userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.READ))
             throw new FileSystemItemNotFoundException(fsItemId);
 
         return createDTO(fileSystemEntity, authenticatedUser, null);
@@ -102,7 +104,7 @@ public class FileSystemBusinessService {
         if (null == fileSystemEntity)
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
-        if (!(userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser)))
+        if (!(userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.READ) && userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.DELETE)))
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
         return recursivelyDeleteFileSystemEntity(fileSystemEntity, authenticatedUser);
@@ -147,8 +149,8 @@ public class FileSystemBusinessService {
                 int deletedEntities = 0;
 
                 for (FileSystemEntity childrenEntity : foundEntities) {
-                    if (userIsAllowedToSeeFileSystemEntity(childrenEntity, authenticatedUser)) {
-                        if (userIsAllowedToEditFileSystemEntity(childrenEntity, authenticatedUser)) {
+                    if (userIsAllowedToInteractWithFileSystemEntity(childrenEntity, authenticatedUser, InteractionType.READ)) {
+                        if (userIsAllowedToInteractWithFileSystemEntity(childrenEntity, authenticatedUser, InteractionType.DELETE)) {
 
                             // Folder.
                             if (!childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) == FileSystemType.FOLDER) {
@@ -218,6 +220,19 @@ public class FileSystemBusinessService {
         return everythingWasDeleted;
     }
 
+    public List<FileSystemItem> uploadFileSystemItems(Long rootItemId, List<FileSystemItemUpdate> fileSystemItemsToUpload, User authenticatedUser) {
+        FileSystemEntity rootFileSystemEntity = fileSystemRepository.findByFileSystemId(rootItemId);
+        if (null == rootFileSystemEntity)
+            throw new FileSystemItemNotFoundException(rootItemId);
+
+        // this does fail because the root folder is created by a runtime user.
+        if (!userIsAllowedToInteractWithFileSystemEntity(rootFileSystemEntity, authenticatedUser, InteractionType.CHANGE))
+            throw new FileSystemItemsCouldNotBeUploadedException(rootItemId);
+
+        // do something.
+        return null;
+    }
+
     // ---------------- HELPER -------------------
 
     public FileSystemEntity sumUpAllPermissionsOfFileSystemEntities(FileSystemEntity parentFileSystemEntity, List<FileSystemEntity> fileSystemEntities) {
@@ -263,13 +278,13 @@ public class FileSystemBusinessService {
             if (null == fileSystemEntityInFolder)
                 throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
 
-            if (needsToBeVisible && !needsToBeEditable && userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+            if (needsToBeVisible && !needsToBeEditable && userIsAllowedToInteractWithFileSystemEntity(fileSystemEntityInFolder, authenticatedUser, InteractionType.READ)) {
                 fileSystemEntities.add(fileSystemEntityInFolder);
             }
-            if (needsToBeEditable && !needsToBeVisible && userIsAllowedToEditFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+            if (needsToBeEditable && !needsToBeVisible && userIsAllowedToInteractWithFileSystemEntity(fileSystemEntityInFolder, authenticatedUser, InteractionType.CHANGE)) {
                 fileSystemEntities.add(fileSystemEntityInFolder);
             }
-            if (needsToBeVisible && needsToBeEditable && userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
+            if (needsToBeVisible && needsToBeEditable && userIsAllowedToInteractWithFileSystemEntity(fileSystemEntityInFolder, authenticatedUser, InteractionType.READ) && userIsAllowedToInteractWithFileSystemEntity(fileSystemEntityInFolder, authenticatedUser, InteractionType.CHANGE)) {
                 fileSystemEntities.add(fileSystemEntityInFolder);
             }
             if (!needsToBeVisible && !needsToBeEditable) {
@@ -279,36 +294,11 @@ public class FileSystemBusinessService {
         return fileSystemEntities;
     }
 
-    public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
-        // user created the item
-        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
-            return true;
-
-        // user created containing folder.
-        if (null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
-            return true;
-
-        // user got the item shared.
-        for (long userId : fileSystemEntity.getVisibleForUserIds()) {
-            if (userId == authenticatedUser.getUserId())
-                return true;
-        }
-
-        // user is in group that got the item shared.
-        long[] fileIsSharedToGroups = fileSystemEntity.getVisibleForGroupIds();
-        for (Group group : authenticatedUser.getGroups()) {
-            for (long groupId : fileIsSharedToGroups) {
-                if (groupId == group.getGroupId())
-                    return true;
-
-            }
-        }
-        return false;
-    }
-
-    public boolean userIsAllowedToEditFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
+    @SuppressWarnings("java:S3776")
+    public boolean userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser, InteractionType interaction) {
         // file was created by runtime user.
-        if (fileSystemEntity.getCreatedByUserId() == RestConfiguration.RUNTIME_USER_ID)
+        if ((interaction == InteractionType.DELETE)
+                && fileSystemEntity.getCreatedByUserId() == RestConfiguration.RUNTIME_USER_ID)
             return false;
 
         // user created the item
@@ -320,18 +310,36 @@ public class FileSystemBusinessService {
             return true;
 
         // user got the item shared.
-        for (long userId : fileSystemEntity.getEditableForUserIds()) {
-            if (userId == authenticatedUser.getUserId())
-                return true;
-        }
-
-        // user is in group that got the item shared.
-        long[] fileIsSharedToGroups = fileSystemEntity.getEditableFoGroupIds();
-        for (Group group : authenticatedUser.getGroups()) {
-            for (long groupId : fileIsSharedToGroups) {
-                if (groupId == group.getGroupId())
+        if (interaction == InteractionType.READ) {
+            for (long userId : fileSystemEntity.getVisibleForUserIds()) {
+                if (userId == authenticatedUser.getUserId())
                     return true;
+            }
 
+            // user is in group that got the item shared.
+            long[] fileIsSharedToGroups = fileSystemEntity.getVisibleForGroupIds();
+            for (Group group : authenticatedUser.getGroups()) {
+                for (long groupId : fileIsSharedToGroups) {
+                    if (groupId == group.getGroupId())
+                        return true;
+
+                }
+            }
+        }
+        if (interaction == InteractionType.CHANGE || interaction == InteractionType.DELETE) {
+            for (long userId : fileSystemEntity.getEditableForUserIds()) {
+                if (userId == authenticatedUser.getUserId())
+                    return true;
+            }
+
+            // user is in group that got the item shared.
+            long[] fileIsSharedToGroups = fileSystemEntity.getEditableFoGroupIds();
+            for (Group group : authenticatedUser.getGroups()) {
+                for (long groupId : fileIsSharedToGroups) {
+                    if (groupId == group.getGroupId())
+                        return true;
+
+                }
             }
         }
         return false;
@@ -403,9 +411,5 @@ public class FileSystemBusinessService {
 
     public long generateNextFileSystemId() {
         return getFileSystemEntityCount() + 1;
-    }
-
-    public List<FileSystemItem> uploadFileSystemItems(Long rootItemId, List<FileSystemItemUpdate> fileSystemItemsToUpload, User authenticatedUser) {
-        return null;
     }
 }
