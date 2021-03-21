@@ -2,7 +2,7 @@ package de.filefighter.rest.domain.user.rest;
 
 import de.filefighter.rest.domain.authentication.AuthenticationService;
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
-import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
+import de.filefighter.rest.domain.filesystem.business.FileSystemHelperService;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
@@ -23,13 +23,13 @@ public class UserRestService implements UserRestServiceInterface {
 
     private final UserBusinessService userBusinessService;
     private final AccessTokenBusinessService accessTokenBusinessService;
-    private final FileSystemBusinessService fileSystemBusinessService;
+    private final FileSystemHelperService fileSystemHelperService;
     private final AuthenticationService authenticationService;
 
-    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService) {
+    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemHelperService fileSystemHelperService, AuthenticationService authenticationService) {
         this.userBusinessService = userBusinessService;
         this.accessTokenBusinessService = accessTokenBusinessService;
-        this.fileSystemBusinessService = fileSystemBusinessService;
+        this.fileSystemHelperService = fileSystemHelperService;
         this.authenticationService = authenticationService;
     }
 
@@ -66,7 +66,7 @@ public class UserRestService implements UserRestServiceInterface {
     public ResponseEntity<ServerResponse> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessTokenHeader) {
         authenticationService.bearerAuthenticationWithAccessTokenAndGroup(accessTokenHeader, ADMIN);
         UserEntity registeredUserEntity = userBusinessService.registerNewUser(newUser);
-        fileSystemBusinessService.createBasicFilesForNewUser(registeredUserEntity);
+        fileSystemHelperService.createBasicFilesForNewUser(registeredUserEntity);
         return new ResponseEntity<>(new ServerResponse(HttpStatus.CREATED, "User successfully created."), HttpStatus.CREATED);
     }
 

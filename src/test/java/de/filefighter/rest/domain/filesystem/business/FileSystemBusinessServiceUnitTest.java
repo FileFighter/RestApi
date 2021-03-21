@@ -1,7 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
+import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
@@ -12,17 +12,16 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
-import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 
-import static de.filefighter.rest.domain.filesystem.data.InteractionType.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class FileSystemBusinessServiceUnitTest {
@@ -31,7 +30,8 @@ class FileSystemBusinessServiceUnitTest {
     private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
-    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, userBusinessServiceMock, fileSystemTypeRepositoryMock, mongoTemplateMock);
+    private final FileSystemHelperService fileSystemHelperServiceMock = mock(FileSystemHelperService.class);
+    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, fileSystemHelperServiceMock, fileSystemTypeRepositoryMock, mongoTemplateMock);
 
     @Test
     void getFolderContentsByPathThrows() {
@@ -55,6 +55,7 @@ class FileSystemBusinessServiceUnitTest {
         assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was in wrong format. Use a leading backslash.", ex.getMessage());
 
         when(fileSystemRepositoryMock.findByPath(validPath)).thenReturn(null);
+        when(fileSystemHelperServiceMock.removeTrailingBackSlashes(validPath)).thenReturn(validPath);
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
@@ -83,28 +84,16 @@ class FileSystemBusinessServiceUnitTest {
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
         entities.add(foundFolder);
 
+        when(fileSystemHelperServiceMock.removeTrailingBackSlashes(pathToRequest)).thenReturn(path);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundFolder, user, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundFolder, user, true, false)).thenReturn(entities);
+        when(fileSystemHelperServiceMock.createDTO(foundFolder, user, pathToRequest)).thenReturn(FileSystemItem.builder().build());
         when(fileSystemRepositoryMock.findByPath(path)).thenReturn(entities);
         when(fileSystemRepositoryMock.findByFileSystemId(fileIdInFolder)).thenReturn(FileSystemEntity.builder().createdByUserId(userId).build());
         when(userBusinessServiceMock.getUserById(userId)).thenReturn(User.builder().build());
 
         ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(pathToRequest, user);
         assertEquals(1, fileSystemItems.size());
-    }
-
-    @Test
-    void getFolderContentsOfEntityThrows() {
-        long fileSystemId0 = 420;
-        long fileSystemId1 = 1234;
-
-        User authenticatedUser = User.builder().build();
-        FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1}).build();
-
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(FileSystemEntity.builder().build());
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(null);
-
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FolderContents expected fileSystemItem with id " + fileSystemId1 + " but was empty.", ex.getMessage());
     }
 
     @Test
@@ -122,13 +111,19 @@ class FileSystemBusinessServiceUnitTest {
 
         FileSystemEntity rootFolder = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).build();
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
-
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false)).thenReturn(new ArrayList<>());
         ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.recursivelyDeleteFileSystemEntity(rootFolder, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
 
         FileSystemEntity rootFolder1 = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).itemIds(new long[]{fileSystemId0}).build();
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(FileSystemEntity.builder().fileSystemId(fileSystemId0).build());
+        ArrayList<FileSystemEntity> arrayListMock = new ArrayList<>(1);
+        FileSystemEntity fileInRootFolder = FileSystemEntity.builder().fileSystemId(fileSystemId0).build();
+        arrayListMock.add(fileInRootFolder);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(rootFolder1, authenticatedUser, false, false)).thenReturn(arrayListMock);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileInRootFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileInRootFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(fileInRootFolder);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
 
         ex = assertThrows(FileFighterDataException.class, () ->
@@ -139,63 +134,6 @@ class FileSystemBusinessServiceUnitTest {
         ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.recursivelyDeleteFileSystemEntity(rootFolder1, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
-    }
-
-    @Test
-    void getFolderContentsOfEntityWorks() {
-        long fileSystemId0 = 420;
-        long fileSystemId1 = 1234;
-        long fileSystemId2 = 1231231234;
-        long userId = 123123321;
-
-        User authenticatedUser = User.builder().userId(userId).build();
-
-        FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
-        FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
-        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().createdByUserId(userId).build();
-
-        FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1, fileSystemId2}).build();
-
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(fileSystemEntity0);
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(fileSystemEntity1);
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId2)).thenReturn(fileSystemEntity2);
-
-        ArrayList<FileSystemEntity> fs0 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false);
-        ArrayList<FileSystemEntity> fs1 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, true);
-        ArrayList<FileSystemEntity> fs2 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, true);
-        ArrayList<FileSystemEntity> fs3 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false);
-
-        assertEquals(2, fs0.size());
-        assertEquals(fileSystemEntity0, fs0.get(0));
-        assertEquals(2, fs1.size());
-        assertEquals(fileSystemEntity1, fs1.get(0));
-        assertEquals(1, fs2.size());
-        assertEquals(3, fs3.size());
-        // why can't I compare 3 objects at once :(
-        assertNotEquals(fs3.get(0), fs3.get(1));
-        assertNotEquals(fs3.get(1), fs3.get(2));
-        assertNotEquals(fs3.get(0), fs3.get(2));
-    }
-
-    @Test
-    void sumUpAllPermissionsOfFileSystemEntitiesWorks() {
-        FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().visibleForUserIds(new long[]{0, 2, 4}).visibleForGroupIds(new long[]{0, 2, 4}).editableForUserIds(new long[]{0, 2, 4}).editableFoGroupIds(new long[]{0, 2, 4}).build();
-        FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().visibleForUserIds(new long[]{1, 2, 3, 4}).visibleForGroupIds(new long[]{1, 2, 3, 4}).editableForUserIds(new long[]{1, 2, 3, 4}).editableFoGroupIds(new long[]{1, 2, 3, 4}).build();
-        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().visibleForUserIds(new long[]{1, 3}).visibleForGroupIds(new long[]{1, 3}).editableForUserIds(new long[]{1, 3}).editableFoGroupIds(new long[]{1, 3}).build();
-        FileSystemEntity fileSystemEntity3 = FileSystemEntity.builder().visibleForUserIds(new long[]{2, 4}).visibleForGroupIds(new long[]{2, 4}).editableForUserIds(new long[]{2, 4}).editableFoGroupIds(new long[]{2, 4}).build();
-
-        FileSystemEntity parentFileSystemEntity = FileSystemEntity.builder().visibleForUserIds(new long[]{-10, -99, 9}).build();
-        ArrayList<FileSystemEntity> fileSystemEntityArrayList = new ArrayList<>();
-        fileSystemEntityArrayList.add(fileSystemEntity0);
-        fileSystemEntityArrayList.add(fileSystemEntity1);
-        fileSystemEntityArrayList.add(fileSystemEntity2);
-        fileSystemEntityArrayList.add(fileSystemEntity3);
-
-        FileSystemEntity actualFileSystemEntity = fileSystemBusinessService.sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, fileSystemEntityArrayList);
-        assertEquals(5, actualFileSystemEntity.getVisibleForUserIds().length);
-        assertEquals(5, actualFileSystemEntity.getVisibleForGroupIds().length);
-        assertEquals(5, actualFileSystemEntity.getEditableForUserIds().length);
-        assertEquals(5, actualFileSystemEntity.getEditableFoGroupIds().length);
     }
 
     @Test
@@ -215,6 +153,8 @@ class FileSystemBusinessServiceUnitTest {
         assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + fsItemId, ex.getMessage());
 
         foundEntity = FileSystemEntity.builder().createdByUserId(userId).isFile(true).typeId(0).build();
+        when((fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ))).thenReturn(true);
+        when((fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE))).thenReturn(true);
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
         FileFighterDataException ex1 = assertThrows(FileFighterDataException.class, () ->
@@ -223,9 +163,14 @@ class FileSystemBusinessServiceUnitTest {
 
         long folderContentId = 13287132;
         FileSystemEntity folderContentEntity = FileSystemEntity.builder().createdByUserId(userId).isFile(true).typeId(0).build();
+        ArrayList<FileSystemEntity> fileSystemEntitiesMock = new ArrayList<>();
+        fileSystemEntitiesMock.add(folderContentEntity);
         when(fileSystemRepositoryMock.findByFileSystemId(folderContentId)).thenReturn(folderContentEntity);
         foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{folderContentId}).build();
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundEntity, authenticatedUser, false, false)).thenReturn(fileSystemEntitiesMock);
         ex1 = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FileType was wrong. " + folderContentEntity, ex1.getMessage());
@@ -237,6 +182,8 @@ class FileSystemBusinessServiceUnitTest {
         long userId = 243724328;
         User authenticatedUser = User.builder().userId(userId).build();
         FileSystemEntity foundEntity = FileSystemEntity.builder().fileSystemId(fsItemId).typeId(1).isFile(true).createdByUserId(userId).build();
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
         when(fileSystemRepositoryMock.deleteByFileSystemId(fsItemId)).thenReturn(1L);
 
@@ -246,21 +193,32 @@ class FileSystemBusinessServiceUnitTest {
 
     @Test
     void deleteFileSystemItemByIdWorksWithFolder() {
-        long fsItemId = 12332123;
+        long folderId = 12332123;
+        long fileId = 420;
         long userId = 243724328;
         User authenticatedUser = User.builder().userId(userId).build();
-        FileSystemEntity foundEntity = FileSystemEntity.builder().fileSystemId(fsItemId).typeId(0).isFile(false).createdByUserId(userId).build();
+        FileSystemEntity folder = FileSystemEntity.builder().fileSystemId(folderId).typeId(0).isFile(false).createdByUserId(userId).build();
 
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(folderId)).thenReturn(folder);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(fsItemId)).thenReturn(1L);
+        when(fileSystemRepositoryMock.deleteByFileSystemId(folderId)).thenReturn(1L);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
 
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
+        FileSystemEntity file = FileSystemEntity.builder().typeId(2).fileSystemId(fileId).isFile(true).createdByUserId(userId).itemIds(new long[0]).build();
+        ArrayList<FileSystemEntity> foundFiles = new ArrayList<>();
+        foundFiles.add(file);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(folder, authenticatedUser, false, false)).thenReturn(foundFiles);
 
-        foundEntity = FileSystemEntity.builder().typeId(0).fileSystemId(fsItemId).isFile(false).createdByUserId(userId).itemIds(new long[0]).build();
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-        verify(fileSystemRepositoryMock, times(2)).deleteByFileSystemId(fsItemId);
+        when(fileSystemRepositoryMock.findByFileSystemId(fileId)).thenReturn(file);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(file, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(file, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(2)).thenReturn(FileSystemType.PICTURE);
+        when(fileSystemRepositoryMock.deleteByFileSystemId(fileId)).thenReturn(1L);
+
+        fileSystemBusinessService.deleteFileSystemItemById(folderId, authenticatedUser);
+        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(folderId);
+        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fileId);
     }
 
     @Test
@@ -274,13 +232,27 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().isFile(false).typeId(0).createdByUserId(userId).fileSystemId(itemId0).build();
         FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().fileSystemId(itemId1).typeId(1).createdByUserId(userId).isFile(true).build();
         FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().fileSystemId(itemId2).typeId(1).createdByUserId(userId).isFile(true).build();
-        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).fileSystemId(fsItemId).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
+        FileSystemEntity parentFolder = FileSystemEntity.builder().typeId(0).isFile(false).fileSystemId(fsItemId).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
 
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(parentFolder);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(fileSystemEntity0);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(fileSystemEntity1);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(fileSystemEntity2);
+
+        ArrayList<FileSystemEntity> contentList = new ArrayList<>();
+        contentList.add(fileSystemEntity0);
+        contentList.add(fileSystemEntity1);
+        contentList.add(fileSystemEntity2);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(parentFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(parentFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity0, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity0, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity1, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity1, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity2, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity2, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(parentFolder, authenticatedUser, false, false)).thenReturn(contentList);
 
         when(fileSystemRepositoryMock.deleteByFileSystemId(fsItemId)).thenReturn(1L);
         when(fileSystemRepositoryMock.deleteByFileSystemId(itemId0)).thenReturn(1L);
@@ -304,13 +276,30 @@ class FileSystemBusinessServiceUnitTest {
         long itemId2 = 1923847;
         long itemId3 = 9817232;
         User authenticatedUser = User.builder().userId(userId).build();
-        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2, itemId3}).build();
+        FileSystemEntity foundFolder = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2, itemId3}).build();
         FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).createdByUserId(userId).fileSystemId(itemId0).build();
         FileSystemEntity invisibleFile = FileSystemEntity.builder().fileSystemId(itemId1).isFile(true).build();
         FileSystemEntity visibleNonEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).visibleForUserIds(new long[]{userId}).isFile(true).build();
         FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId3).createdByUserId(userId).isFile(true).build();
 
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundFolder);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableEmptyFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableEmptyFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleNonEditableFile, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleNonEditableFile, authenticatedUser, InteractionType.DELETE)).thenReturn(false);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableFile, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableFile, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+
+        ArrayList<FileSystemEntity> foundEntities = new ArrayList<>();
+        foundEntities.add(visibleEditableFile);
+        foundEntities.add(invisibleFile);
+        foundEntities.add(visibleNonEditableFile);
+        foundEntities.add(visibleEditableEmptyFolder);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundFolder, authenticatedUser, false, false)).thenReturn(foundEntities);
+        when(fileSystemHelperServiceMock.sumUpAllPermissionsOfFileSystemEntities(any(), any())).thenReturn(foundFolder);
+
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
@@ -339,10 +328,19 @@ class FileSystemBusinessServiceUnitTest {
         long itemId0 = 1233212;
         long itemId1 = 9872317;
         long itemId2 = 1923847;
-        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).createdByUserId(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build(); // TODO: implement this edge case. (created by.)
-        FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).createdByUserId(userId).fileSystemId(itemId0).build();
+        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).fileSystemId(fsItemId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
+        FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).fileSystemId(itemId0).build();
         FileSystemEntity invisibleFile = FileSystemEntity.builder().fileSystemId(itemId1).isFile(true).visibleForUserIds(new long[]{userId - 1}).build();
-        FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).createdByUserId(userId).isFile(true).build();
+        FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).isFile(true).build();
+
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+
+        ArrayList<FileSystemEntity> foundEntities = new ArrayList<>();
+        foundEntities.add(visibleEditableFile);
+        foundEntities.add(invisibleFile);
+        foundEntities.add(visibleEditableEmptyFolder);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundEntity, authenticatedUser, false, false)).thenReturn(foundEntities);
 
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
@@ -353,15 +351,18 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemRepositoryMock.deleteByFileSystemId(itemId0)).thenReturn(1L);
         when(fileSystemRepositoryMock.deleteByFileSystemId(itemId2)).thenReturn(1L);
 
+        FileSystemEntity entityWithSummedUpPermissions = FileSystemEntity.builder().build();
+        entityWithSummedUpPermissions.setVisibleForUserIds(invisibleFile.getVisibleForUserIds());
+        when(fileSystemHelperServiceMock.sumUpAllPermissionsOfFileSystemEntities(foundEntity, foundEntities)).thenReturn(entityWithSummedUpPermissions);
         fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
 
-        // verify deleted entities.
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId0);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId2);
-
+        // nothing should be deleted, but parent folder should be changed, so the user cannot see the "deleted" folder anymore.
         ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
-        verify(mongoTemplateMock, times(1)).findAndModify(any(), updateArgumentCaptor.capture(), any());
-        assertEquals("{ \"$set\" : { \"itemIds\" : [ " + itemId1 + " ], \"visibleForUserIds\" : [ " + (userId - 1) + " ], \"visibleForGroupIds\" : [  ], \"editableForUserIds\" : [  ], \"editableForGroupIds\" : [  ] } }", updateArgumentCaptor.getValue().toString()); // no better way to assert requested changes.
+        ArgumentCaptor<Query> queryArgumentCaptor = ArgumentCaptor.forClass(Query.class);
+
+        verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
+        assertEquals("Query: { \"fileSystemId\" : " + fsItemId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
+        assertEquals("{ \"$set\" : { \"itemIds\" : [ " + itemId0 + ", " + itemId1 + ", " + itemId2 + " ], \"visibleForUserIds\" : [ " + (userId - 1) + " ], \"visibleForGroupIds\" : [  ], \"editableForUserIds\" : [  ], \"editableForGroupIds\" : [  ] } }", updateArgumentCaptor.getValue().toString()); // no better way to assert requested changes.
     }
 
     @Test
@@ -387,170 +388,14 @@ class FileSystemBusinessServiceUnitTest {
         String name = "Folder";
         User dummyUser = User.builder().userId(userId).build();
         FileSystemEntity entity = FileSystemEntity.builder().name(name).createdByUserId(userId).build();
+        FileSystemItem item = FileSystemItem.builder().build();
 
         when(userBusinessServiceMock.getUserById(userId)).thenReturn(dummyUser);
         when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(entity);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity, dummyUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.createDTO(entity, dummyUser, null)).thenReturn(item);
+
         FileSystemItem fileSystemItem = fileSystemBusinessService.getFileSystemItemInfo(id, dummyUser);
-        assertEquals(name, fileSystemItem.getName());
-        assertEquals(userId, fileSystemItem.getCreatedByUser().getUserId());
-        assertNull(fileSystemItem.getPath());
-        assertFalse(fileSystemItem.isShared());
-    }
-
-    @Test
-    void removeTrailingWhiteSpaces() {
-        String doesNotRemove0 = "/";
-        String doesNotRemove1 = "/ugabuga";
-        String doesRemove = "/uga/";
-        String removed = "/uga";
-
-
-        String actual0 = fileSystemBusinessService.removeTrailingBackSlashes(doesNotRemove0);
-        assertEquals(doesNotRemove0, actual0);
-
-        String actual1 = fileSystemBusinessService.removeTrailingBackSlashes(doesNotRemove1);
-        assertEquals(doesNotRemove1, actual1);
-
-        String actual2 = fileSystemBusinessService.removeTrailingBackSlashes(doesRemove);
-        assertEquals(removed, actual2);
-    }
-
-    @Test
-    void userIsAllowedToReadFileSystemEntity() {
-        long userId = 1232783672;
-        User user = User.builder().userId(userId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
-
-        // user created fileSystemItem
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
-
-        // user created containing folder
-        fileSystemEntity.setCreatedByUserId(1203891230);
-        fileSystemEntity.setOwnerIds(new long[]{userId});
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
-
-        // user got it shared.
-        fileSystemEntity = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
-
-        //user is in group
-        user = User.builder().userId(123897123).groups(new Group[]{Group.ADMIN}).build();
-        fileSystemEntity = FileSystemEntity.builder().fileSystemId(9872347).visibleForGroupIds(new long[]{1}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
-
-        // user is not allowed.
-        user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
-        fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
-        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
-    }
-
-    @Test
-    void userIsAllowedToEditFileSystemEntity() {
-        long userId = 1232783672;
-        User user = User.builder().userId(userId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
-
-        // fileSystemEntity was created by runtime user.
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).build(), user, CHANGE));
-
-        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).build(), user, DELETE));
-
-        // user created fileSystemItem
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
-
-        // user created containing folder
-        fileSystemEntity.setCreatedByUserId(1203891230);
-        fileSystemEntity.setOwnerIds(new long[]{userId});
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
-
-        // user got it shared.
-        fileSystemEntity = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
-
-        //user is in group
-        user = User.builder().userId(0).groups(new Group[]{Group.ADMIN}).build();
-        fileSystemEntity = FileSystemEntity.builder().editableFoGroupIds(new long[]{1}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
-
-        // user is not allowed.
-        user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
-        fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).editableFoGroupIds(new long[]{1}).build();
-        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
-    }
-
-    @Test
-    void createDTOThrows() {
-        long userId = 420;
-        FileSystemEntity entity = FileSystemEntity.builder().createdByUserId(userId).build();
-        User user = User.builder().build();
-
-        when(userBusinessServiceMock.getUserById(userId)).thenThrow(UserNotFoundException.class);
-
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.createDTO(entity, user, null));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Owner of a file could not be found.", ex.getMessage());
-    }
-
-    @Test
-    void createDTOWorks() {
-        long createdByUserId = 420L;
-        String basePath = "/someTHING/somethingElse/";
-        long[] items = new long[]{1, 2, 3};
-        long fileSystemId = 123123;
-        boolean isFile = true;
-        long lastUpdated = 123123;
-        String name = "SomeText.txt";
-        double size = 123321;
-        long typeId = -1;
-
-        User authenticatedUser = User.builder().userId(createdByUserId - 1).build();
-        User userThatCreatedFile = User.builder().userId(createdByUserId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity
-                .builder()
-                .createdByUserId(createdByUserId)
-                .itemIds(items)
-                .fileSystemId(fileSystemId)
-                .isFile(isFile)
-                .lastUpdated(lastUpdated)
-                .name(name)
-                .path("") // is empty because its a file.
-                .size(size)
-                .typeId(typeId)
-                .build();
-
-        when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
-
-        FileSystemItem actual = fileSystemBusinessService.createDTO(fileSystemEntity, authenticatedUser, basePath);
-
-        assertEquals(createdByUserId, actual.getCreatedByUser().getUserId());
-        assertEquals(fileSystemId, actual.getFileSystemId());
-        assertEquals(lastUpdated, actual.getLastUpdated());
-        assertEquals(name, actual.getName());
-        assertEquals(size, actual.getSize());
-        assertEquals(FileSystemType.UNDEFINED, actual.getType());
-        assertEquals(basePath + name, actual.getPath());
-        assertTrue(actual.isShared());
-    }
-
-    @Test
-    void getTotalFileSizeThrows() {
-        when(fileSystemRepositoryMock.findByPath("/")).thenReturn(null);
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, fileSystemBusinessService::getTotalFileSize);
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Couldn't find any Home directories!", ex.getMessage());
-    }
-
-    @Test
-    void getTotalFileSizeWorks() {
-        double size0 = 1.3;
-        double size1 = 2.4;
-        ArrayList<FileSystemEntity> entities = new ArrayList<>();
-        entities.add(FileSystemEntity.builder().size(size0).build());
-        entities.add(FileSystemEntity.builder().size(size1).build());
-
-        when(fileSystemRepositoryMock.findByPath("/")).thenReturn(entities);
-
-        double actualSize = fileSystemBusinessService.getTotalFileSize();
-        assertEquals(size0 + size1, actualSize);
+        assertEquals(item, fileSystemItem);
     }
 }
