@@ -1,23 +1,33 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-/*
+
+import de.filefighter.rest.configuration.RestConfiguration;
+import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
+import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
+import de.filefighter.rest.domain.filesystem.type.FileSystemType;
+import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
+import de.filefighter.rest.domain.user.business.UserBusinessService;
+import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
+import de.filefighter.rest.domain.user.group.Group;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+
+import static de.filefighter.rest.domain.filesystem.data.InteractionType.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class FileSystemHelperServiceUnitTest {
 
-    @Test
-    void getFolderContentsOfEntityThrows() {
-        long fileSystemId0 = 420;
-        long fileSystemId1 = 1234;
+    private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
+    private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
+    private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
 
-        User authenticatedUser = User.builder().build();
-        FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1}).build();
-
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(FileSystemEntity.builder().build());
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(null);
-
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FolderContents expected fileSystemItem with id " + fileSystemId1 + " but was empty.", ex.getMessage());
-    }
+    private final FileSystemHelperService fileSystemHelperService = new FileSystemHelperService(fileSystemRepositoryMock, fileSystemTypeRepositoryMock, userBusinessServiceMock);
 
     @Test
     void sumUpAllPermissionsOfFileSystemEntitiesWorks() {
@@ -33,11 +43,27 @@ class FileSystemHelperServiceUnitTest {
         fileSystemEntityArrayList.add(fileSystemEntity2);
         fileSystemEntityArrayList.add(fileSystemEntity3);
 
-        FileSystemEntity actualFileSystemEntity = fileSystemBusinessService.sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, fileSystemEntityArrayList);
+        FileSystemEntity actualFileSystemEntity = fileSystemHelperService.sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, fileSystemEntityArrayList);
         assertEquals(5, actualFileSystemEntity.getVisibleForUserIds().length);
         assertEquals(5, actualFileSystemEntity.getVisibleForGroupIds().length);
         assertEquals(5, actualFileSystemEntity.getEditableForUserIds().length);
         assertEquals(5, actualFileSystemEntity.getEditableFoGroupIds().length);
+    }
+
+    @Test
+    void getFolderContentsOfEntityThrows() {
+        long fileSystemId0 = 420;
+        long fileSystemId1 = 1234;
+
+        User authenticatedUser = User.builder().build();
+        FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1}).build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(FileSystemEntity.builder().build());
+        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(null);
+
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
+                fileSystemHelperService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FolderContents expected fileSystemItem with id " + fileSystemId1 + " but was empty.", ex.getMessage());
     }
 
     @Test
@@ -59,10 +85,10 @@ class FileSystemHelperServiceUnitTest {
         when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId1)).thenReturn(fileSystemEntity1);
         when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId2)).thenReturn(fileSystemEntity2);
 
-        ArrayList<FileSystemEntity> fs0 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false);
-        ArrayList<FileSystemEntity> fs1 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, true);
-        ArrayList<FileSystemEntity> fs2 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, true);
-        ArrayList<FileSystemEntity> fs3 = (ArrayList<FileSystemEntity>) fileSystemBusinessService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false);
+        ArrayList<FileSystemEntity> fs0 = (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, false);
+        ArrayList<FileSystemEntity> fs1 = (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, true);
+        ArrayList<FileSystemEntity> fs2 = (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, true, true);
+        ArrayList<FileSystemEntity> fs3 = (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false);
 
         assertEquals(2, fs0.size());
         assertEquals(fileSystemEntity0, fs0.get(0));
@@ -84,13 +110,13 @@ class FileSystemHelperServiceUnitTest {
         String removed = "/uga";
 
 
-        String actual0 = fileSystemBusinessService.removeTrailingBackSlashes(doesNotRemove0);
+        String actual0 = fileSystemHelperService.removeTrailingBackSlashes(doesNotRemove0);
         assertEquals(doesNotRemove0, actual0);
 
-        String actual1 = fileSystemBusinessService.removeTrailingBackSlashes(doesNotRemove1);
+        String actual1 = fileSystemHelperService.removeTrailingBackSlashes(doesNotRemove1);
         assertEquals(doesNotRemove1, actual1);
 
-        String actual2 = fileSystemBusinessService.removeTrailingBackSlashes(doesRemove);
+        String actual2 = fileSystemHelperService.removeTrailingBackSlashes(doesRemove);
         assertEquals(removed, actual2);
     }
 
@@ -101,26 +127,26 @@ class FileSystemHelperServiceUnitTest {
         FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
 
         // user created fileSystemItem
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user created containing folder
         fileSystemEntity.setCreatedByUserId(1203891230);
         fileSystemEntity.setOwnerIds(new long[]{userId});
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user got it shared.
         fileSystemEntity = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         //user is in group
         user = User.builder().userId(123897123).groups(new Group[]{Group.ADMIN}).build();
         fileSystemEntity = FileSystemEntity.builder().fileSystemId(9872347).visibleForGroupIds(new long[]{1}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user is not allowed.
         user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
-        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
+        assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
     }
 
     @Test
@@ -130,31 +156,31 @@ class FileSystemHelperServiceUnitTest {
         FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
 
         // fileSystemEntity was created by runtime user.
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, CHANGE));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, CHANGE));
 
-        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, DELETE));
+        assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, DELETE));
 
         // user created fileSystemItem
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user created containing folder
         fileSystemEntity.setCreatedByUserId(1203891230);
         fileSystemEntity.setOwnerIds(new long[]{userId});
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user got it shared.
         fileSystemEntity = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         //user is in group
         user = User.builder().userId(0).groups(new Group[]{Group.ADMIN}).build();
         fileSystemEntity = FileSystemEntity.builder().editableFoGroupIds(new long[]{1}).build();
-        assertTrue(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user is not allowed.
         user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
         fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).editableFoGroupIds(new long[]{1}).build();
-        assertFalse(fileSystemBusinessService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
+        assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
     }
 
     @Test
@@ -166,7 +192,7 @@ class FileSystemHelperServiceUnitTest {
         when(userBusinessServiceMock.getUserById(userId)).thenThrow(UserNotFoundException.class);
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.createDTO(entity, user, null));
+                fileSystemHelperService.createDTO(entity, user, null));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Owner of a file could not be found.", ex.getMessage());
     }
 
@@ -200,7 +226,7 @@ class FileSystemHelperServiceUnitTest {
         when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
 
-        FileSystemItem actual = fileSystemBusinessService.createDTO(fileSystemEntity, authenticatedUser, basePath);
+        FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath);
 
         assertEquals(createdByUserId, actual.getCreatedByUser().getUserId());
         assertEquals(fileSystemId, actual.getFileSystemId());
@@ -215,7 +241,7 @@ class FileSystemHelperServiceUnitTest {
     @Test
     void getTotalFileSizeThrows() {
         when(fileSystemRepositoryMock.findByPath("/")).thenReturn(null);
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, fileSystemBusinessService::getTotalFileSize);
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, fileSystemHelperService::getTotalFileSize);
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Couldn't find any Home directories!", ex.getMessage());
     }
 
@@ -229,9 +255,8 @@ class FileSystemHelperServiceUnitTest {
 
         when(fileSystemRepositoryMock.findByPath("/")).thenReturn(entities);
 
-        double actualSize = fileSystemBusinessService.getTotalFileSize();
+        double actualSize = fileSystemHelperService.getTotalFileSize();
         assertEquals(size0 + size1, actualSize);
     }
 }
 
-    */
