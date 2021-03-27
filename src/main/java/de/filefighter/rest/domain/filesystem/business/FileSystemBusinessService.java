@@ -21,10 +21,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.OptionalLong;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -236,6 +233,7 @@ public class FileSystemBusinessService {
         String pathToCheck = parentFileSystemEntity.getPath();
         String parentPath = null;
         long newFolderId = 0;
+        boolean createdNewFolder = false;
 
         // add trailing backslash
         if (!pathToCheck.equals("/")) {
@@ -257,7 +255,21 @@ public class FileSystemBusinessService {
 
         for (String path : paths) {
             if (index == paths.size() - 1) {
-                fileSystemRepository.save(FileSystemEntity.builder()
+                // check if a file already exists with the same name.
+                // check for children with the name to be uploaded
+                // only necessary when no new folder was created.
+                if (!createdNewFolder || index == 0) {
+                    List<FileSystemEntity> parentEntityForUploadedFile = fileSystemRepository.findByPath(parentFileSystemEntity.getPath());
+                    if (parentEntityForUploadedFile.size() != 1)
+                        throw new FileFighterDataException("Didn't find parentFolder for upload.");
+
+                    List<FileSystemEntity> childrenOfTheParentEntity = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentEntityForUploadedFile.get(0), authenticatedUser, false, false);
+                    Optional<FileSystemEntity> optionalEntityWithTheSameName = childrenOfTheParentEntity.stream().filter(children -> children.getName().equals(fileSystemUpload.getName())).findAny();
+                    if (optionalEntityWithTheSameName.isPresent())
+                        throw new FileSystemItemsCouldNotBeUploadedException("A file with the same name already exists.");
+                }
+
+                FileSystemEntity newFile = FileSystemEntity.builder()
                         .fileSystemId(nextId)
                         .name(fileSystemUpload.getName())
                         .path(null)
@@ -271,13 +283,23 @@ public class FileSystemBusinessService {
                         .visibleForGroupIds(parentFileSystemEntity.getVisibleForGroupIds())
                         .editableForUserIds(parentFileSystemEntity.getEditableForUserIds())
                         .editableFoGroupIds(parentFileSystemEntity.getEditableFoGroupIds())
-                        .build());
+                        .build();
+
+                // set flags for parent
+                if (parentPath == null) {
+                    parentPath = parentFileSystemEntity.getPath();
+                    newFolderId = nextId;
+                }
+                log.info("Creating new file {} for user {}.", newFile, authenticatedUser.getUserId());
+                fileSystemRepository.save(newFile);
             } else {
                 // add current element
                 String possibleParentPath = pathToCheck;
-                pathToCheck += path;
+                pathToCheck = fileSystemHelperService.removeTrailingBackSlashes(pathToCheck);
+                pathToCheck += "/" + path;
 
                 // check for existing folder with that path
+                // TODO: check for visibility
                 ArrayList<FileSystemEntity> foundExistingFolder = fileSystemRepository.findByPath(pathToCheck);
                 if (foundExistingFolder.isEmpty()) {
                     // create it.
@@ -307,6 +329,7 @@ public class FileSystemBusinessService {
                     newFolder.setItemIds(new long[]{nextId});
                     log.info("Creating new folder {} for user {}.", newFolder, authenticatedUser.getUserId());
                     fileSystemRepository.save(newFolder);
+                    createdNewFolder = true;
                 } else {
                     if (foundExistingFolder.size() != 1)
                         throw new FileFighterDataException("Found more than one folder with the path " + pathToCheck);

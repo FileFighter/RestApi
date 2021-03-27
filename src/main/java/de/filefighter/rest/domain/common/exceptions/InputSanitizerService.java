@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.common.exceptions;
 
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,9 +18,23 @@ public class InputSanitizerService {
      * @throws RequestDidntMeetFormalRequirementsException when string was empty.
      */
     public static String sanitizeString(String string) {
-        if(!InputSanitizerService.stringIsValid(string))
+        if (!InputSanitizerService.stringIsValid(string))
             throw new RequestDidntMeetFormalRequirementsException("String was empty.");
         return string.replaceAll("\\s", "");
+    }
+
+    public static String sanitizePath(String path) {
+        String validString = sanitizeString(path);
+        if (path.contains("//"))
+            throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
+
+        return validString;
+    }
+
+    public static FileSystemUpload sanitizeUpload(FileSystemUpload fileSystemUpload) {
+        fileSystemUpload.setPath(sanitizePath(fileSystemUpload.getPath()));
+        fileSystemUpload.setName(sanitizeString(fileSystemUpload.getName()));
+        return fileSystemUpload;
     }
 
     public String sanitizeRequestHeader(String header, String testString) {
