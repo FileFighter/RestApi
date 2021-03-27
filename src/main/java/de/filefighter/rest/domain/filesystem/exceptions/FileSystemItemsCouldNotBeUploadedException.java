@@ -14,6 +14,10 @@ public class FileSystemItemsCouldNotBeUploadedException extends RuntimeException
         super(ERROR_MESSAGE_PREFIX + " FileSystemId was " + fsItemId);
     }
 
+    public FileSystemItemsCouldNotBeUploadedException(String reason) {
+        super(ERROR_MESSAGE_PREFIX + " " + reason);
+    }
+
     public static String getErrorMessagePrefix() {
         return ERROR_MESSAGE_PREFIX;
     }

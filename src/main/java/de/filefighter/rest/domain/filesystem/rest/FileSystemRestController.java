@@ -2,6 +2,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
@@ -56,13 +56,13 @@ public class FileSystemRestController {
     }
 
     @PostMapping(FS_BASE_URI + "{fsItemId}/upload")
-    public ResponseEntity<List<FileSystemItem>> uploadFileOrFolder(
+    public ResponseEntity<FileSystemItem> uploadFileOrFolder(
             @PathVariable long fsItemId,
-            @RequestBody List<FileSystemItemUpdate> fileSystemItems,
+            @RequestBody FileSystemUpload fileSystemUpload,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
 
-        log.info("Tried uploading new FileSystemItems {}", fileSystemItems);
-        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fsItemId, fileSystemItems, accessToken);
+        log.info("Tried uploading new FileSystemUpload {}", fileSystemUpload);
+        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fsItemId, fileSystemUpload, accessToken);
     }
 
     @PutMapping(FS_BASE_URI + "{fsItemId}/update")

@@ -4,7 +4,7 @@ import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
@@ -22,7 +22,9 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -216,30 +218,120 @@ public class FileSystemBusinessService {
         return everythingWasDeleted;
     }
 
-    public List<FileSystemItem> uploadFileSystemItems(Long rootItemId, List<FileSystemItemUpdate> fileSystemItemsToUpload, User authenticatedUser) {
-        FileSystemEntity rootFileSystemEntity = fileSystemRepository.findByFileSystemId(rootItemId);
-        if (null == rootFileSystemEntity)
+    public FileSystemItem uploadFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, User authenticatedUser) {
+        FileSystemEntity parentFileSystemEntity = fileSystemRepository.findByFileSystemId(rootItemId);
+        if (null == parentFileSystemEntity)
             throw new FileSystemItemNotFoundException(rootItemId);
 
-        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(rootFileSystemEntity, authenticatedUser, InteractionType.CHANGE))
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentFileSystemEntity, authenticatedUser, InteractionType.CHANGE))
             throw new FileSystemItemsCouldNotBeUploadedException(rootItemId);
 
-        for (FileSystemItemUpdate uploadedFileSystemItem : fileSystemItemsToUpload) {
-            /*String name =
+        String[] relativePaths = fileSystemUpload.getPath().split("/");
+        List<String> paths = Arrays.stream(relativePaths).filter(path -> !(path.isEmpty() || path.isBlank())).collect(Collectors.toList());
 
-                    FileSystemEntity newEntity = FileSystemEntity.builder()
-                    .name(uploadedFileSystemItem.getName())
-                    .path(uploadedFileSystemItem.getType() == FileSystemType.FOLDER ? rootFileSystemEntity.getPath() + uploadedFileSystemItem.getName().toLowerCase())
-                    .editableForUserIds()
-                    .itemIds()
-                    .build()
+        // variables
+        int index = 0;
+        long nextId = fileSystemHelperService.generateNextFileSystemId();
+        long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
+        String pathToCheck = parentFileSystemEntity.getPath();
+        String parentPath = null;
+        long newFolderId = 0;
 
-            if (uploadedFileSystemItem.isInRoot()) {
-
-            }
-
-             */
+        // add trailing backslash
+        if (!pathToCheck.equals("/")) {
+            pathToCheck += "/";
         }
+
+        // owner list
+        long[] newOwnerIds;
+        long[] oldOwnerIds = parentFileSystemEntity.getOwnerIds();
+
+        OptionalLong optionalUserId = Arrays.stream(oldOwnerIds).filter(id -> id == authenticatedUser.getUserId()).findAny();
+        if (optionalUserId.isEmpty()) {
+            newOwnerIds = new long[oldOwnerIds.length + 1];
+            System.arraycopy(oldOwnerIds, 0, newOwnerIds, 0, oldOwnerIds.length);
+            newOwnerIds[oldOwnerIds.length] = authenticatedUser.getUserId();
+        } else {
+            newOwnerIds = oldOwnerIds;
+        }
+
+        for (String path : paths) {
+            if (index == paths.size() - 1) {
+                fileSystemRepository.save(FileSystemEntity.builder()
+                        .fileSystemId(nextId)
+                        .name(fileSystemUpload.getName())
+                        .path(null)
+                        .typeId(fileSystemTypeRepository.parseMimeType(fileSystemUpload.getMimeType()).getId())
+                        .size(fileSystemUpload.getSize())
+                        .lastUpdated(timeStamp)
+                        .isFile(true)
+                        .createdByUserId(authenticatedUser.getUserId())
+                        .ownerIds(newOwnerIds)
+                        .visibleForUserIds(parentFileSystemEntity.getVisibleForUserIds())
+                        .visibleForGroupIds(parentFileSystemEntity.getVisibleForGroupIds())
+                        .editableForUserIds(parentFileSystemEntity.getEditableForUserIds())
+                        .editableFoGroupIds(parentFileSystemEntity.getEditableFoGroupIds())
+                        .build());
+            } else {
+                // add current element
+                String possibleParentPath = pathToCheck;
+                pathToCheck += path;
+
+                // check for existing folder with that path
+                ArrayList<FileSystemEntity> foundExistingFolder = fileSystemRepository.findByPath(pathToCheck);
+                if (foundExistingFolder.isEmpty()) {
+                    // create it.
+                    FileSystemEntity newFolder = FileSystemEntity.builder()
+                            .fileSystemId(nextId)
+                            .name(path)
+                            .path(pathToCheck)
+                            .typeId(FileSystemType.FOLDER.getId())
+                            .size(fileSystemUpload.getSize())
+                            .lastUpdated(timeStamp)
+                            .isFile(false)
+                            .createdByUserId(authenticatedUser.getUserId())
+                            .ownerIds(newOwnerIds)
+                            .visibleForUserIds(parentFileSystemEntity.getVisibleForUserIds())
+                            .visibleForGroupIds(parentFileSystemEntity.getVisibleForGroupIds())
+                            .editableForUserIds(parentFileSystemEntity.getEditableForUserIds())
+                            .editableFoGroupIds(parentFileSystemEntity.getEditableFoGroupIds())
+                            .build();
+
+                    // set flags for parent
+                    if (parentPath == null) {
+                        parentPath = possibleParentPath;
+                        newFolderId = nextId;
+                    }
+
+                    nextId = fileSystemHelperService.generateNextFileSystemId() + 1; // this is necessary because the file is not created, thus the count of files will not change -> would lead to the same number.
+                    newFolder.setItemIds(new long[]{nextId});
+                    log.info("Creating new folder {} for user {}.", newFolder, authenticatedUser.getUserId());
+                    fileSystemRepository.save(newFolder);
+                } else {
+                    if (foundExistingFolder.size() != 1)
+                        throw new FileFighterDataException("Found more than one folder with the path " + pathToCheck);
+
+                    // update it
+                }
+            }
+            index++;
+        }
+
+        // update parent folder when a new folder was created.
+        if (parentPath != null) {
+            Query query = new Query().addCriteria(Criteria.where("path").is(fileSystemHelperService.removeTrailingBackSlashes(parentPath)));
+            Update newUpdate = new Update().push("itemIds", newFolderId);
+            mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
+        }
+/*
+
+
+        // save files
+        // connect folders
+        // owner ids
+        // content ids
+
+ */
         return null;
     }
 }

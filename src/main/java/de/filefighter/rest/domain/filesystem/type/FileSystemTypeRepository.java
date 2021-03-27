@@ -5,11 +5,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileSystemTypeRepository {
 
-    public FileSystemType findFileSystemTypeById(long id){
+    public FileSystemType findFileSystemTypeById(long id) {
         FileSystemType[] values = FileSystemType.values();
-        for(FileSystemType type : values){
-            if(type.getId() == id) return type;
+        for (FileSystemType type : values) {
+            if (type.getId() == id) return type;
         }
-        throw new IllegalArgumentException("No FileSystemType found for id: "+ id);
+        throw new IllegalArgumentException("No FileSystemType found for id: " + id);
+    }
+
+    // TODO: implement and test.
+    public FileSystemType parseMimeType(String mimeType) {
+        return FileSystemType.UNDEFINED;
     }
 }

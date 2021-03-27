@@ -206,7 +206,12 @@ public class FileSystemHelperService {
         return fileSystemRepository.count();
     }
 
+    // This will update the field. -> Everytime this function gets called a id gets taken. Which means some ids could be lost, when calling this function and not creating something.
     public long generateNextFileSystemId() {
         return getFileSystemEntityCount() + 1;
+    }
+
+    public long getCurrentTimeStamp() {
+        return System.currentTimeMillis() / 1000;
     }
 }

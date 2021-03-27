@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.rest.ServerResponse;
 import org.springframework.http.HttpStatus;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -46,9 +46,9 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<List<FileSystemItem>> uploadFileSystemItemWithAccessToken(long rootItemId, List<FileSystemItemUpdate> fileSystemItemsToUpload, String accessToken) {
+    public ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(long rootItemId, FileSystemUpload fileSystemUpload, String accessToken) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
-        return new ResponseEntity<>(fileSystemBusinessService.uploadFileSystemItems(rootItemId, fileSystemItemsToUpload, authenticatedUser), HttpStatus.CREATED);
+        return new ResponseEntity<>(fileSystemBusinessService.uploadFileSystemItem(rootItemId, fileSystemUpload, authenticatedUser), HttpStatus.CREATED);
     }
 
     @Override
