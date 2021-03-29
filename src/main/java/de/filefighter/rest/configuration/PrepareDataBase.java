@@ -45,7 +45,7 @@ public class PrepareDataBase {
     String date;
 
     @Bean
-    @Profile({"dev", "prod, stage"})
+    @Profile({"dev", "prod, stage", "debug"})
     @Autowired
     CommandLineRunner veryImportantFileFighterStartScript(Environment environment) {
         return args -> {
@@ -136,7 +136,7 @@ public class PrepareDataBase {
     }
 
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "debug"})
     CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
             log.info("Starting with clean user collection.");
