@@ -18,6 +18,7 @@ public class FileSystemEntity {
     private String path;
     @Builder.Default
     private long typeId = -1;
+    private String mimeType;
     private double size;
     private long lastUpdated;
     @Builder.Default

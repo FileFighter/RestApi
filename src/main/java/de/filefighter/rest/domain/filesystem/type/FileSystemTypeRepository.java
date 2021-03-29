@@ -1,8 +1,11 @@
 package de.filefighter.rest.domain.filesystem.type;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+// TODO: also remove this.
 @Service
+@Log4j2
 public class FileSystemTypeRepository {
 
     public FileSystemType findFileSystemTypeById(long id) {
@@ -14,8 +17,27 @@ public class FileSystemTypeRepository {
     }
 
     // https://www.sitepoint.com/mime-types-complete-list/
-    // TODO: implement and test.
     public FileSystemType parseMimeType(String mimeType) {
-        return FileSystemType.UNDEFINED;
+        FileSystemType returnValue = FileSystemType.UNDEFINED;
+
+        // java sucks. Lets do kotlin next time.
+        if (null == mimeType) {
+            log.warn("Found null in mimeType");
+            return FileSystemType.UNDEFINED;
+        }
+
+        if (mimeType.contains("text/")) {
+            returnValue = FileSystemType.TEXT;
+        } else if (mimeType.contains("video/")) {
+            returnValue = FileSystemType.VIDEO;
+        } else if (mimeType.contains("audio/")) {
+            returnValue = FileSystemType.AUDIO;
+        } else if (mimeType.contains("image/")) {
+            returnValue = FileSystemType.IMAGE;
+        } else if (mimeType.contains("application/")) {
+            returnValue = FileSystemType.APPLICATION;
+        }
+
+        return returnValue;
     }
 }

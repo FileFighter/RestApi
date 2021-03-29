@@ -272,6 +272,7 @@ public class FileSystemBusinessService {
                         .name(fileSystemUpload.getName())
                         .path(null)
                         .typeId(fileSystemTypeRepository.parseMimeType(fileSystemUpload.getMimeType()).getId())
+                        .mimeType(fileSystemUpload.getMimeType())
                         .size(fileSystemUpload.getSize())
                         .lastUpdated(timeStamp)
                         .isFile(true)
@@ -321,7 +322,6 @@ public class FileSystemBusinessService {
                 if (newItemId == -1) {
                     newItemId = nextId;
                 }
-
                 nextId = fileSystemHelperService.generateNextFileSystemId() + 1; // this is necessary because the file is not created, thus the count of files will not change -> would lead to the same number.
                 newFolder.setItemIds(new long[]{nextId});
                 log.info("Creating new folder {} for user {}.", newFolder, authenticatedUser.getUserId());

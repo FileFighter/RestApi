@@ -213,7 +213,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemRepositoryMock.findByFileSystemId(fileId)).thenReturn(file);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(file, authenticatedUser, InteractionType.READ)).thenReturn(true);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(file, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(2)).thenReturn(FileSystemType.PICTURE);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(2)).thenReturn(FileSystemType.VIDEO);
         when(fileSystemRepositoryMock.deleteByFileSystemId(fileId)).thenReturn(1L);
 
         fileSystemBusinessService.deleteFileSystemItemById(folderId, authenticatedUser);

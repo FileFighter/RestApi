@@ -18,5 +18,6 @@ public class FileSystemItem {
     private User createdByUser; //uploadedBy
     private long lastUpdated;
     private FileSystemType type;
+    private String mimeType;
 
 }

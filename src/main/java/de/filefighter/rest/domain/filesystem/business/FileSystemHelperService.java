@@ -174,6 +174,7 @@ public class FileSystemHelperService {
                 .type(isAFolder ? FileSystemType.FOLDER : type)
                 .path(null == basePath ? null : basePath + fileSystemEntity.getName())
                 .isShared(isShared)
+                .mimeType(fileSystemEntity.getMimeType())
                 .build();
     }
 

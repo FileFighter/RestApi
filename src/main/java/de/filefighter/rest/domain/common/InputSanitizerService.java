@@ -30,7 +30,7 @@ public class InputSanitizerService {
     public static String sanitizePath(String path) {
         String validString = sanitizeString(path);
 
-        Pattern pattern = Pattern.compile("[~#@*+%{}()<>\\[\\]|\"\\_^]");
+        Pattern pattern = Pattern.compile("[~#@*+%{}()<>\\[\\]|\"^]");
         Matcher matcher = pattern.matcher(validString);
 
         if (matcher.find())
