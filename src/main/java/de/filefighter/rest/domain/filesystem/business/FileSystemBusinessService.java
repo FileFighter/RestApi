@@ -223,6 +223,9 @@ public class FileSystemBusinessService {
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentFileSystemEntity, authenticatedUser, InteractionType.CHANGE))
             throw new FileSystemItemsCouldNotBeUploadedException(rootItemId);
 
+        if (parentFileSystemEntity.isFile() || parentFileSystemEntity.getTypeId() != FileSystemType.FOLDER.getId())
+            throw new FileSystemItemsCouldNotBeUploadedException("The specified rootItemId was a file.");
+
         // get requests upload paths
         List<String> paths = Arrays.stream(fileSystemUpload.getPath().split("/"))
                 .filter(InputSanitizerService::stringIsValid).collect(Collectors.toList());

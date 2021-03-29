@@ -38,7 +38,7 @@ public class CorsConfig {
     }
 
     @Bean
-    @Profile({"prod","test"})
+    @Profile({"prod"})
     public CorsFilter corsFilterProd() {
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowedMethods(allowedMethods);
