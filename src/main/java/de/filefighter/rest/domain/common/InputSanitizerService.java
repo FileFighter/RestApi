@@ -1,7 +1,11 @@
-package de.filefighter.rest.domain.common.exceptions;
+package de.filefighter.rest.domain.common;
 
+import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class InputSanitizerService {
@@ -11,8 +15,8 @@ public class InputSanitizerService {
     }
 
     /**
-     *
      * Sanitizes a String, so it can be used.
+     *
      * @param string String that needs to be sanitized.
      * @return string without whitespaces and without illegal characters.
      * @throws RequestDidntMeetFormalRequirementsException when string was empty.
@@ -25,7 +29,11 @@ public class InputSanitizerService {
 
     public static String sanitizePath(String path) {
         String validString = sanitizeString(path);
-        if (path.contains("//"))
+
+        Pattern pattern = Pattern.compile("[~#@*+%{}()<>\\[\\]|\"\\_^]");
+        Matcher matcher = pattern.matcher(validString);
+
+        if (matcher.find())
             throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
 
         return validString;
@@ -47,7 +55,7 @@ public class InputSanitizerService {
         return split[1];
     }
 
-    public String sanitizeTokenValue(String tokenValue){
+    public String sanitizeTokenValue(String tokenValue) {
         return InputSanitizerService.sanitizeString(tokenValue);
     }
 }

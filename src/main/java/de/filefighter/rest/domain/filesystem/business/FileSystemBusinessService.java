@@ -1,7 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
-import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
@@ -223,24 +223,11 @@ public class FileSystemBusinessService {
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentFileSystemEntity, authenticatedUser, InteractionType.CHANGE))
             throw new FileSystemItemsCouldNotBeUploadedException(rootItemId);
 
-        String[] relativePaths = fileSystemUpload.getPath().split("/");
-        List<String> paths = Arrays.stream(relativePaths).filter(path -> !(path.isEmpty() || path.isBlank())).collect(Collectors.toList());
+        // get requests upload paths
+        List<String> paths = Arrays.stream(fileSystemUpload.getPath().split("/"))
+                .filter(InputSanitizerService::stringIsValid).collect(Collectors.toList());
 
-        // variables
-        int index = 0;
-        long nextId = fileSystemHelperService.generateNextFileSystemId();
-        long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
-        String pathToCheck = parentFileSystemEntity.getPath();
-        String parentPath = null;
-        long newFolderId = 0;
-        boolean createdNewFolder = false;
-
-        // add trailing backslash
-        if (!pathToCheck.equals("/")) {
-            pathToCheck += "/";
-        }
-
-        // owner list
+        // add user to owner list (without duplicate)
         long[] newOwnerIds;
         long[] oldOwnerIds = parentFileSystemEntity.getOwnerIds();
 
@@ -253,23 +240,31 @@ public class FileSystemBusinessService {
             newOwnerIds = oldOwnerIds;
         }
 
-        for (String path : paths) {
-            if (index == paths.size() - 1) {
+        // Variables needed for the loop
+        String folderPathToCheck = parentFileSystemEntity.getPath(); // could be / but also /foo/bar -> not necessarily a trailing backslash.
+        long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
+        long nextId = fileSystemHelperService.generateNextFileSystemId();
+        FileSystemEntity uploadedFile = null;
+        long newItemId = -1;
+
+        // loop over the paths, and check if a folder with the same path exists.
+        for (int i = 0; i < paths.size(); i++) {
+            String currentPath = paths.get(i);
+
+            // checks if the current path is the last split.
+            if (i == paths.size() - 1) {
                 // check if a file already exists with the same name.
                 // check for children with the name to be uploaded
                 // only necessary when no new folder was created.
-                if (!createdNewFolder || index == 0) {
-                    List<FileSystemEntity> parentEntityForUploadedFile = fileSystemRepository.findByPath(parentFileSystemEntity.getPath());
-                    if (parentEntityForUploadedFile.size() != 1)
-                        throw new FileFighterDataException("Didn't find parentFolder for upload.");
-
-                    List<FileSystemEntity> childrenOfTheParentEntity = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentEntityForUploadedFile.get(0), authenticatedUser, false, false);
+                if (paths.size() == 1) {
+                    List<FileSystemEntity> childrenOfTheParentEntity = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
                     Optional<FileSystemEntity> optionalEntityWithTheSameName = childrenOfTheParentEntity.stream().filter(children -> children.getName().equals(fileSystemUpload.getName())).findAny();
                     if (optionalEntityWithTheSameName.isPresent())
                         throw new FileSystemItemsCouldNotBeUploadedException("A file with the same name already exists.");
                 }
 
-                FileSystemEntity newFile = FileSystemEntity.builder()
+                // create new file
+                uploadedFile = FileSystemEntity.builder()
                         .fileSystemId(nextId)
                         .name(fileSystemUpload.getName())
                         .path(null)
@@ -285,76 +280,60 @@ public class FileSystemBusinessService {
                         .editableFoGroupIds(parentFileSystemEntity.getEditableFoGroupIds())
                         .build();
 
-                // set flags for parent
-                if (parentPath == null) {
-                    parentPath = parentFileSystemEntity.getPath();
-                    newFolderId = nextId;
+                // set newItemId if not already set
+                if (newItemId == -1) {
+                    newItemId = nextId;
                 }
-                log.info("Creating new file {} for user {}.", newFile, authenticatedUser.getUserId());
-                fileSystemRepository.save(newFile);
+
+                log.info("Creating new file {} for user {}.", uploadedFile, authenticatedUser.getUserId());
+                fileSystemRepository.save(uploadedFile);
             } else {
-                // add current element
-                String possibleParentPath = pathToCheck;
-                pathToCheck = fileSystemHelperService.removeTrailingBackSlashes(pathToCheck);
-                pathToCheck += "/" + path;
+                // concat pathToCheck with currentPath
+                folderPathToCheck += folderPathToCheck.equals("/") ? currentPath : "/" + currentPath;
 
-                // check for existing folder with that path
-                // TODO: check for visibility
-                ArrayList<FileSystemEntity> foundExistingFolder = fileSystemRepository.findByPath(pathToCheck);
-                if (foundExistingFolder.isEmpty()) {
-                    // create it.
-                    FileSystemEntity newFolder = FileSystemEntity.builder()
-                            .fileSystemId(nextId)
-                            .name(path)
-                            .path(pathToCheck)
-                            .typeId(FileSystemType.FOLDER.getId())
-                            .size(fileSystemUpload.getSize())
-                            .lastUpdated(timeStamp)
-                            .isFile(false)
-                            .createdByUserId(authenticatedUser.getUserId())
-                            .ownerIds(newOwnerIds)
-                            .visibleForUserIds(parentFileSystemEntity.getVisibleForUserIds())
-                            .visibleForGroupIds(parentFileSystemEntity.getVisibleForGroupIds())
-                            .editableForUserIds(parentFileSystemEntity.getEditableForUserIds())
-                            .editableFoGroupIds(parentFileSystemEntity.getEditableFoGroupIds())
-                            .build();
-
-                    // set flags for parent
-                    if (parentPath == null) {
-                        parentPath = possibleParentPath;
-                        newFolderId = nextId;
-                    }
-
-                    nextId = fileSystemHelperService.generateNextFileSystemId() + 1; // this is necessary because the file is not created, thus the count of files will not change -> would lead to the same number.
-                    newFolder.setItemIds(new long[]{nextId});
-                    log.info("Creating new folder {} for user {}.", newFolder, authenticatedUser.getUserId());
-                    fileSystemRepository.save(newFolder);
-                    createdNewFolder = true;
-                } else {
-                    if (foundExistingFolder.size() != 1)
-                        throw new FileFighterDataException("Found more than one folder with the path " + pathToCheck);
-
-                    // update it
+                // check for existing folder.
+                List<FileSystemEntity> possibleExistingEntity = fileSystemRepository.findByPath(folderPathToCheck);
+                for (FileSystemEntity entity : possibleExistingEntity) {
+                    if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ))
+                        throw new FileSystemItemsCouldNotBeUploadedException("A folder with the name " + entity.getName() + " already exists.");
                 }
+
+                FileSystemEntity newFolder = FileSystemEntity.builder()
+                        .fileSystemId(nextId)
+                        .name(currentPath)
+                        .path(folderPathToCheck)
+                        .typeId(FileSystemType.FOLDER.getId())
+                        .size(fileSystemUpload.getSize())
+                        .lastUpdated(timeStamp)
+                        .isFile(false)
+                        .createdByUserId(authenticatedUser.getUserId())
+                        .ownerIds(newOwnerIds)
+                        .visibleForUserIds(parentFileSystemEntity.getVisibleForUserIds())
+                        .visibleForGroupIds(parentFileSystemEntity.getVisibleForGroupIds())
+                        .editableForUserIds(parentFileSystemEntity.getEditableForUserIds())
+                        .editableFoGroupIds(parentFileSystemEntity.getEditableFoGroupIds())
+                        .build();
+
+                // set newItemId if not already set
+                if (newItemId == -1) {
+                    newItemId = nextId;
+                }
+
+                nextId = fileSystemHelperService.generateNextFileSystemId() + 1; // this is necessary because the file is not created, thus the count of files will not change -> would lead to the same number.
+                newFolder.setItemIds(new long[]{nextId});
+                log.info("Creating new folder {} for user {}.", newFolder, authenticatedUser.getUserId());
+                fileSystemRepository.save(newFolder);
             }
-            index++;
         }
 
-        // update parent folder when a new folder was created.
-        if (parentPath != null) {
-            Query query = new Query().addCriteria(Criteria.where("path").is(fileSystemHelperService.removeTrailingBackSlashes(parentPath)));
-            Update newUpdate = new Update().push("itemIds", newFolderId);
+        // add new file / folder to the itemIds of the the parentFileSystemEntity
+        if (newItemId != -1) {
+            Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(parentFileSystemEntity.getFileSystemId()));
+            Update newUpdate = new Update().push("itemIds", newItemId);
             mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
         }
-/*
 
-
-        // save files
-        // connect folders
-        // owner ids
-        // content ids
-
- */
-        return null;
+        String parentPath = folderPathToCheck.equals("/") ? "/" : folderPathToCheck + "/";
+        return uploadedFile == null ? null : fileSystemHelperService.createDTO(uploadedFile, authenticatedUser, parentPath);
     }
 }

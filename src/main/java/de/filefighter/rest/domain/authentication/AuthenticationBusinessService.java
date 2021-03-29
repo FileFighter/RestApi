@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.authentication;
 
-import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.business.UserDTOService;
