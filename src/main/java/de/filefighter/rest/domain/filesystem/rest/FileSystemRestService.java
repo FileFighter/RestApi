@@ -19,16 +19,18 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
 
     private final FileSystemBusinessService fileSystemBusinessService;
     private final AuthenticationService authenticationService;
+    private final InputSanitizerService inputSanitizerService;
 
-    public FileSystemRestService(FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService) {
+    public FileSystemRestService(FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService, InputSanitizerService inputSanitizerService) {
         this.fileSystemBusinessService = fileSystemBusinessService;
         this.authenticationService = authenticationService;
+        this.inputSanitizerService = inputSanitizerService;
     }
 
     @Override
     public ResponseEntity<ArrayList<FileSystemItem>> getContentsOfFolderByPathAndAccessToken(String path, String accessTokenValue) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenValue);
-        String cleanPathString = InputSanitizerService.sanitizePath(path);
+        String cleanPathString = inputSanitizerService.sanitizePath(path);
 
         ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(cleanPathString, authenticatedUser);
         return new ResponseEntity<>(fileSystemItems, HttpStatus.OK);
@@ -48,7 +50,7 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     @Override
     public ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(long rootItemId, FileSystemUpload fileSystemUpload, String accessToken) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
-        FileSystemUpload sanitizedUpload = InputSanitizerService.sanitizeUpload(fileSystemUpload);
+        FileSystemUpload sanitizedUpload = inputSanitizerService.sanitizeUpload(fileSystemUpload);
 
         return new ResponseEntity<>(fileSystemBusinessService.uploadFileSystemItem(rootItemId, sanitizedUpload, authenticatedUser), HttpStatus.CREATED);
     }

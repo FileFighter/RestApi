@@ -25,12 +25,14 @@ public class UserRestService implements UserRestServiceInterface {
     private final AccessTokenBusinessService accessTokenBusinessService;
     private final FileSystemHelperService fileSystemHelperService;
     private final AuthenticationService authenticationService;
+    private final InputSanitizerService inputSanitizerService;
 
-    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemHelperService fileSystemHelperService, AuthenticationService authenticationService) {
+    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemHelperService fileSystemHelperService, AuthenticationService authenticationService, InputSanitizerService inputSanitizerService) {
         this.userBusinessService = userBusinessService;
         this.accessTokenBusinessService = accessTokenBusinessService;
         this.fileSystemHelperService = fileSystemHelperService;
         this.authenticationService = authenticationService;
+        this.inputSanitizerService = inputSanitizerService;
     }
 
     @Override
@@ -72,7 +74,7 @@ public class UserRestService implements UserRestServiceInterface {
 
     @Override
     public ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessTokenHeader) {
-        String sanitizedUserName = InputSanitizerService.sanitizeString(username);
+        String sanitizedUserName = inputSanitizerService.sanitizeString(username);
         authenticationService.bearerAuthenticationWithAccessToken(accessTokenHeader);
         User foundUser = userBusinessService.findUserByUsername(sanitizedUserName);
         return new ResponseEntity<>(foundUser, HttpStatus.OK);

@@ -21,25 +21,27 @@ public class InputSanitizerService {
      * @return string without whitespaces and without illegal characters.
      * @throws RequestDidntMeetFormalRequirementsException when string was empty.
      */
-    public static String sanitizeString(String string) {
+    public String sanitizeString(String string) {
         if (!InputSanitizerService.stringIsValid(string))
             throw new RequestDidntMeetFormalRequirementsException("String was empty.");
         return string.replaceAll("\\s", "");
     }
 
-    public static String sanitizePath(String path) {
+    public String sanitizePath(String path) {
         String validString = sanitizeString(path);
 
-        Pattern pattern = Pattern.compile("[~#@*+%{}()<>\\[\\]|\"^]");
+        Pattern pattern = Pattern.compile("[~#@*+:!?&%<>|\"\\^\\\\]");
         Matcher matcher = pattern.matcher(validString);
 
-        if (matcher.find())
+        boolean stringContainsDoubleSlash = validString.contains("//");
+
+        if (matcher.find() || stringContainsDoubleSlash)
             throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
 
         return validString;
     }
 
-    public static FileSystemUpload sanitizeUpload(FileSystemUpload fileSystemUpload) {
+    public FileSystemUpload sanitizeUpload(FileSystemUpload fileSystemUpload) {
         fileSystemUpload.setPath(sanitizePath(fileSystemUpload.getPath()));
         fileSystemUpload.setName(sanitizeString(fileSystemUpload.getName()));
         return fileSystemUpload;
@@ -56,6 +58,6 @@ public class InputSanitizerService {
     }
 
     public String sanitizeTokenValue(String tokenValue) {
-        return InputSanitizerService.sanitizeString(tokenValue);
+        return this.sanitizeString(tokenValue);
     }
 }

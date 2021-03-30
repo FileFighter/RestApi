@@ -21,10 +21,12 @@ public class AuthenticationBusinessService {
 
     private final UserRepository userRepository;
     private final UserDTOService userDtoService;
+    private final InputSanitizerService inputSanitizerService;
 
-    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService) {
+    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService, InputSanitizerService inputSanitizerService) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
+        this.inputSanitizerService = inputSanitizerService;
     }
 
     public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
@@ -42,8 +44,8 @@ public class AuthenticationBusinessService {
         if (split.length != 2)
             throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");
 
-        String lowerCaseUsername = InputSanitizerService.sanitizeString(split[0].toLowerCase());
-        String password = InputSanitizerService.sanitizeString(split[1]);
+        String lowerCaseUsername = inputSanitizerService.sanitizeString(split[0].toLowerCase());
+        String password = inputSanitizerService.sanitizeString(split[1]);
 
         UserEntity userEntity = userRepository.findByLowercaseUsernameAndPassword(lowerCaseUsername, password);
         if (null == userEntity)
