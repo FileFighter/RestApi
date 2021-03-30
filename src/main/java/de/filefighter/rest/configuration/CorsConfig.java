@@ -31,6 +31,7 @@ public class CorsConfig {
         ArrayList<String> allowedOrigins = new ArrayList<>();
         allowedOrigins.add("*");
         config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(allowedMethods);
 
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
