@@ -3,6 +3,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
@@ -65,6 +67,16 @@ public class FileSystemRestController {
         return fileSystemRestService.uploadFileSystemItemWithAccessToken(fsItemId, fileSystemUpload, accessToken);
     }
 
+    @PostMapping(FS_BASE_URI + "{fsItemId}/upload/preflight")
+    public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadFileOrFolder(
+            @PathVariable long fsItemId,
+            @RequestBody FileSystemUpload fileSystemUpload,
+            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
+
+        log.info("Preflight for {} in id {}.", fileSystemUpload, fsItemId);
+        return fileSystemRestService.preflightUploadOfFileSystemItem(fsItemId, fileSystemUpload, accessToken);
+    }
+
     @PutMapping(FS_BASE_URI + "{fsItemId}/update")
     public ResponseEntity<FileSystemItem> updateExistingFileOrFolder(
             @PathVariable long fsItemId,
@@ -73,7 +85,7 @@ public class FileSystemRestController {
     ) {
 
         log.info("Tried updating FileSystemItem {} with {}.", fsItemId, fileSystemItemUpdate);
-        return fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
+        return fileSystemRestService.updateFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
     }
 
     @DeleteMapping(FS_BASE_URI + "{fsItemId}/delete")
