@@ -2,7 +2,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.rest.ServerResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -70,7 +70,7 @@ public class FileSystemRestController {
     @PostMapping(FS_BASE_URI + "{fsItemId}/upload/preflight")
     public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadFileOrFolder(
             @PathVariable long fsItemId,
-            @RequestBody FileSystemUpload fileSystemUpload,
+            @RequestBody List<FileSystemUpload> fileSystemUpload,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
 
         log.info("Preflight for {} in id {}.", fileSystemUpload, fsItemId);

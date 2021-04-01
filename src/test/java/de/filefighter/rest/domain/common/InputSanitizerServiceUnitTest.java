@@ -1,7 +1,7 @@
 package de.filefighter.rest.domain.common;
 
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

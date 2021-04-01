@@ -2,7 +2,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.rest.ServerResponse;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ public interface FileSystemRestServiceInterface {
 
     ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(long rootItemId, FileSystemUpload fileSystemUpload, String accessToken);
 
-    ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadOfFileSystemItem(long fsItemId, FileSystemUpload fileSystemUploadPreflightRequest, String accessToken);
+    ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadOfFileSystemItem(long fsItemId, List<FileSystemUpload> fileSystemUploads, String accessToken);
 
     ResponseEntity<FileSystemItem> updateFileSystemItemWithIdAndAccessToken(long fsItemId, FileSystemItemUpdate fileSystemItemUpdate, String accessToken);
 

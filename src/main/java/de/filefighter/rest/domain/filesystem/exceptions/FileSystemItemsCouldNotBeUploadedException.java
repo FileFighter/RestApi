@@ -7,7 +7,7 @@ public class FileSystemItemsCouldNotBeUploadedException extends RuntimeException
     private static final String ERROR_MESSAGE_PREFIX = "You are not allowed to upload the FileSystemItem or the folder does not exist.";
 
     public FileSystemItemsCouldNotBeUploadedException() {
-        super(ERROR_MESSAGE_PREFIX);
+        super(ERROR_MESSAGE_PREFIX + "  Or the folder does not exist.");
     }
 
     public FileSystemItemsCouldNotBeUploadedException(long fsItemId) {

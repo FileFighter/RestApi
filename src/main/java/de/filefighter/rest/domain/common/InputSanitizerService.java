@@ -1,7 +1,7 @@
 package de.filefighter.rest.domain.common;
 
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
@@ -28,17 +28,11 @@ public class InputSanitizerService {
     }
 
     public String sanitizePath(String path) {
-        String validString = sanitizeString(path);
 
-        Pattern pattern = Pattern.compile("[~#@*+:!?&%<>|\"\\^\\\\]");
-        Matcher matcher = pattern.matcher(validString);
-
-        boolean stringContainsDoubleSlash = validString.contains("//");
-
-        if (matcher.find() || stringContainsDoubleSlash)
+        if (pathIsValid(path))
             throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
 
-        return validString;
+        return sanitizeString(path);
     }
 
     public FileSystemUpload sanitizeUpload(FileSystemUpload fileSystemUpload) {
@@ -55,6 +49,17 @@ public class InputSanitizerService {
             throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + header + "', or format is invalid.");
         String[] split = testString.split(header);
         return split[1];
+    }
+
+    public boolean pathIsValid(String path) {
+        String validString = sanitizeString(path);
+
+        Pattern pattern = Pattern.compile("[~#@*+:!?&%<>|\"\\^\\\\]");
+        Matcher matcher = pattern.matcher(validString);
+
+        boolean stringContainsDoubleSlash = validString.contains("//");
+
+        return !(matcher.find() || stringContainsDoubleSlash);
     }
 
     public String sanitizeTokenValue(String tokenValue) {

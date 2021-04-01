@@ -1,8 +1,10 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
@@ -15,7 +17,10 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -25,12 +30,14 @@ public class FileSystemUploadService {
     private final FileSystemHelperService fileSystemHelperService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final MongoTemplate mongoTemplate;
+    private final InputSanitizerService inputSanitizerService;
 
-    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
+    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate, InputSanitizerService inputSanitizerService) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemHelperService = fileSystemHelperService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
         this.mongoTemplate = mongoTemplate;
+        this.inputSanitizerService = inputSanitizerService;
     }
 
     public FileSystemItem uploadFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, User authenticatedUser) {
@@ -161,18 +168,106 @@ public class FileSystemUploadService {
         return null;
     }
 
-    public List<FileSystemUploadPreflightResponse> preflightUploadFileSystemItem(long rootItemId, FileSystemUpload sanitizedUpload, User authenticatedUser) {
-        FileSystemEntity parentFileSystemEntity = fileSystemRepository.findByFileSystemId(rootItemId);
-        if (null == parentFileSystemEntity)
+    public List<FileSystemUploadPreflightResponse> preflightUploadFileSystemItem(long rootItemId, List<FileSystemUpload> uploads, User authenticatedUser) {
+        FileSystemEntity parent = fileSystemRepository.findByFileSystemId(rootItemId);
+        if (null == parent)
             throw new FileSystemItemNotFoundException(rootItemId);
 
-        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentFileSystemEntity, authenticatedUser, InteractionType.CHANGE))
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.CHANGE))
             throw new FileSystemItemsCouldNotBeUploadedException(rootItemId);
 
-        if (parentFileSystemEntity.isFile() || parentFileSystemEntity.getTypeId() != FileSystemType.FOLDER.getId())
+        if (parent.isFile() || parent.getTypeId() != FileSystemType.FOLDER.getId())
             throw new FileSystemItemsCouldNotBeUploadedException("The specified rootItemId was a file.");
 
+        // Return Value
+        ArrayList<FileSystemUploadPreflightResponse> returnList = new ArrayList<>();
 
+        for (FileSystemUpload upload : uploads) {
+            // get requests upload paths
+            List<String> paths = Arrays.stream(upload.getPath().split("/"))
+                    .filter(InputSanitizerService::stringIsValid).collect(Collectors.toList());
+
+            // Variables needed for the loop
+            String parentPathWithTrailingSlash = parent.getPath().equals("/") ? "/" : parent.getPath() + "/";
+            String currentRelativePath = "";
+
+            // flag wheter a no permissions.
+            boolean noPermissions = false;
+
+            // loop over the paths, and check if a folder with the same path exists.
+            for (int i = 0; i < paths.size(); i++) {
+                String currentEntityName = paths.get(i);
+
+                // check permissions
+                if (noPermissions) {
+
+                }
+
+                // checks if the current path is the last split.
+                if (i == paths.size() - 1) {
+                    /*log.info("File {} in {}.", currentEntityName, folderPathToCheck);
+                    // check if a file already exists with the same name.
+                    // check for children with the name to be uploaded
+                    // only necessary when no new folder was created.
+                    if (paths.size() == 1) {
+                        List<FileSystemEntity> childrenOfTheParentEntity = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parent, authenticatedUser, false, false);
+                        Optional<FileSystemEntity> optionalEntityWithTheSameName = childrenOfTheParentEntity.stream().filter(children -> children.getName().equals(upload.getName())).findAny();
+                        if (optionalEntityWithTheSameName.isPresent())
+                            throw new FileSystemItemsCouldNotBeUploadedException("A file with the same name already exists.");
+                    }
+
+                     */
+                } else {
+                    // concat pathToCheck with currentPath
+                    currentRelativePath += currentRelativePath + "/" + currentEntityName;
+
+                    // check is already in returnArray
+                    String finalCurrentRelativePath = currentRelativePath;
+                    List<FileSystemUploadPreflightResponse> foundElement = returnList.stream().filter(element -> element.getPath().equals(finalCurrentRelativePath)).collect(Collectors.toList());
+                    if (foundElement.size() == 1) {
+                        if (foundElement.get(0).getPermissionIsSufficient()) {
+                            noPermissions = true;
+                        }
+                        break;
+                    } else if (foundElement.size() > 1)
+                        throw new FileFighterDataException("Found duplicate in returnList.");
+
+                    // check existing.
+                    List<FileSystemEntity> possibleFolders = fileSystemRepository.findByPath(parentPathWithTrailingSlash + currentRelativePath);
+                    if (possibleFolders.isEmpty()) {
+                        returnList.add(new FileSystemUploadPreflightResponse(
+                                currentEntityName,
+                                currentRelativePath,
+                                true,
+                                false,
+                                false,
+                                inputSanitizerService.pathIsValid(currentRelativePath)));
+                        break;
+                    }
+
+                    /*
+                    list of folders.
+                    user is owner -> in owner.
+                    user is not in owner -> check shared folders for permissions if not allowed -> create own.
+                    What if a user has two folders shared with the same name but no folder created on his/her own.
+                     */
+
+                    // check permission
+                    List<FileSystemEntity> editableFolders =
+                            possibleFolders.stream().filter(folder ->
+                                    fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.CHANGE)).collect(Collectors.toList());
+
+                    if (editableFolders.isEmpty() {
+                        noPermissions = true;
+
+
+                        break;
+                    }
+
+
+                }
+            }
+        }
         return null;
     }
 }

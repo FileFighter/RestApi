@@ -1,4 +1,4 @@
-package de.filefighter.rest.domain.filesystem.data.dto;
+package de.filefighter.rest.domain.filesystem.data.dto.upload;
 
 import lombok.Builder;
 import lombok.Data;

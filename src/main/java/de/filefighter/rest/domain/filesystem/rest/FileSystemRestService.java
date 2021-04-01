@@ -6,7 +6,7 @@ import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemUploadService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
-import de.filefighter.rest.domain.filesystem.data.dto.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.rest.ServerResponse;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -61,11 +62,11 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadOfFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, String accessToken) {
+    public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadOfFileSystemItem(long rootItemId, List<FileSystemUpload> fileSystemUploads, String accessToken) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
-        FileSystemUpload sanitizedUpload = inputSanitizerService.sanitizeUpload(fileSystemUpload);
+        List<FileSystemUpload> sanitizedUploads = fileSystemUploads.stream().map(inputSanitizerService::sanitizeUpload).collect(Collectors.toList());
 
-        return new ResponseEntity<>(fileSystemUploadService.preflightUploadFileSystemItem(rootItemId, sanitizedUpload, authenticatedUser), HttpStatus.OK);
+        return new ResponseEntity<>(fileSystemUploadService.preflightUploadFileSystemItem(rootItemId, sanitizedUploads, authenticatedUser), HttpStatus.OK);
     }
 
     @Override
