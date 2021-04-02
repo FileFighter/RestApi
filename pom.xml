@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.4.2</version>
+        <version>2.4.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>de.filefighter</groupId>
@@ -16,7 +16,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <cucumber.version>6.9.1</cucumber.version>
+        <cucumber.version>6.10.2</cucumber.version>
         <sonar.coverage.exclusions>**/data/**/*.java,**/configuration/*.java,**/exceptions/*.java
         </sonar.coverage.exclusions>
     </properties>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.18</version>
+            <version>1.18.20</version>
         </dependency>
 
         <!-- For Docs -->
@@ -74,12 +74,12 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.7.7</version>
+            <version>3.8.0</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>3.7.7</version>
+            <version>3.8.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
