@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.filesystem.type;
 
-// TODO: remove this because its redundant
 public enum FileSystemType {
     UNDEFINED(-1),
     FOLDER(0),

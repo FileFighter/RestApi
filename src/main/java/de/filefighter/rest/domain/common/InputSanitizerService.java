@@ -28,8 +28,7 @@ public class InputSanitizerService {
     }
 
     public String sanitizePath(String path) {
-
-        if (pathIsValid(path))
+        if (!pathIsValid(path))
             throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
 
         return sanitizeString(path);
@@ -54,7 +53,7 @@ public class InputSanitizerService {
     public boolean pathIsValid(String path) {
         String validString = sanitizeString(path);
 
-        Pattern pattern = Pattern.compile("[~#@*+:!?&%<>|\"\\^\\\\]");
+        Pattern pattern = Pattern.compile("[~#@*+:!?&%<>|\"^\\\\]");
         Matcher matcher = pattern.matcher(validString);
 
         boolean stringContainsDoubleSlash = validString.contains("//");

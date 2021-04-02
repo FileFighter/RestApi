@@ -3,7 +3,6 @@ package de.filefighter.rest.domain.filesystem.type;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-// TODO: also remove this.
 @Service
 @Log4j2
 public class FileSystemTypeRepository {
