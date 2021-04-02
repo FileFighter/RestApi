@@ -22,7 +22,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import static de.filefighter.rest.domain.common.exceptions.InputSanitizerService.stringIsValid;
+import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
 
 @Service
 public class UserBusinessService {

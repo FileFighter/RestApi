@@ -72,15 +72,14 @@ class FileSystemRestControllerUnitTest {
     @Test
     void uploadFileOrFolder() {
         FileSystemItem file = FileSystemItem.builder().build();
-        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
+        FileSystemItemUpdate upload = FileSystemItemUpdate.builder().build();
+        String token = "sometoken";
+        ResponseEntity<FileSystemItem> responseEntity = new ResponseEntity<>(file, OK);
 
-        FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.builder().name("ugabuga").build();
-        String token = "token";
+        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(upload, token)).thenReturn(responseEntity);
 
-        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, token)).thenReturn(expectedModel);
-
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(fileSystemItemUpdate, token);
-        assertEquals(expectedModel, actualModel);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(upload, token);
+        assertEquals(responseEntity, actualModel);
     }
 
     @Test
@@ -92,7 +91,7 @@ class FileSystemRestControllerUnitTest {
         FileSystemItemUpdate fileSystemItemUpdate = FileSystemItemUpdate.builder().name("ugabuga").build();
         String token = "token";
 
-        when(fileSystemRestServiceMock.updatedFileSystemItemWithIdAndAccessToken(id, fileSystemItemUpdate, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.updateFileSystemItemWithIdAndAccessToken(id, fileSystemItemUpdate, token)).thenReturn(expectedModel);
 
         ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.updateExistingFileOrFolder(id, fileSystemItemUpdate, token);
         assertEquals(expectedModel, actualModel);

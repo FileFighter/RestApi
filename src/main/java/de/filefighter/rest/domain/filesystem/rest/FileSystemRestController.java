@@ -44,11 +44,11 @@ public class FileSystemRestController {
         return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, accessToken);
     }
 
-    @GetMapping(FS_BASE_URI+"search")
+    @GetMapping(FS_BASE_URI + "search")
     public ResponseEntity<FileSystemItem> searchFileOrFolderByName(
             @RequestParam(name = "name", defaultValue = "name") String name,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
         log.info("Searching for file or folder with name {}", name);
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
@@ -64,22 +64,22 @@ public class FileSystemRestController {
         return fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, accessToken);
     }
 
-    @PutMapping(FS_BASE_URI+"{fsItemId}/update")
+    @PutMapping(FS_BASE_URI + "{fsItemId}/update")
     public ResponseEntity<FileSystemItem> updateExistingFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
         log.info("Tried updating FileSystemItem {} with {}.", fsItemId, fileSystemItemUpdate);
-        return fileSystemRestService.updatedFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
+        return fileSystemRestService.updateFileSystemItemWithIdAndAccessToken(fsItemId, fileSystemItemUpdate, accessToken);
     }
 
-    @DeleteMapping(FS_BASE_URI+"{fsItemId}/delete")
+    @DeleteMapping(FS_BASE_URI + "{fsItemId}/delete")
     public ResponseEntity<ServerResponse> deleteFileOrFolder(
             @PathVariable long fsItemId,
             @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken
-    ){
+    ) {
 
         log.info("Tried deleting FileSystemItem with id {}", fsItemId);
         return fileSystemRestService.deleteFileSystemItemWithIdAndAccessToken(fsItemId, accessToken);

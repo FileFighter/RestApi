@@ -45,7 +45,7 @@ public class PrepareDataBase {
     String date;
 
     @Bean
-    @Profile({"dev", "prod, stage"})
+    @Profile({"dev", "prod, stage", "debug"})
     @Autowired
     CommandLineRunner veryImportantFileFighterStartScript(Environment environment) {
         return args -> {
@@ -136,7 +136,7 @@ public class PrepareDataBase {
     }
 
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "debug"})
     CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
             log.info("Starting with clean user collection.");
@@ -243,6 +243,7 @@ public class PrepareDataBase {
         };
     }
 
+    // TODO: fix owner ids.
     private void addDefaultAdminAndRuntimeUser(UserRepository userRepository) {
         log.info("Database seems to be empty. Creating new default entities...");
         log.info("Inserting system runtime user: {}", userRepository.save(UserEntity
@@ -278,6 +279,8 @@ public class PrepareDataBase {
                         .size(4866)
                         .typeId(FOLDER.getId())
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
+                        .visibleForUserIds(new long[]{0})
+                        .editableForUserIds(new long[]{0})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .createdByUserId(RUNTIME_USER_ID)
@@ -289,6 +292,8 @@ public class PrepareDataBase {
                         .size(0)
                         .typeId(FOLDER.getId())
                         .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
+                        .visibleForUserIds(new long[]{1})
+                        .editableForUserIds(new long[]{1})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .createdByUserId(1)
