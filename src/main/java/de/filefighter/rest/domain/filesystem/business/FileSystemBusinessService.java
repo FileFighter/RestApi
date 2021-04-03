@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -11,7 +10,9 @@ import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBe
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
+import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -31,30 +32,52 @@ public class FileSystemBusinessService {
     private final FileSystemRepository fileSystemRepository;
     private final FileSystemHelperService fileSystemHelperService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
+    private final UserBusinessService userBusinessService;
     private final MongoTemplate mongoTemplate;
 
     private static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
 
-    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemHelperService = fileSystemHelperService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
+        this.userBusinessService = userBusinessService;
         this.mongoTemplate = mongoTemplate;
     }
 
     public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
-        if (!InputSanitizerService.stringIsValid(path))
-            throw new FileSystemContentsNotAccessibleException("Path was not valid.");
-
         String[] pathWithoutSlashes = path.split("/");
 
-        if (!path.equals("/") && pathWithoutSlashes.length < 2)
-            throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
+        String pathToFind;
+        User ownerOfRequestedFolder = null;
 
-        if (!path.equals("/") && !"".equals(pathWithoutSlashes[0]))
-            throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
+        if (path.equals("/")) {
+            pathToFind = "/";
+        } else {
+            if (pathWithoutSlashes.length < 2)
+                throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
 
-        String pathToFind = fileSystemHelperService.removeTrailingBackSlashes(path).toLowerCase();
+            if (!"".equals(pathWithoutSlashes[0]))
+                throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
+
+            // the first path must be the the username.
+            try {
+                ownerOfRequestedFolder = userBusinessService.findUserByUsername(pathWithoutSlashes[1]);
+                String[] fileSystemPath = path.split(ownerOfRequestedFolder.getUsername());
+                if (fileSystemPath.length == 1) {
+                    if (!fileSystemPath[0].equals("/"))
+                        throw new FileSystemContentsNotAccessibleException();
+
+                    pathToFind = "/";
+                } else {
+                    pathToFind = fileSystemPath[1];
+                }
+            } catch (UserNotFoundException exception) {
+                throw new FileSystemContentsNotAccessibleException();
+            }
+        }
+
+        pathToFind = fileSystemHelperService.removeTrailingBackSlashes(pathToFind).toLowerCase();
 
         // find the folder with matching path.
         ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
@@ -62,23 +85,39 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // remove all not accessible items.
-        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ));
+        // this is only the case if the real / was requested. -> filter by visibility
+        if (null == ownerOfRequestedFolder) {
+            listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ));
+            // do not get the actual contents here but display the folder names as a fake directory.
 
-        if (listOfFileSystemEntities.isEmpty())
-            throw new FileSystemContentsNotAccessibleException();
-
-        // now only own or shared folders are left.
-        ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
-        String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : (pathToFind + "/"); //NOSONAR
-
-        // Well this is just O(n * m)
-        for (FileSystemEntity folder : listOfFileSystemEntities) {
-            ArrayList<FileSystemEntity> folderContents = (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(folder, authenticatedUser, true, false);
-            for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
-                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
+            ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
+            for (FileSystemEntity folder : listOfFileSystemEntities) {
+                // change names here accordingly.
+                fileSystemItems.add(fileSystemHelperService.createDTO(folder, authenticatedUser, "/"));
             }
+
+            return fileSystemItems;
+        } else {
+            User finalOwnerOfRequestedFolder = ownerOfRequestedFolder;
+            listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId());
+
+            if (listOfFileSystemEntities.isEmpty())
+                throw new FileSystemContentsNotAccessibleException();
+
+            // now one Folder should remain
+            if (listOfFileSystemEntities.size() != 1)
+                throw new FileFighterDataException("Found more than one folder with the path " + pathToFind);
+
+            ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
+            ArrayList<FileSystemEntity> folderContents =
+                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfFileSystemEntities.get(0), authenticatedUser, false, false);
+
+            for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
+                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind));
+            }
+
+            return fileSystemItems;
         }
-        return fileSystemItems;
     }
 
     public FileSystemItem getFileSystemItemInfo(long fsItemId, User authenticatedUser) {

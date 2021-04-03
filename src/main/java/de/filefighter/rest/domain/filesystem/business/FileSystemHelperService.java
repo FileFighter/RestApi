@@ -95,15 +95,11 @@ public class FileSystemHelperService {
     public boolean userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser, InteractionType interaction) {
         // file was created by runtime user.
         if ((interaction == InteractionType.DELETE)
-                && fileSystemEntity.getCreatedByUserId() == RestConfiguration.RUNTIME_USER_ID)
+                && fileSystemEntity.getLastUpdatedBy() == RestConfiguration.RUNTIME_USER_ID)
             return false;
 
         // user created the item
-        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
-            return true;
-
-        // user created containing folder.
-        if (null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
+        if (fileSystemEntity.getLastUpdatedBy() == authenticatedUser.getUserId())
             return true;
 
         // user got the item shared.
@@ -152,27 +148,41 @@ public class FileSystemHelperService {
         return pathToFind;
     }
 
-    public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
+    public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String absolutePathWithUsername) {
         // for better responses and internal problem handling.
         User ownerOfFileSystemItem;
+        User lastUpdatedByUser;
         try {
-            ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
+            ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getOwnerId());
+            lastUpdatedByUser = userBusinessService.getUserById(fileSystemEntity.getLastUpdatedBy());
         } catch (UserNotFoundException exception) {
-            throw new FileFighterDataException("Owner of a file could not be found.");
+            throw new FileFighterDataException("Owner or auther of last change could not be found. Entity: " + fileSystemEntity);
         }
 
-        boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
+        boolean isShared = ownerOfFileSystemItem.getUserId() != RestConfiguration.RUNTIME_USER_ID
+                && ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
         FileSystemType type = fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId());
         boolean isAFolder = type == FileSystemType.FOLDER && !fileSystemEntity.isFile();
+        String entityName = fileSystemEntity.getName();
+
+        if (absolutePathWithUsername != null) {
+            if (absolutePathWithUsername.equals("/")) {
+                absolutePathWithUsername = absolutePathWithUsername + ownerOfFileSystemItem.getUsername(); // this is only for the case of the path = "/"
+                entityName = ownerOfFileSystemItem.getUsername();
+            } else {
+                absolutePathWithUsername = this.removeTrailingBackSlashes(absolutePathWithUsername) + "/" + fileSystemEntity.getName();
+            }
+        }
 
         return FileSystemItem.builder()
-                .createdByUser(ownerOfFileSystemItem)
+                .lastUpdatedBy(lastUpdatedByUser)
                 .fileSystemId(fileSystemEntity.getFileSystemId())
+                .owner(ownerOfFileSystemItem)
                 .lastUpdated(fileSystemEntity.getLastUpdated())
-                .name(fileSystemEntity.getName())
+                .name(entityName)
                 .size(fileSystemEntity.getSize())
                 .type(isAFolder ? FileSystemType.FOLDER : type)
-                .path(null == basePath ? null : basePath + fileSystemEntity.getName())
+                .path(absolutePathWithUsername)
                 .isShared(isShared)
                 .mimeType(fileSystemEntity.getMimeType())
                 .build();
@@ -181,7 +191,7 @@ public class FileSystemHelperService {
     public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
         fileSystemRepository.save(FileSystemEntity
                 .builder()
-                .createdByUserId(0)
+                .lastUpdatedBy(0)
                 .typeId(FileSystemType.FOLDER.getId())
                 .isFile(false)
                 .name("HOME_" + registeredUserEntity.getUsername())

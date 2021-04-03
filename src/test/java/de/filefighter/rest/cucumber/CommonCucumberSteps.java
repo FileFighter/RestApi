@@ -93,7 +93,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .path(path)
-                .createdByUserId(userId)
+                .lastUpdatedBy(userId)
                 .fileSystemId(fileSystemId)
                 .name(name)
                 .build());
@@ -103,7 +103,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, long userId, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .name(name)
-                .createdByUserId(userId)
+                .lastUpdatedBy(userId)
                 .fileSystemId(fileSystemId)
                 .build());
     }
@@ -133,7 +133,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void userIsOwnerOfFileOrFolderWithId(long userId, long fsItemId) {
         FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
 
-        fileSystemEntity.setCreatedByUserId(userId);
+        fileSystemEntity.setLastUpdatedBy(userId);
         fileSystemRepository.save(fileSystemEntity);
     }
 

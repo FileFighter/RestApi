@@ -77,7 +77,7 @@ class FileSystemHelperServiceUnitTest {
 
         FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
         FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
-        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().createdByUserId(userId).build();
+        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().lastUpdatedBy(userId).build();
 
         FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1, fileSystemId2}).build();
 
@@ -124,14 +124,13 @@ class FileSystemHelperServiceUnitTest {
     void userIsAllowedToReadFileSystemEntity() {
         long userId = 1232783672;
         User user = User.builder().userId(userId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().lastUpdatedBy(userId).build();
 
         // user created fileSystemItem
         assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user created containing folder
-        fileSystemEntity.setCreatedByUserId(1203891230);
-        fileSystemEntity.setOwnerIds(new long[]{userId});
+        fileSystemEntity.setLastUpdatedBy(1203891230);
         assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
 
         // user got it shared.
@@ -145,7 +144,7 @@ class FileSystemHelperServiceUnitTest {
 
         // user is not allowed.
         user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
-        fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).visibleForGroupIds(new long[]{1}).build();
+        fileSystemEntity = FileSystemEntity.builder().lastUpdatedBy(321).visibleForGroupIds(new long[]{1}).build();
         assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
     }
 
@@ -153,19 +152,18 @@ class FileSystemHelperServiceUnitTest {
     void userIsAllowedToEditFileSystemEntity() {
         long userId = 1232783672;
         User user = User.builder().userId(userId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().createdByUserId(userId).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().lastUpdatedBy(userId).build();
 
         // fileSystemEntity was created by runtime user.
-        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, CHANGE));
+        assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, CHANGE));
 
-        assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().createdByUserId(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, DELETE));
+        assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, DELETE));
 
         // user created fileSystemItem
         assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user created containing folder
-        fileSystemEntity.setCreatedByUserId(1203891230);
-        fileSystemEntity.setOwnerIds(new long[]{userId});
+        fileSystemEntity.setLastUpdatedBy(1203891230);
         assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
 
         // user got it shared.
@@ -179,14 +177,14 @@ class FileSystemHelperServiceUnitTest {
 
         // user is not allowed.
         user = User.builder().userId(123).groups(new Group[]{Group.UNDEFINED}).build();
-        fileSystemEntity = FileSystemEntity.builder().createdByUserId(321).editableFoGroupIds(new long[]{1}).build();
+        fileSystemEntity = FileSystemEntity.builder().lastUpdatedBy(321).editableFoGroupIds(new long[]{1}).build();
         assertFalse(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, CHANGE));
     }
 
     @Test
     void createDTOThrows() {
         long userId = 420;
-        FileSystemEntity entity = FileSystemEntity.builder().createdByUserId(userId).build();
+        FileSystemEntity entity = FileSystemEntity.builder().lastUpdatedBy(userId).build();
         User user = User.builder().build();
 
         when(userBusinessServiceMock.getUserById(userId)).thenThrow(UserNotFoundException.class);
@@ -212,7 +210,7 @@ class FileSystemHelperServiceUnitTest {
         User userThatCreatedFile = User.builder().userId(createdByUserId).build();
         FileSystemEntity fileSystemEntity = FileSystemEntity
                 .builder()
-                .createdByUserId(createdByUserId)
+                .lastUpdatedBy(createdByUserId)
                 .itemIds(items)
                 .fileSystemId(fileSystemId)
                 .isFile(isFile)
@@ -228,7 +226,7 @@ class FileSystemHelperServiceUnitTest {
 
         FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath);
 
-        assertEquals(createdByUserId, actual.getCreatedByUser().getUserId());
+        assertEquals(createdByUserId, actual.getLastUpdatedBy().getUserId());
         assertEquals(fileSystemId, actual.getFileSystemId());
         assertEquals(lastUpdated, actual.getLastUpdated());
         assertEquals(name, actual.getName());

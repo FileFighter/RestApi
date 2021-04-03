@@ -15,7 +15,8 @@ public class FileSystemItem {
     private String name;
     private boolean isShared;
     private double size;
-    private User createdByUser; //uploadedBy
+    private User owner;
+    private User lastUpdatedBy;
     private long lastUpdated;
     private FileSystemType type;
     private String mimeType;
