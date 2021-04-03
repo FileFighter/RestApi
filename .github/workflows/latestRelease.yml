@@ -37,3 +37,8 @@ jobs:
           VERSION=latest
           docker tag $IMAGE_ID filefighter/rest:$VERSION
           docker push filefighter/rest:$VERSION
+      -
+        name: Trigger update on server
+        run: |
+          curl -u ${{ secrets.LOG_CREDS }} https://logs.filefighter.de/filefighter-update.log
+
