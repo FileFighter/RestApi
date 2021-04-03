@@ -1,8 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
-import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
+import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
@@ -13,9 +12,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
-import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import de.filefighter.rest.domain.user.group.Group;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -23,8 +20,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
@@ -33,32 +30,54 @@ import java.util.stream.LongStream;
 public class FileSystemBusinessService {
 
     private final FileSystemRepository fileSystemRepository;
-    private final UserBusinessService userBusinessService;
+    private final FileSystemHelperService fileSystemHelperService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
+    private final UserBusinessService userBusinessService;
     private final MongoTemplate mongoTemplate;
 
     private static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
 
-    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, UserBusinessService userBusinessService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
-        this.userBusinessService = userBusinessService;
+        this.fileSystemHelperService = fileSystemHelperService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
+        this.userBusinessService = userBusinessService;
         this.mongoTemplate = mongoTemplate;
     }
 
     public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
-        if (!InputSanitizerService.stringIsValid(path))
-            throw new FileSystemContentsNotAccessibleException("Path was not valid.");
-
         String[] pathWithoutSlashes = path.split("/");
 
-        if (!path.equals("/") && pathWithoutSlashes.length < 2)
-            throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
+        String pathToFind;
+        User ownerOfRequestedFolder = null;
 
-        if (!path.equals("/") && !"".equals(pathWithoutSlashes[0]))
-            throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
+        if (path.equals("/")) {
+            pathToFind = "/";
+        } else {
+            if (pathWithoutSlashes.length < 2)
+                throw new FileSystemContentsNotAccessibleException("Path was in wrong format.");
 
-        String pathToFind = removeTrailingBackSlashes(path).toLowerCase();
+            if (!"".equals(pathWithoutSlashes[0]))
+                throw new FileSystemContentsNotAccessibleException("Path was in wrong format. Use a leading backslash.");
+
+            // the first path must be the the username.
+            try {
+                ownerOfRequestedFolder = userBusinessService.findUserByUsername(pathWithoutSlashes[1]);
+                String[] fileSystemPath = path.split(ownerOfRequestedFolder.getUsername());
+                if (fileSystemPath.length == 1) {
+                    if (!fileSystemPath[0].equals("/"))
+                        throw new FileSystemContentsNotAccessibleException();
+
+                    pathToFind = "/";
+                } else {
+                    pathToFind = fileSystemPath[1];
+                }
+            } catch (UserNotFoundException exception) {
+                throw new FileSystemContentsNotAccessibleException();
+            }
+        }
+
+        pathToFind = fileSystemHelperService.removeTrailingBackSlashes(pathToFind).toLowerCase();
 
         // find the folder with matching path.
         ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
@@ -66,23 +85,39 @@ public class FileSystemBusinessService {
             throw new FileSystemContentsNotAccessibleException();
 
         // remove all not accessible items.
-        listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !userIsAllowedToSeeFileSystemEntity(entity, authenticatedUser));
+        // this is only the case if the real / was requested. -> filter by visibility
+        if (null == ownerOfRequestedFolder) {
+            listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ));
+            // do not get the actual contents here but display the folder names as a fake directory.
 
-        if (listOfFileSystemEntities.isEmpty())
-            throw new FileSystemContentsNotAccessibleException();
-
-        // now only own or shared folders are left.
-        ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
-        String pathWithTrailingSlash = pathToFind.equals("/") ? pathToFind : (pathToFind + "/"); //NOSONAR
-
-        // Well this is just O(n * m)
-        for (FileSystemEntity folder : listOfFileSystemEntities) {
-            ArrayList<FileSystemEntity> folderContents = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(folder, authenticatedUser, true, false);
-            for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
-                fileSystemItems.add(this.createDTO(fileSystemEntityInFolder, authenticatedUser, pathWithTrailingSlash));
+            ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
+            for (FileSystemEntity folder : listOfFileSystemEntities) {
+                // change names here accordingly.
+                fileSystemItems.add(fileSystemHelperService.createDTO(folder, authenticatedUser, "/"));
             }
+
+            return fileSystemItems;
+        } else {
+            User finalOwnerOfRequestedFolder = ownerOfRequestedFolder;
+            listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId());
+
+            if (listOfFileSystemEntities.isEmpty())
+                throw new FileSystemContentsNotAccessibleException();
+
+            // now one Folder should remain
+            if (listOfFileSystemEntities.size() != 1)
+                throw new FileFighterDataException("Found more than one folder with the path " + pathToFind);
+
+            ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
+            ArrayList<FileSystemEntity> folderContents =
+                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfFileSystemEntities.get(0), authenticatedUser, false, false);
+
+            for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
+                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind));
+            }
+
+            return fileSystemItems;
         }
-        return fileSystemItems;
     }
 
     public FileSystemItem getFileSystemItemInfo(long fsItemId, User authenticatedUser) {
@@ -90,10 +125,10 @@ public class FileSystemBusinessService {
         if (null == fileSystemEntity)
             throw new FileSystemItemNotFoundException(fsItemId);
 
-        if (!userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser))
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.READ))
             throw new FileSystemItemNotFoundException(fsItemId);
 
-        return createDTO(fileSystemEntity, authenticatedUser, null);
+        return fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, null);
     }
 
     public boolean deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
@@ -101,7 +136,7 @@ public class FileSystemBusinessService {
         if (null == fileSystemEntity)
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
-        if (!(userIsAllowedToSeeFileSystemEntity(fileSystemEntity, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntity, authenticatedUser)))
+        if (!(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.READ) && fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.DELETE)))
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
         return recursivelyDeleteFileSystemEntity(fileSystemEntity, authenticatedUser);
@@ -121,7 +156,7 @@ public class FileSystemBusinessService {
             // 1. Base of recursion
             // Delete File and update parentFolder.
             Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
-            if (countDeleted != 1)
+            if (countDeleted != 1) // TODO: check this number again.
                 throw new FileFighterDataException(DELETION_FAILED_MSG + parentFileSystemEntity.getFileSystemId());
 
             // update.
@@ -131,9 +166,9 @@ public class FileSystemBusinessService {
 
             everythingWasDeleted = true;
         } else if (!parentFileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentFileSystemEntity.getTypeId()) == FileSystemType.FOLDER) {
-            ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
+            List<FileSystemEntity> foundList = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
 
-            if (null == foundEntities || foundEntities.isEmpty()) {
+            if (null == foundList || foundList.isEmpty()) {
                 // 2. Base of recursion
                 Long countDeleted = fileSystemRepository.deleteByFileSystemId(parentFileSystemEntity.getFileSystemId());
                 if (countDeleted != 1)
@@ -141,13 +176,14 @@ public class FileSystemBusinessService {
 
                 everythingWasDeleted = true;
             } else {
+                ArrayList<FileSystemEntity> foundEntities = (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentFileSystemEntity, authenticatedUser, false, false);
                 ArrayList<FileSystemEntity> invisibleEntities = new ArrayList<>();
                 List<Long> updatedItemIds = LongStream.of(parentFileSystemEntity.getItemIds()).boxed().collect(Collectors.toList());
                 int deletedEntities = 0;
 
                 for (FileSystemEntity childrenEntity : foundEntities) {
-                    if (userIsAllowedToSeeFileSystemEntity(childrenEntity, authenticatedUser)) {
-                        if (userIsAllowedToEditFileSystemEntity(childrenEntity, authenticatedUser)) {
+                    if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(childrenEntity, authenticatedUser, InteractionType.READ)) {
+                        if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(childrenEntity, authenticatedUser, InteractionType.DELETE)) {
 
                             // Folder.
                             if (!childrenEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(childrenEntity.getTypeId()) == FileSystemType.FOLDER) {
@@ -194,7 +230,7 @@ public class FileSystemBusinessService {
                         // we can make sure, that the views of the other users stay the same, while the current user cannot see the folder anymore.
                         // EdgeCase: that the user who requests the deletion is owner of the folder but cannot see cannot happen anymore,
                         // because he the owner has all rights on all files except ones created by runtime users.
-                        parentFileSystemEntity = sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
+                        parentFileSystemEntity = fileSystemHelperService.sumUpAllPermissionsOfFileSystemEntities(parentFileSystemEntity, invisibleEntities);
 
                         newUpdate.set("visibleForUserIds", parentFileSystemEntity.getVisibleForUserIds())
                                 .set("visibleForGroupIds", parentFileSystemEntity.getVisibleForGroupIds())
@@ -215,192 +251,5 @@ public class FileSystemBusinessService {
             throw new FileFighterDataException("FileType was wrong. " + parentFileSystemEntity);
         }
         return everythingWasDeleted;
-    }
-
-    // ---------------- HELPER -------------------
-
-    public FileSystemEntity sumUpAllPermissionsOfFileSystemEntities(FileSystemEntity parentFileSystemEntity, List<FileSystemEntity> fileSystemEntities) {
-        HashSet<Long> visibleForUserIds = new HashSet<>();
-        HashSet<Long> visibleForGroupIds = new HashSet<>();
-        HashSet<Long> editableForUserIds = new HashSet<>();
-        HashSet<Long> editableGroupIds = new HashSet<>();
-
-        for (FileSystemEntity entity : fileSystemEntities) {
-            addPermissionsToSets(visibleForUserIds, visibleForGroupIds, editableForUserIds, editableGroupIds, entity);
-        }
-
-        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setVisibleForGroupIds(Arrays.stream(visibleForGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setEditableForUserIds(Arrays.stream(editableForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setEditableFoGroupIds(Arrays.stream(editableGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        return parentFileSystemEntity;
-    }
-
-    public void addPermissionsToSets(Set<Long> visibleForUserIds, Set<Long> visibleForGroupIds, Set<Long> editableForUserIds, Set<Long> editableGroupIds, FileSystemEntity fileSystemEntity) {
-        for (long i : fileSystemEntity.getVisibleForUserIds()) {
-            visibleForUserIds.add(i);
-        }
-        for (long i : fileSystemEntity.getVisibleForGroupIds()) {
-            visibleForGroupIds.add(i);
-        }
-        for (long i : fileSystemEntity.getEditableForUserIds()) {
-            editableForUserIds.add(i);
-        }
-        for (long i : fileSystemEntity.getEditableFoGroupIds()) {
-            editableGroupIds.add(i);
-        }
-    }
-
-    public List<FileSystemEntity> getFolderContentsOfEntityAndPermissions(FileSystemEntity fileSystemEntity, User authenticatedUser, boolean needsToBeVisible, boolean needsToBeEditable) {
-        long[] folderContentItemIds = fileSystemEntity.getItemIds();
-        List<FileSystemEntity> fileSystemEntities = new ArrayList<>(folderContentItemIds.length);
-
-        // check if the contents are visible / editable.
-        for (long fileSystemId : folderContentItemIds) {
-            FileSystemEntity fileSystemEntityInFolder = fileSystemRepository.findByFileSystemId(fileSystemId);
-
-            if (null == fileSystemEntityInFolder)
-                throw new FileFighterDataException("FolderContents expected fileSystemItem with id " + fileSystemId + " but was empty.");
-
-            if (needsToBeVisible && !needsToBeEditable && userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                fileSystemEntities.add(fileSystemEntityInFolder);
-            }
-            if (needsToBeEditable && !needsToBeVisible && userIsAllowedToEditFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                fileSystemEntities.add(fileSystemEntityInFolder);
-            }
-            if (needsToBeVisible && needsToBeEditable && userIsAllowedToSeeFileSystemEntity(fileSystemEntityInFolder, authenticatedUser) && userIsAllowedToEditFileSystemEntity(fileSystemEntityInFolder, authenticatedUser)) {
-                fileSystemEntities.add(fileSystemEntityInFolder);
-            }
-            if (!needsToBeVisible && !needsToBeEditable) {
-                fileSystemEntities.add(fileSystemEntityInFolder);
-            }
-        }
-        return fileSystemEntities;
-    }
-
-    public boolean userIsAllowedToSeeFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
-        // user created the item
-        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
-            return true;
-
-        // user created containing folder.
-        if (null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
-            return true;
-
-        // user got the item shared.
-        for (long userId : fileSystemEntity.getVisibleForUserIds()) {
-            if (userId == authenticatedUser.getUserId())
-                return true;
-        }
-
-        // user is in group that got the item shared.
-        long[] fileIsSharedToGroups = fileSystemEntity.getVisibleForGroupIds();
-        for (Group group : authenticatedUser.getGroups()) {
-            for (long groupId : fileIsSharedToGroups) {
-                if (groupId == group.getGroupId())
-                    return true;
-
-            }
-        }
-        return false;
-    }
-
-    public boolean userIsAllowedToEditFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser) {
-        // file was created by runtime user.
-        if (fileSystemEntity.getCreatedByUserId() == RestConfiguration.RUNTIME_USER_ID)
-            return false;
-
-        // user created the item
-        if (fileSystemEntity.getCreatedByUserId() == authenticatedUser.getUserId())
-            return true;
-
-        // user created containing folder.
-        if (null != fileSystemEntity.getOwnerIds() && Arrays.stream(fileSystemEntity.getOwnerIds()).asDoubleStream().anyMatch(id -> id == authenticatedUser.getUserId()))
-            return true;
-
-        // user got the item shared.
-        for (long userId : fileSystemEntity.getEditableForUserIds()) {
-            if (userId == authenticatedUser.getUserId())
-                return true;
-        }
-
-        // user is in group that got the item shared.
-        long[] fileIsSharedToGroups = fileSystemEntity.getEditableFoGroupIds();
-        for (Group group : authenticatedUser.getGroups()) {
-            for (long groupId : fileIsSharedToGroups) {
-                if (groupId == group.getGroupId())
-                    return true;
-
-            }
-        }
-        return false;
-    }
-
-    public String removeTrailingBackSlashes(String pathToFind) {
-        char[] chars = pathToFind.toCharArray();
-        // for the case of "/"
-        if (chars.length != 1 && chars[chars.length - 1] == '/') {
-            chars = Arrays.copyOf(chars, chars.length - 1);
-            return new String(chars);
-        }
-        return pathToFind;
-    }
-
-    public FileSystemItem createDTO(FileSystemEntity fileSystemEntity, User authenticatedUser, String basePath) {
-        // for better responses and internal problem handling.
-        User ownerOfFileSystemItem;
-        try {
-            ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getCreatedByUserId());
-        } catch (UserNotFoundException exception) {
-            throw new FileFighterDataException("Owner of a file could not be found.");
-        }
-
-        boolean isShared = ownerOfFileSystemItem.getUserId() != authenticatedUser.getUserId();
-        FileSystemType type = fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId());
-        boolean isAFolder = type == FileSystemType.FOLDER && !fileSystemEntity.isFile();
-
-        return FileSystemItem.builder()
-                .createdByUser(ownerOfFileSystemItem)
-                .fileSystemId(fileSystemEntity.getFileSystemId())
-                .lastUpdated(fileSystemEntity.getLastUpdated())
-                .name(fileSystemEntity.getName())
-                .size(fileSystemEntity.getSize())
-                .type(isAFolder ? FileSystemType.FOLDER : type)
-                .path(null == basePath ? null : basePath + fileSystemEntity.getName())
-                .isShared(isShared)
-                .build();
-    }
-
-    public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
-        fileSystemRepository.save(FileSystemEntity
-                .builder()
-                .createdByUserId(0)
-                .typeId(FileSystemType.FOLDER.getId())
-                .isFile(false)
-                .name("HOME_" + registeredUserEntity.getUsername())
-                .path("/")
-                .lastUpdated(Instant.now().getEpochSecond())
-                .fileSystemId(generateNextFileSystemId())
-                .build());
-    }
-
-    public double getTotalFileSize() {
-        ArrayList<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
-        if (null == entities)
-            throw new FileFighterDataException("Couldn't find any Home directories!");
-
-        double size = 0;
-        for (FileSystemEntity entity : entities) {
-            size += entity.getSize();
-        }
-        return size;
-    }
-
-    public long getFileSystemEntityCount() {
-        return fileSystemRepository.count();
-    }
-
-    public long generateNextFileSystemId() {
-        return getFileSystemEntityCount() + 1;
     }
 }

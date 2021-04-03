@@ -45,7 +45,7 @@ public class PrepareDataBase {
     String date;
 
     @Bean
-    @Profile({"dev", "prod, stage"})
+    @Profile({"dev", "prod, stage", "debug"})
     @Autowired
     CommandLineRunner veryImportantFileFighterStartScript(Environment environment) {
         return args -> {
@@ -70,12 +70,6 @@ public class PrepareDataBase {
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
             System.out.println();
-
-            /*
-            System.out.println("╭---╮")
-            System.out.println("|   |")
-            System.out.println("╰---╯")
-            */
         };
     }
 
@@ -91,26 +85,28 @@ public class PrepareDataBase {
                 addDefaultAdminAndRuntimeUser(userRepository);
                 log.info("Inserting Home directories and default structure: {} {}.", fileSystemRepository.save(FileSystemEntity
                                 .builder()
-                                .createdByUserId(RUNTIME_USER_ID)
+                                .lastUpdatedBy(RUNTIME_USER_ID)
+                                .lastUpdated(Instant.now().getEpochSecond())
+                                .ownerId(1)
                                 .fileSystemId(0)
                                 .isFile(false)
                                 .path("/")
                                 .itemIds(new long[0])
-                                .lastUpdated(Instant.now().getEpochSecond())
-                                .name("HOME_Admin")
+                                .name("HOME_1")
                                 .size(420)
                                 .typeId(FOLDER.getId())
                                 .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
                                 .itemIds(new long[]{1})
                                 .build()),
                         fileSystemRepository.save(FileSystemEntity.builder()
-                                .createdByUserId(1)
-                                .fileSystemId(1)
-                                .isFile(true)
+                                .lastUpdatedBy(RUNTIME_USER_ID)
                                 .lastUpdated(Instant.now().getEpochSecond())
+                                .ownerId(1).fileSystemId(1)
+                                .isFile(true)
                                 .name("dummyFile.txt")
                                 .size(420)
                                 .typeId(TEXT.getId())
+                                .mimeType("text/plain")
                                 .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                                 .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                                 .build()));
@@ -136,7 +132,7 @@ public class PrepareDataBase {
     }
 
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "debug"})
     CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
         return args -> {
             log.info("Starting with clean user collection.");
@@ -268,46 +264,55 @@ public class PrepareDataBase {
     private void addTestingFileSystemItems(FileSystemRepository fileSystemRepository) {
         log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}.",
                 fileSystemRepository.save(FileSystemEntity.builder()
-                        .createdByUserId(RUNTIME_USER_ID)
+                        .lastUpdatedBy(RUNTIME_USER_ID)
+                        .ownerId(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
                         .fileSystemId(0)
                         .isFile(false)
                         .path("/")
-                        .itemIds(new long[]{2, 3})
-                        .lastUpdated(Instant.now().getEpochSecond())
-                        .name("HOME_User")
+                        .name("HOME_1")
                         .size(4866)
                         .typeId(FOLDER.getId())
+                        .itemIds(new long[]{2, 3})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
+                        .visibleForUserIds(new long[]{0})
+                        .editableForUserIds(new long[]{0})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
-                        .createdByUserId(RUNTIME_USER_ID)
+                        .lastUpdatedBy(RUNTIME_USER_ID)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(2)
                         .fileSystemId(1)
                         .isFile(false)
                         .path("/")
-                        .lastUpdated(Instant.now().getEpochSecond())
-                        .name("HOME_User1")
+                        .name("HOME_2")
                         .size(0)
                         .typeId(FOLDER.getId())
                         .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
+                        .visibleForUserIds(new long[]{1})
+                        .editableForUserIds(new long[]{1})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
-                        .createdByUserId(1)
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
                         .fileSystemId(2)
                         .isFile(true)
-                        .lastUpdated(Instant.now().getEpochSecond())
                         .name("dummyFile.txt")
                         .size(420)
                         .typeId(TEXT.getId())
+                        .mimeType("text/plain")
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
-                        .createdByUserId(1)
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
                         .fileSystemId(3)
                         .isFile(false)
                         .path("/somefolder")
                         .name("SomeFolder")
-                        .lastUpdated(Instant.now().getEpochSecond())
                         .size(4446)
                         .typeId(FOLDER.getId())
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
@@ -315,24 +320,28 @@ public class PrepareDataBase {
                         .itemIds(new long[]{4, 5})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
-                        .createdByUserId(1)
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
                         .fileSystemId(4)
                         .isFile(true)
-                        .lastUpdated(Instant.now().getEpochSecond())
                         .name("secretFileInSomeFolder.txt")
                         .size(3214)
                         .typeId(TEXT.getId())
+                        .mimeType("text/plain")
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
-                        .createdByUserId(1)
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
                         .fileSystemId(5)
                         .isFile(true)
-                        .lastUpdated(Instant.now().getEpochSecond())
                         .name("definitelyNotPorn.mp4")
                         .size(1232)
                         .typeId(VIDEO.getId())
+                        .mimeType("video/mp4")
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                         .build())
