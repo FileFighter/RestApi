@@ -98,12 +98,32 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .name(name)
                 .build());
     }
+    @And("fileSystemItem with the fileSystemId {long} exists, has owner with userId {long} has the path {string} and name {string}")
+    public void filesystemitemWithTheFileSystemIdExistsHasOwnerWithUserIdHasThePathStringAndNameString(long fileSystemId, long ownerId, String path, String name) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .path(path)
+                .lastUpdatedBy(ownerId)
+                .ownerId(ownerId)
+                .fileSystemId(fileSystemId)
+                .name(name)
+                .build());
+    }
 
     @And("fileSystemItem with the fileSystemId {long} exists, was created by user with userId {long} and has the name {string}")
     public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, long userId, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .name(name)
                 .lastUpdatedBy(userId)
+                .fileSystemId(fileSystemId)
+                .build());
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} exists, has owner with userId {int} and name {string}")
+    public void filesystemitemWithTheFileSystemIdExistsHasOwnerWithUserIdAndName(long fileSystemId, long ownerId, String name) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .name(name)
+                .lastUpdatedBy(ownerId)
+                .ownerId(ownerId)
                 .fileSystemId(fileSystemId)
                 .build());
     }
@@ -174,5 +194,17 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         assertNotEquals(differentValue, actualValue);
     }
-
+    @And("user with userId {long} has HomeFolder with Id {long}")
+    public void userWithUserIdHasHomeFolderWithId(long userId, long folderId) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .name("HOME_" + userId)
+                .lastUpdatedBy(0)
+                .ownerId(userId)
+                .fileSystemId(folderId)
+                .path("/")
+                .typeId(0)
+                .isFile(false)
+                .editableForUserIds(new long[]{userId})
+                .build());
+    }
 }
