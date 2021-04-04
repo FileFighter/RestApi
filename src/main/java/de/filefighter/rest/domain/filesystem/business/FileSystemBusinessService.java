@@ -80,18 +80,19 @@ public class FileSystemBusinessService {
         pathToFind = fileSystemHelperService.removeTrailingBackSlashes(pathToFind).toLowerCase();
 
         // find the folder with matching path.
-        ArrayList<FileSystemEntity> listOfFileSystemEntities = fileSystemRepository.findByPath(pathToFind);
-        if (null == listOfFileSystemEntities) // does return null and not a empty collection.
+        ArrayList<FileSystemEntity> listOfPossibleDirectories = fileSystemRepository.findByPath(pathToFind);
+        if (null == listOfPossibleDirectories) // does return null and not a empty collection.
             throw new FileSystemContentsNotAccessibleException();
 
         // remove all not accessible items.
         // this is only the case if the real / was requested. -> filter by visibility
-        if (null == ownerOfRequestedFolder) {
-            listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ));
-            // do not get the actual contents here but display the folder names as a fake directory.
+        boolean actualRootWasRequested = null == ownerOfRequestedFolder;
+        if (actualRootWasRequested) {
+            listOfPossibleDirectories.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ));
 
+            // do not get the actual contents here but display the folder names as a fake directory.
             ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
-            for (FileSystemEntity folder : listOfFileSystemEntities) {
+            for (FileSystemEntity folder : listOfPossibleDirectories) {
                 // change names here accordingly.
                 fileSystemItems.add(fileSystemHelperService.createDTO(folder, authenticatedUser, "/"));
             }
@@ -99,18 +100,22 @@ public class FileSystemBusinessService {
             return fileSystemItems;
         } else {
             User finalOwnerOfRequestedFolder = ownerOfRequestedFolder;
-            listOfFileSystemEntities.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId());
+            listOfPossibleDirectories.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId());
 
-            if (listOfFileSystemEntities.isEmpty())
+            if (listOfPossibleDirectories.isEmpty())
                 throw new FileSystemContentsNotAccessibleException();
 
             // now one Folder should remain
-            if (listOfFileSystemEntities.size() != 1)
+            if (listOfPossibleDirectories.size() != 1)
                 throw new FileFighterDataException("Found more than one folder with the path " + pathToFind);
+
+            // check if the autheticatedUser can access this.
+            if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(listOfPossibleDirectories.get(0), authenticatedUser, InteractionType.READ))
+                throw new FileSystemContentsNotAccessibleException();
 
             ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
             ArrayList<FileSystemEntity> folderContents =
-                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfFileSystemEntities.get(0), authenticatedUser, false, false);
+                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, false, false);
 
             for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
                 fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind));
