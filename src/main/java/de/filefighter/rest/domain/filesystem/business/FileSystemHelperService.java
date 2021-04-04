@@ -98,8 +98,8 @@ public class FileSystemHelperService {
                 && fileSystemEntity.getLastUpdatedBy() == RestConfiguration.RUNTIME_USER_ID)
             return false;
 
-        // user created the item
-        if (fileSystemEntity.getLastUpdatedBy() == authenticatedUser.getUserId())
+        // user own the file.
+        if (fileSystemEntity.getOwnerId() == authenticatedUser.getUserId())
             return true;
 
         // user got the item shared.
@@ -191,13 +191,17 @@ public class FileSystemHelperService {
     public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
         fileSystemRepository.save(FileSystemEntity
                 .builder()
-                .lastUpdatedBy(0)
+                .fileSystemId(generateNextFileSystemId())
+                .ownerId(registeredUserEntity.getUserId())
+                .lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID)
+                .lastUpdated(getCurrentTimeStamp())
                 .typeId(FileSystemType.FOLDER.getId())
                 .isFile(false)
-                .name("HOME_" + registeredUserEntity.getUsername())
+                .name("HOME_" + registeredUserEntity.getUserId())
                 .path("/")
                 .lastUpdated(Instant.now().getEpochSecond())
-                .fileSystemId(generateNextFileSystemId())
+                .size(0)
+                .mimeType(null)
                 .build());
     }
 
@@ -223,6 +227,6 @@ public class FileSystemHelperService {
     }
 
     public long getCurrentTimeStamp() {
-        return System.currentTimeMillis() / 1000;
+        return Instant.now().getEpochSecond();
     }
 }
