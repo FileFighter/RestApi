@@ -159,7 +159,7 @@ public class FileSystemBusinessService {
             if (countDeleted != 1) // TODO: check this number again.
                 throw new FileFighterDataException(DELETION_FAILED_MSG + parentFileSystemEntity.getFileSystemId());
 
-            // update.
+            // unbind the deleted file.
             Query query = new Query().addCriteria(Criteria.where("itemIds").is(parentFileSystemEntity.getFileSystemId()));
             Update newUpdate = new Update().pull("itemIds", parentFileSystemEntity.getFileSystemId());
             mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
