@@ -43,7 +43,7 @@ Feature: View Folder
   Scenario: shared folder (group)
     And user with userId 420 is in group with groupId 1
     And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 42
-    When user with token "222222" wants to see the content of folder with path "/bla"
+    When user with token "222222" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
 
@@ -69,10 +69,10 @@ Feature: View Folder
 
 
   Scenario: nested shared folder
-    Given fileSystemItem with the fileSystemId 4 exists, was created by user with userId 1234 has the path "/pläne" and name "pläne"
-    And fileSystemItem with the fileSystemId 5 exists, was created by user with userId 1234 has the path "/pläne/städte" and name "städte"
-    And fileSystemItem with the fileSystemId 12 exists, was created by user with userId 1234 has the path "/pläne/städte/jerusalem" and name "jerusalem"
-    And fileSystemItem with the fileSystemId 13 exists, was created by user with userId 1234 and has the name "we_will_take.mp3"
+    Given fileSystemItem with the fileSystemId 4 exists, has owner with userId 1234 has the path "/pläne" and name "pläne"
+    And fileSystemItem with the fileSystemId 5 exists, has owner with userId 1234 has the path "/pläne/städte" and name "städte"
+    And fileSystemItem with the fileSystemId 12 exists, has owner with userId 1234 has the path "/pläne/städte/jerusalem" and name "jerusalem"
+    And fileSystemItem with the fileSystemId 13 exists, has owner with userId 1234 and name "we_will_take.mp3"
     And fileSystemItem with the fileSystemId 12 is a folder and contains the fileSystemId 13
     And fileSystemItem with the fileSystemId 4 is a folder and contains the fileSystemId 5
     And fileSystemItem with the fileSystemId 5 is a folder and contains the fileSystemId 12
