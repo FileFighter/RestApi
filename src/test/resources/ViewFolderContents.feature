@@ -2,10 +2,9 @@ Feature: View Folder
   As a user
   I want to see the content of folders and navigate in them, so they can see and interact with their uploaded and shared files.
 
-  # the user exist step should also create the
-
   Background:
     Given database is empty
+    And runtime user exists
     And user with userId 1234 exists and has username "Richard", password "badPassword"
     And user with userId 420 exists and has username "Nasir", password "AlsoBadPassword"
     And accessToken with value "900000" exists for user 1234
@@ -13,8 +12,6 @@ Feature: View Folder
     And user with userId 1234 has HomeFolder with Id 1234
     And user with userId 420 has HomeFolder with Id 420
     And fileSystemItem with the fileSystemId 42 exists, has owner with userId 1234 has the path "/bla" and name "bla"
-    # should the path contain the user id ? like: "/420/bla" Then the fe requests /Gimleux/bla and you can easily look it up in the database
-    # then created by user would be useless and it should be replaced with 'last modified by' (basically it is the same)
     And fileSystemItem with the fileSystemId 72 exists, has owner with userId 1234 and name "wow.txt"
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 72
 
@@ -34,7 +31,6 @@ Feature: View Folder
     Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
 
-    # failing !!
   Scenario: insufficient authorization
     When user with token "222222" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 400
@@ -60,13 +56,11 @@ Feature: View Folder
     And the response contains the folder with name "Richard"
 
   Scenario: root folder shared
-    Given user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 42
+    Given user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 1234
     When user with token "222222" wants to see the content of folder with path "/"
     Then response status code is 200
     And the response contains the folder with name "Richard"
     And the response contains the folder with name "Nasir"
-
-
 
   Scenario: nested shared folder
     Given fileSystemItem with the fileSystemId 4 exists, has owner with userId 1234 has the path "/pläne" and name "pläne"
@@ -77,17 +71,18 @@ Feature: View Folder
     And fileSystemItem with the fileSystemId 4 is a folder and contains the fileSystemId 5
     And fileSystemItem with the fileSystemId 5 is a folder and contains the fileSystemId 12
     And user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 12
-    # Could he also only see the file?
-    When user with token "222222" wants to see the content of folder with path "/Richard"
-    Then response status code is 200
-    And the response does not contains the file with fileSystemId 42 and name "bla"
-    And the response contains the folder with fileSystemId 4 and name "pläne"
-    When user with token "222222" wants to see the content of folder with path "/Richard/pläne"
-    Then response status code is 200
-    And the response contains the folder with fileSystemId 5 and name "städte"
-    When user with token "222222" wants to see the content of folder with path "/Richard/pläne/städte"
-    Then response status code is 200
-    And the response contains the folder with fileSystemId 12 and name "jerusalem"
+    And user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 13
+    # Use this is the crud permissions feature file.
+    #When user with token "222222" wants to see the content of folder with path "/Richard"
+    #Then response status code is 200
+    #And the response does not contains the file with fileSystemId 42 and name "bla"
+    #And the response contains the folder with fileSystemId 4 and name "pläne"
+    #When user with token "222222" wants to see the content of folder with path "/Richard/pläne"
+    #Then response status code is 200
+    #And the response contains the folder with fileSystemId 5 and name "städte"
+    #When user with token "222222" wants to see the content of folder with path "/Richard/pläne/städte"
+    #Then response status code is 200
+    #And the response contains the folder with fileSystemId 12 and name "jerusalem"
     When user with token "222222" wants to see the content of folder with path "/Richard/pläne/städte/jerusalem"
     Then response status code is 200
     And the response contains the file with fileSystemId 13 and name "we_will_take.mp3"

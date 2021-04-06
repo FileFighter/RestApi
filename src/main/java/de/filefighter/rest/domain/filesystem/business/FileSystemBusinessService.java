@@ -45,6 +45,7 @@ public class FileSystemBusinessService {
         this.mongoTemplate = mongoTemplate;
     }
 
+    @SuppressWarnings("java:S3776")
     public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
         String[] pathWithoutSlashes = path.split("/");
 
@@ -115,7 +116,7 @@ public class FileSystemBusinessService {
 
             ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
             ArrayList<FileSystemEntity> folderContents =
-                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, false, false);
+                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, true, false);
 
             for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
                 fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind));

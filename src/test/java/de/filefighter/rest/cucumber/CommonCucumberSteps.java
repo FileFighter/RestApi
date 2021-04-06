@@ -21,6 +21,8 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
 
+import static de.filefighter.rest.configuration.RestConfiguration.RUNTIME_USER_ID;
+import static de.filefighter.rest.domain.user.group.Group.SYSTEM;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Log4j2
@@ -98,6 +100,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .name(name)
                 .build());
     }
+
     @And("fileSystemItem with the fileSystemId {long} exists, has owner with userId {long} has the path {string} and name {string}")
     public void filesystemitemWithTheFileSystemIdExistsHasOwnerWithUserIdHasThePathStringAndNameString(long fileSystemId, long ownerId, String path, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
@@ -194,17 +197,31 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
         assertNotEquals(differentValue, actualValue);
     }
+
     @And("user with userId {long} has HomeFolder with Id {long}")
     public void userWithUserIdHasHomeFolderWithId(long userId, long folderId) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .name("HOME_" + userId)
-                .lastUpdatedBy(0)
+                .lastUpdatedBy(RUNTIME_USER_ID)
                 .ownerId(userId)
                 .fileSystemId(folderId)
                 .path("/")
                 .typeId(0)
                 .isFile(false)
                 .editableForUserIds(new long[]{userId})
+                .build());
+    }
+
+    @And("runtime user exists")
+    public void runtimeUserExists() {
+        userRepository.save(UserEntity
+                .builder()
+                .userId(RUNTIME_USER_ID)
+                .username("FileFighter")
+                .lowercaseUsername("filefighter")
+                .password(null)
+                .refreshToken(null)
+                .groupIds(new long[]{SYSTEM.getGroupId()})
                 .build());
     }
 }
