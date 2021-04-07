@@ -13,10 +13,16 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Group;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+
+import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 
 @Service
 public class FileSystemHelperService {
@@ -24,11 +30,13 @@ public class FileSystemHelperService {
     private final FileSystemRepository fileSystemRepository;
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final UserBusinessService userBusinessService;
+    private final MongoTemplate mongoTemplate;
 
-    public FileSystemHelperService(FileSystemRepository fileSystemRepository, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService) {
+    public FileSystemHelperService(FileSystemRepository fileSystemRepository, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
         this.userBusinessService = userBusinessService;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public FileSystemEntity sumUpAllPermissionsOfFileSystemEntities(FileSystemEntity parentFileSystemEntity, List<FileSystemEntity> fileSystemEntities) {
@@ -203,6 +211,22 @@ public class FileSystemHelperService {
                 .size(0)
                 .mimeType(null)
                 .build());
+    }
+
+    public void deleteAndUnbindFileSystemEntity(FileSystemEntity fileSystemEntity) {
+        Long countDeleted = fileSystemRepository.deleteByFileSystemId(fileSystemEntity.getFileSystemId());
+        if (countDeleted != 1)
+            throw new FileFighterDataException(DELETION_FAILED_MSG + fileSystemEntity.getFileSystemId());
+
+        Query query = new Query().addCriteria(Criteria.where("itemIds").is(fileSystemEntity.getFileSystemId()));
+        Update newUpdate;
+        // only reduce size if the entity is a file.
+        if (fileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId()) != FileSystemType.FOLDER) {
+            newUpdate = new Update().pull("itemIds", fileSystemEntity.getFileSystemId()).inc("size", fileSystemEntity.getSize() * -1); // hacky stuff.
+        } else {
+            newUpdate = new Update().pull("itemIds", fileSystemEntity.getFileSystemId());
+        }
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
     }
 
     public double getTotalFileSize() {

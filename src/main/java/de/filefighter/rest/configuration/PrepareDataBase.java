@@ -194,7 +194,7 @@ public class PrepareDataBase {
                 log.error("Inserting Users " + MESSAGE_ON_FAILURE);
             }
 
-            if (fileSystemRepository.findAll().size() == 6) {
+            if (fileSystemRepository.findAll().size() == 8) {
                 log.info("Inserting FileSystemEntities " + MESSAGE_ON_SUCCESS);
             } else {
                 log.error("Inserting FileSystemEntities " + MESSAGE_ON_FAILURE);
@@ -262,7 +262,7 @@ public class PrepareDataBase {
     }
 
     private void addTestingFileSystemItems(FileSystemRepository fileSystemRepository) {
-        log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}.",
+        log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}.",
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .lastUpdatedBy(RUNTIME_USER_ID)
                         .ownerId(1)
@@ -273,7 +273,7 @@ public class PrepareDataBase {
                         .name("HOME_1")
                         .size(4866)
                         .typeId(FOLDER.getId())
-                        .itemIds(new long[]{2, 3})
+                        .itemIds(new long[]{2, 3, 7})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId(), ADMIN.getGroupId()})
                         .visibleForUserIds(new long[]{0})
                         .editableForUserIds(new long[]{0})
@@ -309,6 +309,18 @@ public class PrepareDataBase {
                         .lastUpdatedBy(1)
                         .lastUpdated(Instant.now().getEpochSecond())
                         .ownerId(1)
+                        .fileSystemId(7)
+                        .isFile(true)
+                        .name("visibleNonDeletableText.tex")
+                        .size(42)
+                        .typeId(TEXT.getId())
+                        .mimeType("text/plain")
+                        .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
+                        .build()),
+                fileSystemRepository.save(FileSystemEntity.builder()
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
                         .fileSystemId(3)
                         .isFile(false)
                         .path("/somefolder")
@@ -317,7 +329,7 @@ public class PrepareDataBase {
                         .typeId(FOLDER.getId())
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
-                        .itemIds(new long[]{4, 5})
+                        .itemIds(new long[]{4, 5, 6})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .lastUpdatedBy(1)
@@ -344,6 +356,17 @@ public class PrepareDataBase {
                         .mimeType("video/mp4")
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
+                        .build()),
+                fileSystemRepository.save(FileSystemEntity.builder()
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
+                        .fileSystemId(6)
+                        .isFile(true)
+                        .name("invisible_secret_video.mp4")
+                        .size(1232)
+                        .typeId(VIDEO.getId())
+                        .mimeType("video/mp4")
                         .build())
         );
     }

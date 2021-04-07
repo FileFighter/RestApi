@@ -13,6 +13,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.util.ArrayList;
 
@@ -26,8 +27,9 @@ class FileSystemHelperServiceUnitTest {
     private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
     private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
+    private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
 
-    private final FileSystemHelperService fileSystemHelperService = new FileSystemHelperService(fileSystemRepositoryMock, fileSystemTypeRepositoryMock, userBusinessServiceMock);
+    private final FileSystemHelperService fileSystemHelperService = new FileSystemHelperService(fileSystemRepositoryMock, fileSystemTypeRepositoryMock, userBusinessServiceMock, mongoTemplateMock);
 
     @Test
     void sumUpAllPermissionsOfFileSystemEntitiesWorks() {

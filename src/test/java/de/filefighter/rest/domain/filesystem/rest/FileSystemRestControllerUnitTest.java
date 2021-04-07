@@ -2,19 +2,18 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
-import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 class FileSystemRestControllerUnitTest {
 
@@ -99,15 +98,15 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void deleteFileOrFolder() {
-        ServerResponse response = new ServerResponse(UNAUTHORIZED, "not authorized");
-        ResponseEntity<ServerResponse> expectedModel = new ResponseEntity<>(response, OK);
+        ArrayList<FileSystemItem> expectedItems = new ArrayList<>();
+        ResponseEntity<List<FileSystemItem>> expectedModel = new ResponseEntity<>(expectedItems, OK);
 
         long id = 420;
         String token = "token";
 
         when(fileSystemRestServiceMock.deleteFileSystemItemWithIdAndAccessToken(id, token)).thenReturn(expectedModel);
 
-        ResponseEntity<ServerResponse> actualModel = fileSystemRestController.deleteFileOrFolder(id, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.deleteFileOrFolder(id, token);
         assertEquals(expectedModel, actualModel);
     }
 }
