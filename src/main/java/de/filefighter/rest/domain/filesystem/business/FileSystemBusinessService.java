@@ -209,12 +209,6 @@ public class FileSystemBusinessService {
                                 }
                                 newUpdate.set("visibleForGroupIds", newGroupIds);
                             }
-
-                            // update time stamp
-                            newUpdate
-                                    .set("lastUpdated", fileSystemHelperService.getCurrentTimeStamp())
-                                    .set("lastUpdatedBy", authenticatedUser.getUserId());
-
                             mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
                         } else if (!foundInvisible && !foundNonDeletable) {
                             // every child item of the entity can be deleted.
@@ -235,6 +229,9 @@ public class FileSystemBusinessService {
             log.error(ex);
             throw new FileFighterDataException(ex.getMessage());
         }
+
+        // update the time stamps in the file tree
+        fileSystemHelperService.recursivlyUpdateTimeStamps(parentEntity, authenticatedUser, fileSystemHelperService.getCurrentTimeStamp());
 
         return returnList;
     }

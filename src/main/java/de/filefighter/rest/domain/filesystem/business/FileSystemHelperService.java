@@ -71,7 +71,6 @@ public class FileSystemHelperService {
         }
     }
 
-    // TODO: refactor this to a list of interaction types.
     public List<FileSystemEntity> getFolderContentsOfEntityAndPermissions(FileSystemEntity fileSystemEntity, User authenticatedUser, boolean needsToBeVisible, boolean needsToBeEditable) {
         long[] folderContentItemIds = fileSystemEntity.getItemIds();
         List<FileSystemEntity> fileSystemEntities = new ArrayList<>(folderContentItemIds.length);
@@ -220,6 +219,8 @@ public class FileSystemHelperService {
 
         Query query = new Query().addCriteria(Criteria.where("itemIds").is(fileSystemEntity.getFileSystemId()));
         Update newUpdate;
+
+        // TODO: fix this sizing.
         // only reduce size if the entity is a file.
         if (fileSystemEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(fileSystemEntity.getTypeId()) != FileSystemType.FOLDER) {
             newUpdate = new Update().pull("itemIds", fileSystemEntity.getFileSystemId()).inc("size", fileSystemEntity.getSize() * -1); // hacky stuff.
@@ -227,6 +228,27 @@ public class FileSystemHelperService {
             newUpdate = new Update().pull("itemIds", fileSystemEntity.getFileSystemId());
         }
         mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
+    }
+
+    public void recursivlyUpdateTimeStamps(FileSystemEntity currentEntity, User autheticatedUser, long currentTimeStamp) {
+        Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(currentEntity.getFileSystemId()));
+        Update update = new Update().set("lastUpdated", currentTimeStamp).set("lastUpdatedBy", autheticatedUser.getUserId());
+        mongoTemplate.findAndModify(query, update, FileSystemEntity.class);
+
+        Query queryParentEntity = new Query().addCriteria(Criteria.where("itemIds").is(currentEntity.getFileSystemId()));
+        List<FileSystemEntity> parentFileSystemEntities = mongoTemplate.find(queryParentEntity, FileSystemEntity.class);
+
+        if (parentFileSystemEntities.isEmpty()) {
+            if (!currentEntity.getPath().equals("/"))
+                throw new FileFighterDataException("Found no parent entity for a non root entity: " + currentEntity);
+            // else return.
+
+        } else {
+            if (parentFileSystemEntities.size() > 1)
+                throw new FileFighterDataException("Found more than one parent entity for entity: " + currentEntity);
+
+            recursivlyUpdateTimeStamps(parentFileSystemEntities.get(0), autheticatedUser, currentTimeStamp);
+        }
     }
 
     public double getTotalFileSize() {

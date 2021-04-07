@@ -108,14 +108,14 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity rootFile = FileSystemEntity.builder().fileSystemId(fsItemId).build();
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(rootFile);
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.recursivelyDeleteFileSystemEntity(rootFile, authenticatedUser));
+                fileSystemBusinessService.deleteFileSystemEntity(rootFile, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
 
         FileSystemEntity rootFolder = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).build();
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false)).thenReturn(new ArrayList<>());
         ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.recursivelyDeleteFileSystemEntity(rootFolder, authenticatedUser));
+                fileSystemBusinessService.deleteFileSystemEntity(rootFolder, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
 
         FileSystemEntity rootFolder1 = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).itemIds(new long[]{fileSystemId0}).build();
@@ -129,12 +129,12 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
 
         ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.recursivelyDeleteFileSystemEntity(rootFolder1, authenticatedUser));
+                fileSystemBusinessService.deleteFileSystemEntity(rootFolder1, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fileSystemId0, ex.getMessage());
 
         when(fileSystemRepositoryMock.deleteByFileSystemId(fileSystemId0)).thenReturn(1L);
         ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.recursivelyDeleteFileSystemEntity(rootFolder1, authenticatedUser));
+                fileSystemBusinessService.deleteFileSystemEntity(rootFolder1, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
     }
 
