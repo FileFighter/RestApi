@@ -12,6 +12,7 @@ import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -228,4 +229,6 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .groupIds(new long[]{SYSTEM.getGroupId()})
                 .build());
     }
+
+
 }

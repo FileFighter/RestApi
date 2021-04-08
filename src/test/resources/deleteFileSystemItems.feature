@@ -1,16 +1,19 @@
 Feature: FileSystem Delete
   As a user i want to delete FileSystemItems.
 
-  Background:
-    Given database is empty
-    And user with userId 1234 exists and has username "Richard", password "badPassword"
-    And user with userId 420 exists and has username "Nasir", password "AlsoBadPassword"
-    And accessToken with value "900000" exists for user 1234
-    And accessToken with value "222222" exists for user 420
-    And fileSystemItem with the fileSystemId 42 exists, was created by user with userId 1234 has the path "/bla" and name "bla"
-    # todo add owner? (1234 in this case)
-    And fileSystemItem with the fileSystemId 72 exists, was created by user with userId 1234 and has the name "wow.txt"
-    And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 72
+Background:
+  Given database is empty
+  And runtime user exists
+  And user with userId 1234 exists and has username "Richard", password "badPassword"
+  And user with userId 420 exists and has username "Nasir", password "AlsoBadPassword"
+  And accessToken with value "900000" exists for user 1234
+  And accessToken with value "222222" exists for user 420
+  And user with userId 1234 has HomeFolder with Id 1234
+  And user with userId 420 has HomeFolder with Id 420
+  And fileSystemItem with the fileSystemId 42 exists, has owner with userId 1234 has the path "/bla" and name "bla"
+  And fileSystemItem with the fileSystemId 72 exists, has owner with userId 1234 and name "wow.txt"
+  And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 72
+  And fileSystemItem with the fileSystemId 1234 is a folder and contains the fileSystemId 42
 
   Scenario: File Deletion
     When user with token "900000" wants to see the content of folder with path "/Richard/bla"
@@ -22,6 +25,9 @@ Feature: FileSystem Delete
     When user with token "900000" wants to see the content of folder with path "/Richard/bla"
     Then the response contains an empty list for files and folders
     And response status code is 200
+    When user with token "900000" to get the info of fileSystemItem with the fileSystemId 72
+    Then response status code is 200
+    And response contains key "lastUpdated" and value of at least 1617885970
 
   Scenario: Folder and content Deletion
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42
@@ -30,13 +36,12 @@ Feature: FileSystem Delete
     Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
 
-    # todo add owners
   Scenario: recursion
-    Given fileSystemItem with the fileSystemId 0 exists, was created by user with userId 1234 has the path "/foo" and name "foo"
+    Given fileSystemItem with the fileSystemId 0 exists, has owner with userId 1234 has the path "/foo" and name "foo"
     And fileSystemItem with the fileSystemId 0 is a folder and contains the fileSystemId 1
-    And fileSystemItem with the fileSystemId 1 exists, was created by user with userId 1234 has the path "/foo/bar" and name "bar"
+    And fileSystemItem with the fileSystemId 1 exists, has owner with userId 1234 has the path "/foo/bar" and name "bar"
     And fileSystemItem with the fileSystemId 1 is a folder and contains the fileSystemId 2
-    And fileSystemItem with the fileSystemId 2 exists, was created by user with userId 1234 and has the name "git.exe"
+    And fileSystemItem with the fileSystemId 2 exists, has owner with userId 1234 and name "git.exe"
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 0
     Then response status code is 200
     When user with token "900000" wants to see the content of folder with path "/Richard/foo/bar"
@@ -45,6 +50,9 @@ Feature: FileSystem Delete
     When user with token "900000" wants to see the content of folder with path "/Richard/foo"
     Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
+    When user with token "900000" wants to see the content of folder with path "/Richard"
+    Then the response contains an empty list for files and folders
+    And response status code is 200
 
 
   Scenario: insufficient authorization
