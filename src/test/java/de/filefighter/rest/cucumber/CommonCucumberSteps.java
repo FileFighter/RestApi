@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
+import java.time.Instant;
 
 import static de.filefighter.rest.configuration.RestConfiguration.RUNTIME_USER_ID;
 import static de.filefighter.rest.domain.user.group.Group.SYSTEM;
@@ -95,6 +96,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .path(path)
+                .ownerId(userId)
                 .lastUpdatedBy(userId)
                 .fileSystemId(fileSystemId)
                 .name(name)
@@ -116,7 +118,9 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, long userId, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .name(name)
+                .ownerId(userId)
                 .lastUpdatedBy(userId)
+                .lastUpdated(Instant.now().getEpochSecond())
                 .fileSystemId(fileSystemId)
                 .build());
     }

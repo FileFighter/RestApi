@@ -14,13 +14,17 @@ import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.ArrayList;
 
+import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 import static de.filefighter.rest.domain.filesystem.data.InteractionType.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 class FileSystemHelperServiceUnitTest {
 
@@ -79,7 +83,7 @@ class FileSystemHelperServiceUnitTest {
 
         FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().visibleForUserIds(new long[]{userId}).build();
         FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().editableForUserIds(new long[]{userId}).build();
-        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().lastUpdatedBy(userId).build();
+        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().ownerId(userId).build();
 
         FileSystemEntity rootFolder = FileSystemEntity.builder().itemIds(new long[]{fileSystemId0, fileSystemId1, fileSystemId2}).build();
 
@@ -126,7 +130,7 @@ class FileSystemHelperServiceUnitTest {
     void userIsAllowedToReadFileSystemEntity() {
         long userId = 1232783672;
         User user = User.builder().userId(userId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().lastUpdatedBy(userId).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().ownerId(userId).build();
 
         // user created fileSystemItem
         assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, READ));
@@ -154,7 +158,7 @@ class FileSystemHelperServiceUnitTest {
     void userIsAllowedToEditFileSystemEntity() {
         long userId = 1232783672;
         User user = User.builder().userId(userId).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().lastUpdatedBy(userId).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().ownerId(userId).build();
 
         // fileSystemEntity was created by runtime user.
         assertTrue(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity.builder().lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).editableForUserIds(new long[]{userId}).build(), user, CHANGE));
@@ -193,7 +197,7 @@ class FileSystemHelperServiceUnitTest {
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemHelperService.createDTO(entity, user, null));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Owner of a file could not be found.", ex.getMessage());
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Owner or auther of last change could not be found.", ex.getMessage());
     }
 
     @Test
@@ -212,10 +216,11 @@ class FileSystemHelperServiceUnitTest {
         User userThatCreatedFile = User.builder().userId(createdByUserId).build();
         FileSystemEntity fileSystemEntity = FileSystemEntity
                 .builder()
-                .lastUpdatedBy(createdByUserId)
+                .ownerId(createdByUserId)
                 .itemIds(items)
                 .fileSystemId(fileSystemId)
                 .isFile(isFile)
+                .lastUpdatedBy(createdByUserId)
                 .lastUpdated(lastUpdated)
                 .name(name)
                 .path("") // is empty because its a file.
@@ -243,6 +248,47 @@ class FileSystemHelperServiceUnitTest {
         when(fileSystemRepositoryMock.findByPath("/")).thenReturn(null);
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, fileSystemHelperService::getTotalFileSize);
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Couldn't find any Home directories!", ex.getMessage());
+    }
+
+    @Test
+    void deleteAndUnbindFileSystemEntityThrows() {
+        long fileSystemId = 420;
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().fileSystemId(fileSystemId).build();
+
+        when(fileSystemRepositoryMock.deleteByFileSystemId(fileSystemId)).thenReturn(1234L);
+
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
+                fileSystemHelperService.deleteAndUnbindFileSystemEntity(fileSystemEntity));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " " + DELETION_FAILED_MSG + fileSystemId, ex.getMessage());
+    }
+
+    @Test
+    void recursivlyUpdateTimeStampsThrows() {
+        ArrayList<FileSystemEntity> entities = new ArrayList<>();
+        entities.add(FileSystemEntity.builder().build());
+        entities.add(FileSystemEntity.builder().build());
+        when(mongoTemplateMock.find(any(), eq(FileSystemEntity.class))).thenReturn(entities);
+
+        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
+                fileSystemHelperService.recursivlyUpdateTimeStamps(FileSystemEntity.builder().build(), User.builder().build(), 420));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Found more than one parent entity for entity.", ex.getMessage());
+    }
+
+    // this is definitly not a good unit test. just for the 2%
+    @Test
+    void recursivlyUpdateTimeStampsWorks() {
+        long fsItemId = 420;
+        long fsItemId2 = 1234;
+        ArrayList<FileSystemEntity> entities = new ArrayList<>();
+        entities.add(FileSystemEntity.builder().fileSystemId(fsItemId2).path("/").build());
+        ArrayList<FileSystemEntity> emptyList = new ArrayList<>();
+
+        when(mongoTemplateMock.find(eq(new Query().addCriteria(Criteria.where("itemIds").is(fsItemId))), eq(FileSystemEntity.class))).thenReturn(entities);
+        when(mongoTemplateMock.find(eq(new Query().addCriteria(Criteria.where("itemIds").is(fsItemId2))), eq(FileSystemEntity.class))).thenReturn(emptyList);
+
+        fileSystemHelperService.recursivlyUpdateTimeStamps(FileSystemEntity.builder().fileSystemId(fsItemId).build(), User.builder().build(), 420);
+
+        verify(mongoTemplateMock, times(2)).findAndModify(any(), any(), any());
     }
 
     @Test

@@ -21,7 +21,10 @@ Feature: View Folder
     And the response contains the file with fileSystemId 72 and name "wow.txt"
 
   Scenario: Successful interaction shared folder
+    # the folder
     Given user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 42
+    # the file
+    And user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 72
     When user with token "222222" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
@@ -39,6 +42,7 @@ Feature: View Folder
   Scenario: shared folder (group)
     And user with userId 420 is in group with groupId 1
     And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 42
+    And group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 72
     When user with token "222222" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"

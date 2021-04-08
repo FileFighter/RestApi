@@ -13,6 +13,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.data.persistence.UserEntity;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Group;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -25,6 +26,7 @@ import java.util.*;
 import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 
 @Service
+@Log4j2
 public class FileSystemHelperService {
 
     private final FileSystemRepository fileSystemRepository;
@@ -163,7 +165,8 @@ public class FileSystemHelperService {
             ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getOwnerId());
             lastUpdatedByUser = userBusinessService.getUserById(fileSystemEntity.getLastUpdatedBy());
         } catch (UserNotFoundException exception) {
-            throw new FileFighterDataException("Owner or auther of last change could not be found. Entity: " + fileSystemEntity);
+            log.debug("Found UserNotFoundException in createDTO. Entity: {}.", fileSystemEntity);
+            throw new FileFighterDataException("Owner or auther of last change could not be found.");
         }
 
         boolean isShared = ownerOfFileSystemItem.getUserId() != RestConfiguration.RUNTIME_USER_ID
@@ -239,13 +242,16 @@ public class FileSystemHelperService {
         List<FileSystemEntity> parentFileSystemEntities = mongoTemplate.find(queryParentEntity, FileSystemEntity.class);
 
         if (parentFileSystemEntities.isEmpty()) {
-            if (!currentEntity.getPath().equals("/"))
-                throw new FileFighterDataException("Found no parent entity for a non root entity: " + currentEntity);
+            if (!currentEntity.getPath().equals("/")) {
+                log.debug("Found no parent entity for a non root entity: " + currentEntity);
+                throw new FileFighterDataException("Found no parent entity for a non root entity.");
+            }
             // else return.
-
         } else {
-            if (parentFileSystemEntities.size() > 1)
-                throw new FileFighterDataException("Found more than one parent entity for entity: " + currentEntity);
+            if (parentFileSystemEntities.size() > 1) {
+                log.debug("Found more than one parent entity for entity: " + currentEntity);
+                throw new FileFighterDataException("Found more than one parent entity for entity.");
+            }
 
             recursivlyUpdateTimeStamps(parentFileSystemEntities.get(0), autheticatedUser, currentTimeStamp);
         }
