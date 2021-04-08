@@ -102,7 +102,7 @@ public class FileSystemBusinessService {
             return fileSystemItems;
         } else {
             User finalOwnerOfRequestedFolder = ownerOfRequestedFolder;
-            listOfPossibleDirectories.removeIf(entity -> entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId());
+            listOfPossibleDirectories.removeIf(entity -> (entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId()));
 
             if (listOfPossibleDirectories.isEmpty())
                 throw new FileSystemContentsNotAccessibleException();

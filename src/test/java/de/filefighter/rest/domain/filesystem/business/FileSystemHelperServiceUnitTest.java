@@ -262,6 +262,7 @@ class FileSystemHelperServiceUnitTest {
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " " + DELETION_FAILED_MSG + fileSystemId, ex.getMessage());
     }
 
+    @SuppressWarnings("squid:S5778")
     @Test
     void recursivlyUpdateTimeStampsThrows() {
         ArrayList<FileSystemEntity> entities = new ArrayList<>();

@@ -12,6 +12,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -20,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 
+import static de.filefighter.rest.domain.filesystem.type.FileSystemType.FOLDER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -27,26 +29,27 @@ import static org.mockito.Mockito.*;
 class FileSystemBusinessServiceUnitTest {
 
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
-    private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
+    private UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private final FileSystemHelperService fileSystemHelperServiceMock = mock(FileSystemHelperService.class);
-    private final UserBusinessService userBusinessService = mock(UserBusinessService.class);
 
-    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, fileSystemHelperServiceMock, fileSystemTypeRepositoryMock, userBusinessService, mongoTemplateMock);
+    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, fileSystemHelperServiceMock, fileSystemTypeRepositoryMock, userBusinessServiceMock, mongoTemplateMock);
 
     @Test
     void getFolderContentsByPathThrows() {
         String notValid = "";
         String wrongFormat = "asd";
         String wrongFormat1 = "as/d";
-        String validPath = "/uga/uga/as/sasda/sassasd";
+        String validUsername = "kevin";
+        String validPathToFind = "/path";
+        String validPath = "/" + validUsername + validPathToFind;
 
         User dummyUser = User.builder().userId(0).build();
 
         FileSystemContentsNotAccessibleException ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(notValid, dummyUser));
-        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was not valid.", ex.getMessage());
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was in wrong format.", ex.getMessage());
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(wrongFormat, dummyUser));
@@ -57,6 +60,7 @@ class FileSystemBusinessServiceUnitTest {
         assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix() + " Path was in wrong format. Use a leading backslash.", ex.getMessage());
 
         when(fileSystemRepositoryMock.findByPath(validPath)).thenReturn(null);
+        when(userBusinessServiceMock.findUserByUsername(validUsername)).thenReturn(User.builder().username(validUsername + "somethingelse").build());
         when(fileSystemHelperServiceMock.removeTrailingBackSlashes(validPath)).thenReturn(validPath);
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
@@ -72,6 +76,60 @@ class FileSystemBusinessServiceUnitTest {
 
         ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
                 fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
+
+        // throws because the user was not found.
+        when(userBusinessServiceMock.findUserByUsername(validUsername)).thenThrow(new UserNotFoundException("Like what?"));
+        ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
+                fileSystemBusinessService.getFolderContentsByPath(validPath, dummyUser));
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
+    }
+
+    @Test
+    void getFolderContentsByPathStillThrows() {
+        String validUsername = "kevin";
+        String validPathToFind = "/path";
+        String validPath = "/" + validUsername + validPathToFind;
+        long dummyUserId = 420124;
+        User authenticatedUser = User.builder().userId(0).build();
+        User ownerOfFiles = User.builder().userId(dummyUserId).username(validUsername).build();
+
+        when(fileSystemHelperServiceMock.removeTrailingBackSlashes(validPathToFind)).thenReturn(validPathToFind);
+
+        // throws because no folder was found.
+        when(fileSystemRepositoryMock.findByPath(validPathToFind)).thenReturn(null);
+        when(userBusinessServiceMock.findUserByUsername(validUsername)).thenReturn(ownerOfFiles);
+        FileSystemContentsNotAccessibleException ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
+                fileSystemBusinessService.getFolderContentsByPath(validPath, authenticatedUser));
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
+
+        // collection is empty after removing files.
+        ArrayList<FileSystemEntity> listOfPossibleFolders = new ArrayList<>();
+        listOfPossibleFolders.add(FileSystemEntity.builder().isFile(true).typeId(FOLDER.getId()).build());
+        when(fileSystemRepositoryMock.findByPath(validPathToFind)).thenReturn(listOfPossibleFolders);
+
+        ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
+                fileSystemBusinessService.getFolderContentsByPath(validPath, authenticatedUser));
+        assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
+
+        // more than one folder was found.
+        listOfPossibleFolders = new ArrayList<>();
+        listOfPossibleFolders.add(FileSystemEntity.builder().fileSystemId(-420).ownerId(dummyUserId).isFile(false).typeId(FOLDER.getId()).build());
+        listOfPossibleFolders.add(FileSystemEntity.builder().fileSystemId(1234).isFile(false).ownerId(dummyUserId).typeId(FOLDER.getId()).build());
+        when(fileSystemRepositoryMock.findByPath(validPathToFind)).thenReturn(listOfPossibleFolders);
+
+        FileFighterDataException dataException = assertThrows(FileFighterDataException.class, () ->
+                fileSystemBusinessService.getFolderContentsByPath(validPath, authenticatedUser));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Found more than one folder with the path " + validPathToFind, dataException.getMessage());
+
+        // not the rights for the actual entity
+        listOfPossibleFolders = new ArrayList<>();
+        listOfPossibleFolders.add(FileSystemEntity.builder().fileSystemId(-420).ownerId(dummyUserId).isFile(false).typeId(FOLDER.getId()).build());
+        when(fileSystemRepositoryMock.findByPath(validPathToFind)).thenReturn(listOfPossibleFolders);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(any(), eq(authenticatedUser), eq(InteractionType.READ))).thenReturn(false);
+
+        ex = assertThrows(FileSystemContentsNotAccessibleException.class, () ->
+                fileSystemBusinessService.getFolderContentsByPath(validPath, authenticatedUser));
         assertEquals(FileSystemContentsNotAccessibleException.getErrorMessagePrefix(), ex.getMessage());
     }
 
@@ -112,7 +170,7 @@ class FileSystemBusinessServiceUnitTest {
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
 
         FileSystemEntity rootFolder = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).build();
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false)).thenReturn(new ArrayList<>());
         ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.deleteFileSystemEntity(rootFolder, authenticatedUser));
@@ -126,7 +184,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileInRootFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileInRootFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
         when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(fileInRootFolder);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
 
         ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.deleteFileSystemEntity(rootFolder1, authenticatedUser));
@@ -158,7 +216,7 @@ class FileSystemBusinessServiceUnitTest {
         when((fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ))).thenReturn(true);
         when((fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE))).thenReturn(true);
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
         FileFighterDataException ex1 = assertThrows(FileFighterDataException.class, () ->
                 fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FileType was wrong. " + foundEntity, ex1.getMessage());
@@ -202,7 +260,7 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity folder = FileSystemEntity.builder().fileSystemId(folderId).typeId(0).isFile(false).lastUpdatedBy(userId).build();
 
         when(fileSystemRepositoryMock.findByFileSystemId(folderId)).thenReturn(folder);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
         when(fileSystemRepositoryMock.deleteByFileSystemId(folderId)).thenReturn(1L);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.READ)).thenReturn(true);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
@@ -236,7 +294,7 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().fileSystemId(itemId2).typeId(1).lastUpdatedBy(userId).isFile(true).build();
         FileSystemEntity parentFolder = FileSystemEntity.builder().typeId(0).isFile(false).fileSystemId(fsItemId).lastUpdatedBy(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
 
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(parentFolder);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(fileSystemEntity0);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(fileSystemEntity1);
@@ -302,7 +360,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundFolder, authenticatedUser, false, false)).thenReturn(foundEntities);
         when(fileSystemHelperServiceMock.sumUpAllPermissionsOfFileSystemEntities(any(), any())).thenReturn(foundFolder);
 
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(invisibleFile);
@@ -345,7 +403,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundEntity, authenticatedUser, false, false)).thenReturn(foundEntities);
 
         when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FileSystemType.FOLDER);
+        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
         when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(invisibleFile);
