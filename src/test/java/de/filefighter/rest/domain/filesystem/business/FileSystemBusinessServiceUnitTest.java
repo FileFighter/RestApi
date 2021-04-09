@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 class FileSystemBusinessServiceUnitTest {
 
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
-    private UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
+    private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private final FileSystemHelperService fileSystemHelperServiceMock = mock(FileSystemHelperService.class);
@@ -134,26 +135,52 @@ class FileSystemBusinessServiceUnitTest {
     }
 
     @Test
-    void getFolderContentsByPathWorks() {
-        String path = "/uga/buga/buga";
-        String pathToRequest = path + "/";
+    void getFolderContentsByPathWorksWhenRequestingRoot() {
+        String path = "/";
         long userId = 420;
-        long fileIdInFolder = 123;
         User user = User.builder().userId(userId).build();
-        FileSystemEntity foundFolder = FileSystemEntity.builder().isFile(false).lastUpdatedBy(userId).typeId(0).itemIds(new long[]{fileIdInFolder}).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().path("/").ownerId(userId).lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).isFile(false).lastUpdatedBy(userId).typeId(FOLDER.getId()).build();
+        FileSystemItem fileSystemItem = FileSystemItem.builder().build();
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
-        entities.add(foundFolder);
+        entities.add(fileSystemEntity);
 
-        when(fileSystemHelperServiceMock.removeTrailingBackSlashes(pathToRequest)).thenReturn(path);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundFolder, user, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundFolder, user, true, false)).thenReturn(entities);
-        when(fileSystemHelperServiceMock.createDTO(foundFolder, user, pathToRequest)).thenReturn(FileSystemItem.builder().build());
+        when(fileSystemHelperServiceMock.removeTrailingBackSlashes(path)).thenReturn(path);
         when(fileSystemRepositoryMock.findByPath(path)).thenReturn(entities);
-        when(fileSystemRepositoryMock.findByFileSystemId(fileIdInFolder)).thenReturn(FileSystemEntity.builder().lastUpdatedBy(userId).build());
-        when(userBusinessServiceMock.getUserById(userId)).thenReturn(User.builder().build());
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.createDTO(fileSystemEntity, user, path)).thenReturn(fileSystemItem);
 
-        ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(pathToRequest, user);
+        ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(path, user);
         assertEquals(1, fileSystemItems.size());
+        assertEquals(fileSystemItem, fileSystemItems.get(0));
+    }
+
+    @Test
+    void getFolderContentsByPathWorksWhenRequestingNonRoot() {
+        String ownerName = "foobar";
+        String path = "/";
+        String requestingPath = path + ownerName;
+        long userId = 420;
+        User user = User.builder().userId(userId).username(ownerName).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().path("/").ownerId(userId).lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).isFile(false).lastUpdatedBy(userId).typeId(FOLDER.getId()).build();
+        FileSystemItem fileSystemItem = FileSystemItem.builder().build();
+        ArrayList<FileSystemEntity> entities = new ArrayList<>();
+        entities.add(fileSystemEntity);
+
+        ArrayList<FileSystemEntity> children = new ArrayList<>();
+        FileSystemEntity child = FileSystemEntity.builder().build();
+        FileSystemItem childItem = FileSystemItem.builder().build();
+        children.add(child);
+
+        when(userBusinessServiceMock.findUserByUsername(ownerName)).thenReturn(user);
+        when(fileSystemHelperServiceMock.removeTrailingBackSlashes(path)).thenReturn(path);
+        when(fileSystemRepositoryMock.findByPath(path)).thenReturn(entities);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(fileSystemEntity, user, true, false)).thenReturn(children);
+        when(fileSystemHelperServiceMock.createDTO(child, user, requestingPath + path)).thenReturn(childItem);
+
+        ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(requestingPath, user);
+        assertEquals(1, fileSystemItems.size());
+        assertEquals(fileSystemItem, fileSystemItems.get(0));
     }
 
     @Test
