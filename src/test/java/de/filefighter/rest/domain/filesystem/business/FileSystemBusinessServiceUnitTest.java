@@ -9,11 +9,11 @@ import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemReposito
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDeletedException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
-import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
+import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -21,10 +21,13 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static de.filefighter.rest.domain.filesystem.type.FileSystemType.FOLDER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static de.filefighter.rest.domain.filesystem.type.FileSystemType.TEXT;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class FileSystemBusinessServiceUnitTest {
@@ -184,272 +187,150 @@ class FileSystemBusinessServiceUnitTest {
     }
 
     @Test
-    void recursivelyDeleteFileSystemEntityThrows() {
-        long fsItemId = 12301231;
-        long fileSystemId0 = 420;
-
-        User authenticatedUser = User.builder().build();
-
-        FileSystemEntity rootFile = FileSystemEntity.builder().fileSystemId(fsItemId).build();
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(rootFile);
-        FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.deleteFileSystemEntity(rootFile, authenticatedUser));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
-
-        FileSystemEntity rootFolder = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).build();
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(rootFolder, authenticatedUser, false, false)).thenReturn(new ArrayList<>());
-        ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.deleteFileSystemEntity(rootFolder, authenticatedUser));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
-
-        FileSystemEntity rootFolder1 = FileSystemEntity.builder().fileSystemId(fsItemId).isFile(false).typeId(0).itemIds(new long[]{fileSystemId0}).build();
-        ArrayList<FileSystemEntity> arrayListMock = new ArrayList<>(1);
-        FileSystemEntity fileInRootFolder = FileSystemEntity.builder().fileSystemId(fileSystemId0).build();
-        arrayListMock.add(fileInRootFolder);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(rootFolder1, authenticatedUser, false, false)).thenReturn(arrayListMock);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileInRootFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileInRootFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemRepositoryMock.findByFileSystemId(fileSystemId0)).thenReturn(fileInRootFolder);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-
-        ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.deleteFileSystemEntity(rootFolder1, authenticatedUser));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fileSystemId0, ex.getMessage());
-
-        when(fileSystemRepositoryMock.deleteByFileSystemId(fileSystemId0)).thenReturn(1L);
-        ex = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.deleteFileSystemEntity(rootFolder1, authenticatedUser));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Failed to delete FileSystemEntity with id " + fsItemId, ex.getMessage());
-    }
-
-    @Test
     void deleteFileSystemItemByIdThrows() {
-        long fsItemId = 12332123;
-        long userId = 123123123;
-        User authenticatedUser = User.builder().userId(userId).build();
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(null);
+        long requestId = 420;
+        User authenticatedUser = User.builder().build();
+        FileSystemEntity entityToDelete = FileSystemEntity.builder().build();
+
         FileSystemItemCouldNotBeDeletedException ex = assertThrows(FileSystemItemCouldNotBeDeletedException.class, () ->
-                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
-        assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + fsItemId, ex.getMessage());
+                fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser));
+        assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + requestId, ex.getMessage());
 
-        FileSystemEntity foundEntity = FileSystemEntity.builder().build();
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
+        when(fileSystemRepositoryMock.findByFileSystemId(requestId)).thenReturn(entityToDelete);
+
         ex = assertThrows(FileSystemItemCouldNotBeDeletedException.class, () ->
-                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
-        assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + fsItemId, ex.getMessage());
-
-        foundEntity = FileSystemEntity.builder().lastUpdatedBy(userId).isFile(true).typeId(0).build();
-        when((fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ))).thenReturn(true);
-        when((fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE))).thenReturn(true);
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-        FileFighterDataException ex1 = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FileType was wrong. " + foundEntity, ex1.getMessage());
-
-        long folderContentId = 13287132;
-        FileSystemEntity folderContentEntity = FileSystemEntity.builder().lastUpdatedBy(userId).isFile(true).typeId(0).build();
-        ArrayList<FileSystemEntity> fileSystemEntitiesMock = new ArrayList<>();
-        fileSystemEntitiesMock.add(folderContentEntity);
-        when(fileSystemRepositoryMock.findByFileSystemId(folderContentId)).thenReturn(folderContentEntity);
-        foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).lastUpdatedBy(userId).itemIds(new long[]{folderContentId}).build();
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundEntity, authenticatedUser, false, false)).thenReturn(fileSystemEntitiesMock);
-        ex1 = assertThrows(FileFighterDataException.class, () ->
-                fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser));
-        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " FileType was wrong. " + folderContentEntity, ex1.getMessage());
+                fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser));
+        assertEquals(FileSystemItemCouldNotBeDeletedException.getErrorMessagePrefix() + " FileSystemId was " + requestId, ex.getMessage());
     }
 
     @Test
-    void deleteFileSystemItemByIdWorksWithFile() {
-        long fsItemId = 12332123;
-        long userId = 243724328;
-        User authenticatedUser = User.builder().userId(userId).build();
-        FileSystemEntity foundEntity = FileSystemEntity.builder().fileSystemId(fsItemId).typeId(1).isFile(true).lastUpdatedBy(userId).build();
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(fsItemId)).thenReturn(1L);
+    void deleteFileSystemItemByIdWorksWithDeletableItemsOnly() {
+        long requestId = 420;
+        User authenticatedUser = User.builder().build();
+        FileSystemEntity entityFolderToDelete = FileSystemEntity.builder().fileSystemId(requestId).isFile(false).fileSystemId(FOLDER.getId()).itemIds(new long[]{123, 321, 1234}).build();
+        FileSystemEntity entity0 = FileSystemEntity.builder().isFile(true).typeId(TEXT.getId()).fileSystemId(321).build();
+        FileSystemEntity entity1 = FileSystemEntity.builder().isFile(true).typeId(TEXT.getId()).fileSystemId(123).build();
+        FileSystemEntity entity2 = FileSystemEntity.builder().isFile(false).typeId(FOLDER.getId()).fileSystemId(1234).build();
+        List<FileSystemEntity> contentsOfDirectoryToDelete = Arrays.asList(entity0, entity1, entity2);
 
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fsItemId);
+        FileSystemItem folderItem = FileSystemItem.builder().build();
+        FileSystemItem file0 = FileSystemItem.builder().build();
+        FileSystemItem file1 = FileSystemItem.builder().build();
+        FileSystemItem file2 = FileSystemItem.builder().build();
+        List<FileSystemItem> dtoReturnList = Arrays.asList(folderItem, file0, file1, file2);
+
+        when(fileSystemRepositoryMock.findByFileSystemId(requestId)).thenReturn(entityFolderToDelete);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(entityFolderToDelete, authenticatedUser, false, false)).thenReturn(contentsOfDirectoryToDelete);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity0, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity0, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity1, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity1, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity2, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity2, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+
+        // create dtos.
+        when(fileSystemHelperServiceMock.createDTO(entityFolderToDelete, authenticatedUser, null)).thenReturn(folderItem);
+        when(fileSystemHelperServiceMock.createDTO(entity0, authenticatedUser, null)).thenReturn(file0);
+        when(fileSystemHelperServiceMock.createDTO(entity1, authenticatedUser, null)).thenReturn(file1);
+        when(fileSystemHelperServiceMock.createDTO(entity2, authenticatedUser, null)).thenReturn(file2);
+
+        // call function
+        List<FileSystemItem> actual = fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser);
+
+        // verify deletion
+        verify(fileSystemHelperServiceMock, times(4)).deleteAndUnbindFileSystemEntity(any());
+
+        // check for returns
+        assertEquals(dtoReturnList, actual);
     }
 
     @Test
-    void deleteFileSystemItemByIdWorksWithFolder() {
-        long folderId = 12332123;
-        long fileId = 420;
-        long userId = 243724328;
-        User authenticatedUser = User.builder().userId(userId).build();
-        FileSystemEntity folder = FileSystemEntity.builder().fileSystemId(folderId).typeId(0).isFile(false).lastUpdatedBy(userId).build();
+    void deleteFileSystemItemByIdWorksWithInvisibleItemsOnly() {
+        long requestId = 420;
+        long userId = 1234;
+        long notUserId0 = 123898901;
+        long notUserId1 = 908137452;
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
+        FileSystemEntity entityFolderToDelete = FileSystemEntity.builder()
+                .visibleForGroupIds(new long[]{Group.FAMILY.getGroupId(), Group.ADMIN.getGroupId()})
+                .visibleForUserIds(new long[]{userId, notUserId0, notUserId1})
+                .fileSystemId(requestId)
+                .isFile(false)
+                .typeId(FOLDER.getId())
+                .itemIds(new long[]{123})
+                .build();
+        FileSystemEntity entity0 = FileSystemEntity.builder().isFile(true).typeId(TEXT.getId()).fileSystemId(321).build();
 
-        when(fileSystemRepositoryMock.findByFileSystemId(folderId)).thenReturn(folder);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(folderId)).thenReturn(1L);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(folder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        List<FileSystemEntity> contentsOfDirectoryToDelete = Collections.singletonList(entity0);
 
-        FileSystemEntity file = FileSystemEntity.builder().typeId(2).fileSystemId(fileId).isFile(true).lastUpdatedBy(userId).itemIds(new long[0]).build();
-        ArrayList<FileSystemEntity> foundFiles = new ArrayList<>();
-        foundFiles.add(file);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(folder, authenticatedUser, false, false)).thenReturn(foundFiles);
+        FileSystemItem folderItem = FileSystemItem.builder().build();
+        FileSystemItem file0 = FileSystemItem.builder().build();
+        List<FileSystemItem> dtoReturnList = Arrays.asList(folderItem, file0);
 
-        when(fileSystemRepositoryMock.findByFileSystemId(fileId)).thenReturn(file);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(file, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(file, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(2)).thenReturn(FileSystemType.VIDEO);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(fileId)).thenReturn(1L);
+        when(fileSystemRepositoryMock.findByFileSystemId(requestId)).thenReturn(entityFolderToDelete);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(entityFolderToDelete, authenticatedUser, false, false)).thenReturn(contentsOfDirectoryToDelete);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity0, authenticatedUser, InteractionType.READ)).thenReturn(false);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity0, authenticatedUser, InteractionType.DELETE)).thenReturn(false);
 
-        fileSystemBusinessService.deleteFileSystemItemById(folderId, authenticatedUser);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(folderId);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fileId);
-    }
+        // create dtos.
+        when(fileSystemHelperServiceMock.createDTO(entityFolderToDelete, authenticatedUser, null)).thenReturn(folderItem);
+        when(fileSystemHelperServiceMock.createDTO(entity0, authenticatedUser, null)).thenReturn(file0);
 
-    @Test
-    void deleteFileSystemItemByIdWorksWithFolderWhenAllItemsCanBeDeleted() {
-        long fsItemId = 12332123;
-        long userId = 243724328;
-        User authenticatedUser = User.builder().userId(userId).build();
-        long itemId0 = 1233212;
-        long itemId1 = 9872317;
-        long itemId2 = 1923847;
-        FileSystemEntity fileSystemEntity0 = FileSystemEntity.builder().isFile(false).typeId(0).lastUpdatedBy(userId).fileSystemId(itemId0).build();
-        FileSystemEntity fileSystemEntity1 = FileSystemEntity.builder().fileSystemId(itemId1).typeId(1).lastUpdatedBy(userId).isFile(true).build();
-        FileSystemEntity fileSystemEntity2 = FileSystemEntity.builder().fileSystemId(itemId2).typeId(1).lastUpdatedBy(userId).isFile(true).build();
-        FileSystemEntity parentFolder = FileSystemEntity.builder().typeId(0).isFile(false).fileSystemId(fsItemId).lastUpdatedBy(userId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
+        // call function
+        fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser);
 
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(parentFolder);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(fileSystemEntity0);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(fileSystemEntity1);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(fileSystemEntity2);
-
-        ArrayList<FileSystemEntity> contentList = new ArrayList<>();
-        contentList.add(fileSystemEntity0);
-        contentList.add(fileSystemEntity1);
-        contentList.add(fileSystemEntity2);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(parentFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(parentFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity0, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity0, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity1, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity1, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity2, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity2, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(parentFolder, authenticatedUser, false, false)).thenReturn(contentList);
-
-        when(fileSystemRepositoryMock.deleteByFileSystemId(fsItemId)).thenReturn(1L);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId0)).thenReturn(1L);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId1)).thenReturn(1L);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId2)).thenReturn(1L);
-
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(fsItemId);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId0); // empty folder
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId1);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId2);
-    }
-
-    @Test
-    void deleteFileSystemItemByIdWorksWithFolderWhenSomeItemsCannotBeDeleted() {
-        long fsItemId = 12332123;
-        long userId = 243724328;
-        long itemId0 = 1233212;
-        long itemId1 = 9872317;
-        long itemId2 = 1923847;
-        long itemId3 = 9817232;
-        User authenticatedUser = User.builder().userId(userId).build();
-        FileSystemEntity foundFolder = FileSystemEntity.builder().typeId(0).isFile(false).lastUpdatedBy(userId).itemIds(new long[]{itemId0, itemId1, itemId2, itemId3}).build();
-        FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).lastUpdatedBy(userId).fileSystemId(itemId0).build();
-        FileSystemEntity invisibleFile = FileSystemEntity.builder().fileSystemId(itemId1).isFile(true).build();
-        FileSystemEntity visibleNonEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).visibleForUserIds(new long[]{userId}).isFile(true).build();
-        FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId3).lastUpdatedBy(userId).isFile(true).build();
-
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundFolder);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableEmptyFolder, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableEmptyFolder, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleNonEditableFile, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleNonEditableFile, authenticatedUser, InteractionType.DELETE)).thenReturn(false);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableFile, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(visibleEditableFile, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-
-        ArrayList<FileSystemEntity> foundEntities = new ArrayList<>();
-        foundEntities.add(visibleEditableFile);
-        foundEntities.add(invisibleFile);
-        foundEntities.add(visibleNonEditableFile);
-        foundEntities.add(visibleEditableEmptyFolder);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundFolder, authenticatedUser, false, false)).thenReturn(foundEntities);
-        when(fileSystemHelperServiceMock.sumUpAllPermissionsOfFileSystemEntities(any(), any())).thenReturn(foundFolder);
-
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(invisibleFile);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(visibleNonEditableFile);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId3)).thenReturn(visibleEditableFile);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId0)).thenReturn(1L);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId3)).thenReturn(1L);
-
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-
-        // verify deleted entities.
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId0);
-        verify(fileSystemRepositoryMock, times(1)).deleteByFileSystemId(itemId3);
-
-        ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
-        verify(mongoTemplateMock, times(1)).findAndModify(any(), updateArgumentCaptor.capture(), any());
-        assertEquals("{ \"$set\" : { \"itemIds\" : [ " + itemId1 + ", " + itemId2 + " ] } }", updateArgumentCaptor.getValue().toString()); // no better way to assert requested changes.
-    }
-
-    @Test
-    void deleteFileSystemItemByIdWorksWithFolderOnlyInvisible() {
-        long fsItemId = 12332123;
-        long userId = 243724328;
-        User authenticatedUser = User.builder().userId(userId).build();
-        long itemId0 = 1233212;
-        long itemId1 = 9872317;
-        long itemId2 = 1923847;
-        FileSystemEntity foundEntity = FileSystemEntity.builder().typeId(0).isFile(false).fileSystemId(fsItemId).itemIds(new long[]{itemId0, itemId1, itemId2}).build();
-        FileSystemEntity visibleEditableEmptyFolder = FileSystemEntity.builder().isFile(false).typeId(0).fileSystemId(itemId0).build();
-        FileSystemEntity invisibleFile = FileSystemEntity.builder().fileSystemId(itemId1).isFile(true).visibleForUserIds(new long[]{userId - 1}).build();
-        FileSystemEntity visibleEditableFile = FileSystemEntity.builder().fileSystemId(itemId2).isFile(true).build();
-
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.READ)).thenReturn(true);
-        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(foundEntity, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
-
-        ArrayList<FileSystemEntity> foundEntities = new ArrayList<>();
-        foundEntities.add(visibleEditableFile);
-        foundEntities.add(invisibleFile);
-        foundEntities.add(visibleEditableEmptyFolder);
-        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(foundEntity, authenticatedUser, false, false)).thenReturn(foundEntities);
-
-        when(fileSystemRepositoryMock.findByFileSystemId(fsItemId)).thenReturn(foundEntity);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(0)).thenReturn(FOLDER);
-        when(fileSystemTypeRepositoryMock.findFileSystemTypeById(-1)).thenReturn(FileSystemType.UNDEFINED);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId0)).thenReturn(visibleEditableEmptyFolder);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId1)).thenReturn(invisibleFile);
-        when(fileSystemRepositoryMock.findByFileSystemId(itemId2)).thenReturn(visibleEditableFile);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId0)).thenReturn(1L);
-        when(fileSystemRepositoryMock.deleteByFileSystemId(itemId2)).thenReturn(1L);
-
-        FileSystemEntity entityWithSummedUpPermissions = FileSystemEntity.builder().build();
-        entityWithSummedUpPermissions.setVisibleForUserIds(invisibleFile.getVisibleForUserIds());
-        when(fileSystemHelperServiceMock.sumUpAllPermissionsOfFileSystemEntities(foundEntity, foundEntities)).thenReturn(entityWithSummedUpPermissions);
-        fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser);
-
-        // nothing should be deleted, but parent folder should be changed, so the user cannot see the "deleted" folder anymore.
+        // verify change of parent
         ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
         ArgumentCaptor<Query> queryArgumentCaptor = ArgumentCaptor.forClass(Query.class);
 
         verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
-        assertEquals("Query: { \"fileSystemId\" : " + fsItemId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
-        assertEquals("{ \"$set\" : { \"itemIds\" : [ " + itemId0 + ", " + itemId1 + ", " + itemId2 + " ], \"visibleForUserIds\" : [ " + (userId - 1) + " ], \"visibleForGroupIds\" : [  ], \"editableForUserIds\" : [  ], \"editableForGroupIds\" : [  ] } }", updateArgumentCaptor.getValue().toString()); // no better way to assert requested changes.
+        assertEquals("Query: { \"fileSystemId\" : " + requestId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
+        assertEquals("{ \"$set\" : { \"visibleForUserIds\" : [ " + notUserId0 + ", " + notUserId1 + " ], \"visibleForGroupIds\" : [ " + Group.ADMIN.getGroupId() + " ] } }", updateArgumentCaptor.getValue().toString());
+    }
+
+    @Test
+    void deleteFileSystemItemByIdWorksWithNonDeletableItems() {
+        long requestId = 420;
+        long userId = 1234;
+        long notUserId0 = 123898901;
+        long notUserId1 = 908137452;
+        User authenticatedUser = User.builder().userId(userId).groups(new Group[]{Group.FAMILY}).build();
+        FileSystemEntity entityFolderToDelete = FileSystemEntity.builder()
+                .visibleForGroupIds(new long[]{Group.FAMILY.getGroupId(), Group.ADMIN.getGroupId()})
+                .visibleForUserIds(new long[]{userId, notUserId0, notUserId1})
+                .fileSystemId(requestId)
+                .isFile(false)
+                .typeId(FOLDER.getId())
+                .itemIds(new long[]{123})
+                .build();
+        FileSystemEntity entity0 = FileSystemEntity.builder().isFile(true).typeId(TEXT.getId()).fileSystemId(321).build();
+
+        List<FileSystemEntity> contentsOfDirectoryToDelete = Collections.singletonList(entity0);
+
+        FileSystemItem folderItem = FileSystemItem.builder().build();
+        FileSystemItem file0 = FileSystemItem.builder().build();
+
+        when(fileSystemRepositoryMock.findByFileSystemId(requestId)).thenReturn(entityFolderToDelete);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.DELETE)).thenReturn(true);
+        when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(entityFolderToDelete, authenticatedUser, false, false)).thenReturn(contentsOfDirectoryToDelete);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity0, authenticatedUser, InteractionType.READ)).thenReturn(true);
+        when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity0, authenticatedUser, InteractionType.DELETE)).thenReturn(false);
+
+        // create dtos.
+        when(fileSystemHelperServiceMock.createDTO(entityFolderToDelete, authenticatedUser, null)).thenReturn(folderItem);
+        when(fileSystemHelperServiceMock.createDTO(entity0, authenticatedUser, null)).thenReturn(file0);
+
+        // call function
+        List<FileSystemItem> actual = fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser);
+
+        // verify no deletion.
+        verify(fileSystemHelperServiceMock, times(0)).deleteAndUnbindFileSystemEntity(any());
+        assertTrue(actual.isEmpty());
     }
 
     @Test

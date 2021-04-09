@@ -163,7 +163,7 @@ public class FileSystemBusinessService {
                     throw new FileFighterDataException("Queue was empty.");
 
                 if (currentEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(currentEntity.getTypeId()) != FileSystemType.FOLDER) {
-                    log.info("Found file to delete: {}.", currentEntity);
+                    log.debug("Found file to delete: {}.", currentEntity);
                     fileSystemHelperService.deleteAndUnbindFileSystemEntity(currentEntity);
                     returnList.add(fileSystemHelperService.createDTO(currentEntity, authenticatedUser, null));
                 } else {
@@ -185,11 +185,11 @@ public class FileSystemBusinessService {
                             }
                         }
 
-                        log.info("Currently working on: {}.", currentEntity);
+                        log.debug("Currently working on: {}.", currentEntity);
 
                         if (foundInvisible && !foundNonDeletable) {
                             // only invisible files left.
-                            log.info("Found invisible FileSystemEntity {}", currentEntity);
+                            log.debug("Found invisible FileSystemEntity {}", currentEntity);
 
                             Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(currentEntity.getFileSystemId()));
                             Update newUpdate = new Update();
@@ -212,12 +212,12 @@ public class FileSystemBusinessService {
                             mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
                         } else if (!foundInvisible && !foundNonDeletable) {
                             // every child item of the entity can be deleted.
-                            log.info("Found no invisible or non deletable FileSystemEntities.");
+                            log.debug("Found no invisible or non deletable FileSystemEntities.");
                             fileSystemHelperService.deleteAndUnbindFileSystemEntity(currentEntity);
                             returnList.add(fileSystemHelperService.createDTO(currentEntity, authenticatedUser, null));
                         } else {
                             // else some files are left. invisible or not. but the entity cannot be deleted.
-                            log.info("Some visible entites could not be deleted.");
+                            log.debug("Some visible entites could not be deleted.");
                         }
                     } else {
                         fileSystemHelperService.deleteAndUnbindFileSystemEntity(currentEntity);
