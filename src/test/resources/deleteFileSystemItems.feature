@@ -25,13 +25,16 @@ Background:
     When user with token "900000" wants to see the content of folder with path "/Richard/bla"
     Then the response contains an empty list for files and folders
     And response status code is 200
-    When user with token "900000" to get the info of fileSystemItem with the fileSystemId 72
+    When user with token "900000" wants to get the info of fileSystemItem with the fileSystemId 72
     Then response status code is 200
     And response contains key "lastUpdated" and value of at least 1617885970
+    And the response contains the file with fileSystemId 72 and name "wow.txt"
 
   Scenario: Folder and content Deletion
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 42
     Then response status code is 200
+    And the response contains the file with fileSystemId 72 and name "wow.txt"
+    And the response contains the folder with fileSystemId 42 and name "bla"
     When user with token "900000" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
@@ -44,6 +47,9 @@ Background:
     And fileSystemItem with the fileSystemId 2 exists, has owner with userId 1234 and name "git.exe"
     When user with token "900000" wants to delete the fileSystemItem with the fileSystemId 0
     Then response status code is 200
+    And the response contains the file with fileSystemId 2 and name "git.exe"
+    And the response contains the folder with fileSystemId 1 and name "bar"
+    And the response contains the folder with fileSystemId 0 and name "foo"
     When user with token "900000" wants to see the content of folder with path "/Richard/foo/bar"
     Then response status code is 400
     And response contains key "message" and value "Folder does not exist, or you are not allowed to see the folder."
