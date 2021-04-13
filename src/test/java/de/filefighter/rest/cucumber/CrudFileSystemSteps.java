@@ -31,7 +31,7 @@ public class CrudFileSystemSteps extends RestApplicationIntegrationTest {
     }
 
     @When("user with token {string} wants to get the info of fileSystemItem with the fileSystemId {long}")
-    public void userWithTokenToGetTheInfoOfFileSystemItemWithTheFileSystemId(String accessTokenValue, long fileSystemId) {
+    public void userWithTokenWantsToGetTheInfoOfFileSystemItemWithTheFileSystemId(String accessTokenValue, long fileSystemId) {
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessTokenValue;
 
         HashMap<String, String> authHeader = new HashMap<>();
