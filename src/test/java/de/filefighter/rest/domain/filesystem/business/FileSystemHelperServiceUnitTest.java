@@ -13,9 +13,11 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -280,6 +282,34 @@ class FileSystemHelperServiceUnitTest {
         ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemHelperService.recursivlyUpdateTimeStamps(FileSystemEntity.builder().fileSystemId(123123).isFile(true).path("/").build(), User.builder().build(), 420));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Found no parent entity for a non root entity.", ex.getMessage());
+    }
+
+    @Test
+    void removeVisibilityRightsFromEntityWorks() {
+        long fsItemId = 123;
+        long userId = 123123;
+        long otherUserId = 120938;
+        long groupId = Group.FAMILY.getGroupId();
+        long otherGroupId = Group.ADMIN.getGroupId();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder()
+                .fileSystemId(fsItemId)
+                .visibleForGroupIds(new long[]{groupId, otherGroupId})
+                .visibleForUserIds(new long[]{userId, otherUserId})
+                .build();
+        User authenticatedUser = User.builder()
+                .userId(userId)
+                .groups(new Group[]{Group.FAMILY})
+                .build();
+
+        // run it
+        fileSystemHelperService.removeVisibilityRightsOfFileSystemEntityForUser(fileSystemEntity, authenticatedUser);
+
+        // verify it
+        ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
+        ArgumentCaptor<Query> queryArgumentCaptor = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
+        assertEquals("Query: { \"fileSystemId\" : " + fsItemId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
+        assertEquals("{ \"$set\" : { \"visibleForUserIds\" : [ " + otherUserId + " ], \"visibleForGroupIds\" : [ " + otherGroupId + " ] } }", updateArgumentCaptor.getValue().toString());
     }
 
     @Test

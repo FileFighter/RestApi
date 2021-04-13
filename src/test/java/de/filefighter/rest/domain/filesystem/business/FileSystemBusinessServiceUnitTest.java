@@ -282,12 +282,6 @@ class FileSystemBusinessServiceUnitTest {
 
         verify(fileSystemHelperServiceMock, times(1)).removeVisibilityRightsOfFileSystemEntityForUser(entityFolderToDelete, authenticatedUser);
         assertEquals(0, deletedItems.size());
-
-        //ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
-        //ArgumentCaptor<Query> queryArgumentCaptor = ArgumentCaptor.forClass(Query.class);
-        //verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
-        //assertEquals("Query: { \"fileSystemId\" : " + requestId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
-        //assertEquals("{ \"$set\" : { \"visibleForUserIds\" : [ " + notUserId0 + ", " + notUserId1 + " ], \"visibleForGroupIds\" : [ " + Group.ADMIN.getGroupId() + " ] } }", updateArgumentCaptor.getValue().toString());
     }
 
     @Test
