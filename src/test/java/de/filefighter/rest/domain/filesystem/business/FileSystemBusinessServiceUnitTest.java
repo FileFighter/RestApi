@@ -15,10 +15,6 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import de.filefighter.rest.domain.user.group.Group;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +31,6 @@ class FileSystemBusinessServiceUnitTest {
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
     private final UserBusinessService userBusinessServiceMock = mock(UserBusinessService.class);
     private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
-    private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private final FileSystemHelperService fileSystemHelperServiceMock = mock(FileSystemHelperService.class);
 
     private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, fileSystemHelperServiceMock, fileSystemTypeRepositoryMock, userBusinessServiceMock);
@@ -267,7 +262,6 @@ class FileSystemBusinessServiceUnitTest {
 
         FileSystemItem folderItem = FileSystemItem.builder().build();
         FileSystemItem file0 = FileSystemItem.builder().build();
-        List<FileSystemItem> dtoReturnList = Arrays.asList(folderItem, file0);
 
         when(fileSystemRepositoryMock.findByFileSystemId(requestId)).thenReturn(entityFolderToDelete);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entityFolderToDelete, authenticatedUser, InteractionType.READ)).thenReturn(true);
@@ -281,15 +275,19 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.createDTO(entity0, authenticatedUser, null)).thenReturn(file0);
 
         // call function
-        fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser);
+        List<FileSystemItem> deletedItems = fileSystemBusinessService.deleteFileSystemItemById(requestId, authenticatedUser);
 
         // verify change of parent
-        ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
-        ArgumentCaptor<Query> queryArgumentCaptor = ArgumentCaptor.forClass(Query.class);
 
-        verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
-        assertEquals("Query: { \"fileSystemId\" : " + requestId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
-        assertEquals("{ \"$set\" : { \"visibleForUserIds\" : [ " + notUserId0 + ", " + notUserId1 + " ], \"visibleForGroupIds\" : [ " + Group.ADMIN.getGroupId() + " ] } }", updateArgumentCaptor.getValue().toString());
+
+        verify(fileSystemHelperServiceMock, times(1)).removeVisibilityRightsOfFileSystemEntityForUser(entityFolderToDelete, authenticatedUser);
+        assertEquals(0, deletedItems.size());
+
+        //ArgumentCaptor<Update> updateArgumentCaptor = ArgumentCaptor.forClass(Update.class);
+        //ArgumentCaptor<Query> queryArgumentCaptor = ArgumentCaptor.forClass(Query.class);
+        //verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
+        //assertEquals("Query: { \"fileSystemId\" : " + requestId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
+        //assertEquals("{ \"$set\" : { \"visibleForUserIds\" : [ " + notUserId0 + ", " + notUserId1 + " ], \"visibleForGroupIds\" : [ " + Group.ADMIN.getGroupId() + " ] } }", updateArgumentCaptor.getValue().toString());
     }
 
     @Test

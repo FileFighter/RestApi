@@ -13,7 +13,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
@@ -199,7 +199,7 @@ public class FileSystemBusinessService {
         return new RecursiveReturn(foundInvisible, foundNonDeletable);
     }
 
-    @Data
+    @AllArgsConstructor
     private static class RecursiveReturn {
         private final boolean foundInvisibleEntities;
         private final boolean foundNonDeletableEntities;

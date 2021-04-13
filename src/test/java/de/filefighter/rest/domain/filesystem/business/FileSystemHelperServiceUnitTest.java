@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 import static de.filefighter.rest.domain.filesystem.data.InteractionType.*;
@@ -265,7 +266,7 @@ class FileSystemHelperServiceUnitTest {
     @SuppressWarnings("squid:S5778")
     @Test
     void recursivlyUpdateTimeStampsThrows() {
-        ArrayList<FileSystemEntity> entities = new ArrayList<>();
+        List<FileSystemEntity> entities = new ArrayList<>();
         entities.add(FileSystemEntity.builder().build());
         entities.add(FileSystemEntity.builder().build());
         when(mongoTemplateMock.find(any(), eq(FileSystemEntity.class))).thenReturn(entities);
@@ -273,15 +274,20 @@ class FileSystemHelperServiceUnitTest {
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemHelperService.recursivlyUpdateTimeStamps(FileSystemEntity.builder().build(), User.builder().build(), 420));
         assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Found more than one parent entity for entity.", ex.getMessage());
+
+        when(mongoTemplateMock.find(any(), any())).thenReturn(new ArrayList<>());
+
+        ex = assertThrows(FileFighterDataException.class, () ->
+                fileSystemHelperService.recursivlyUpdateTimeStamps(FileSystemEntity.builder().fileSystemId(123123).isFile(true).path("/").build(), User.builder().build(), 420));
+        assertEquals(FileFighterDataException.getErrorMessagePrefix() + " Found no parent entity for a non root entity.", ex.getMessage());
     }
 
-    // this is definitly not a good unit test. just for the 2%
     @Test
     void recursivlyUpdateTimeStampsWorks() {
         long fsItemId = 420;
         long fsItemId2 = 1234;
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
-        entities.add(FileSystemEntity.builder().fileSystemId(fsItemId2).path("/").build());
+        entities.add(FileSystemEntity.builder().fileSystemId(fsItemId2).isFile(false).path("/").build());
         ArrayList<FileSystemEntity> emptyList = new ArrayList<>();
 
         when(mongoTemplateMock.find(eq(new Query().addCriteria(Criteria.where("itemIds").is(fsItemId))), eq(FileSystemEntity.class))).thenReturn(entities);
