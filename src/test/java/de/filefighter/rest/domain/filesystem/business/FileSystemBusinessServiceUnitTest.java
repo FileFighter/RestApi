@@ -38,7 +38,7 @@ class FileSystemBusinessServiceUnitTest {
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
     private final FileSystemHelperService fileSystemHelperServiceMock = mock(FileSystemHelperService.class);
 
-    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, fileSystemHelperServiceMock, fileSystemTypeRepositoryMock, userBusinessServiceMock, mongoTemplateMock);
+    private final FileSystemBusinessService fileSystemBusinessService = new FileSystemBusinessService(fileSystemRepositoryMock, fileSystemHelperServiceMock, fileSystemTypeRepositoryMock, userBusinessServiceMock);
 
     @Test
     void getFolderContentsByPathThrows() {

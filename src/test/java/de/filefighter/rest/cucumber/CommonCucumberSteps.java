@@ -12,7 +12,6 @@ import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -195,6 +194,18 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         assertTrue(actualValue >= value);
     }
 
+    @And("response contains a valid timestamp at key {string}.")
+    public void responseContainsValidTimeStampAtKey(String key) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        long actualValue = rootNode.get(key).asLong();
+
+        long validRange = 10;
+        long expected = Instant.now().getEpochSecond();
+
+        assertTrue(expected - validRange < actualValue && actualValue < expected + 10);
+    }
+
+
     @And("response contains key {string} and a different value than {string}")
     public void responseContainsKeyAndADifferentValueThan(String key, String differentValue) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
@@ -231,4 +242,12 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     }
 
 
+    @And("response contains the user with userId {long} at key {string}")
+    public void responseContainsTheUserWithUserIdAtKey(long userId, String key) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        JsonNode userNode = rootNode.get(key);
+        long actualUserId = userNode.get("userId").asLong();
+
+        assertEquals(userId, actualUserId);
+    }
 }

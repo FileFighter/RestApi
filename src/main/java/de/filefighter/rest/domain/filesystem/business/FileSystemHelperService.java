@@ -73,6 +73,28 @@ public class FileSystemHelperService {
         }
     }
 
+    public void removeVisibilityRightsOfFileSystemEntityForUser(FileSystemEntity entity, User authenticatedUser) {
+        Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(entity.getFileSystemId()));
+        Update newUpdate = new Update();
+
+        // user is either directly in the visible ids or in a group that is visible.
+        long[] newIdsWithoutCurrentUserId = Arrays.stream(entity.getVisibleForUserIds()).filter(userId -> userId != authenticatedUser.getUserId()).toArray();
+        if (newIdsWithoutCurrentUserId.length != entity.getVisibleForUserIds().length) {
+            // apply it.
+            newUpdate.set("visibleForUserIds", newIdsWithoutCurrentUserId);
+        }
+
+        // or user is in a group that can see the filesystem entity.
+        long[] newGroupIds = entity.getVisibleForGroupIds();
+        if (newGroupIds.length != 0) {
+            for (Group group : authenticatedUser.getGroups()) {
+                newGroupIds = Arrays.stream(newGroupIds).filter(id -> id != group.getGroupId()).toArray();
+            }
+            newUpdate.set("visibleForGroupIds", newGroupIds);
+        }
+        mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
+    }
+
     public List<FileSystemEntity> getFolderContentsOfEntityAndPermissions(FileSystemEntity fileSystemEntity, User authenticatedUser, boolean needsToBeVisible, boolean needsToBeEditable) {
         long[] folderContentItemIds = fileSystemEntity.getItemIds();
         List<FileSystemEntity> fileSystemEntities = new ArrayList<>(folderContentItemIds.length);
@@ -242,7 +264,10 @@ public class FileSystemHelperService {
         List<FileSystemEntity> parentFileSystemEntities = mongoTemplate.find(queryParentEntity, FileSystemEntity.class);
 
         if (parentFileSystemEntities.isEmpty()) {
-            if (!currentEntity.getPath().equals("/")) {
+            // no parents found -> either root folder or an exception
+            boolean isFile = currentEntity.isFile() && currentEntity.getTypeId() != FileSystemType.FOLDER.getId();
+            boolean isRootFolder = !isFile && currentEntity.getPath().equals("/");
+            if (!isRootFolder) {
                 log.debug("Found no parent entity for a non root entity: " + currentEntity);
                 throw new FileFighterDataException("Found no parent entity for a non root entity.");
             }

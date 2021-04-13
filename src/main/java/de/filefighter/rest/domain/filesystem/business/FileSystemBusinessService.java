@@ -13,18 +13,12 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import de.filefighter.rest.domain.user.group.Group;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 
 @Log4j2
 @Service
@@ -34,16 +28,14 @@ public class FileSystemBusinessService {
     private final FileSystemHelperService fileSystemHelperService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final UserBusinessService userBusinessService;
-    private final MongoTemplate mongoTemplate;
 
     public static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
 
-    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService, MongoTemplate mongoTemplate) {
+    public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemHelperService = fileSystemHelperService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
         this.userBusinessService = userBusinessService;
-        this.mongoTemplate = mongoTemplate;
     }
 
     @SuppressWarnings("java:S3776")
@@ -116,8 +108,8 @@ public class FileSystemBusinessService {
                 throw new FileSystemContentsNotAccessibleException();
 
             ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
-            ArrayList<FileSystemEntity> folderContents =
-                    (ArrayList<FileSystemEntity>) fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, true, false);
+            List<FileSystemEntity> folderContents =
+                    fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, true, false);
 
             for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
                 fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind));
@@ -139,100 +131,77 @@ public class FileSystemBusinessService {
     }
 
     public List<FileSystemItem> deleteFileSystemItemById(long fsItemId, User authenticatedUser) {
-        FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
-        if (null == fileSystemEntity)
+        FileSystemEntity parentEntity = fileSystemRepository.findByFileSystemId(fsItemId);
+        if (null == parentEntity)
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
 
-        if (!(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.READ) && fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, authenticatedUser, InteractionType.DELETE)))
+        if (!(fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentEntity, authenticatedUser, InteractionType.READ) && fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentEntity, authenticatedUser, InteractionType.DELETE)))
             throw new FileSystemItemCouldNotBeDeletedException(fsItemId);
-
-        return deleteFileSystemEntity(fileSystemEntity, authenticatedUser);
-    }
-
-    @SuppressWarnings({"squid:S3776", "squid:S2142"})
-    public List<FileSystemItem> deleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser) {
-        ArrayList<FileSystemItem> returnList = new ArrayList<>();
-        try {
-            LinkedBlockingQueue<FileSystemEntity> queue = new LinkedBlockingQueue<>();
-            queue.put(parentEntity);
-
-            FileSystemEntity currentEntity;
-            do {
-                currentEntity = queue.poll();
-                if (null == currentEntity)
-                    throw new FileFighterDataException("Queue was empty.");
-
-                if (currentEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(currentEntity.getTypeId()) != FileSystemType.FOLDER) {
-                    log.debug("Found file to delete: {}.", currentEntity);
-                    fileSystemHelperService.deleteAndUnbindFileSystemEntity(currentEntity);
-                    returnList.add(fileSystemHelperService.createDTO(currentEntity, authenticatedUser, null));
-                } else {
-                    boolean foundNonDeletable = false;
-                    boolean foundInvisible = false;
-                    if (currentEntity.getItemIds().length != 0) {
-                        List<FileSystemEntity> items = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(currentEntity, authenticatedUser, false, false);
-                        for (FileSystemEntity item : items) {
-                            if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.READ)) {
-                                if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.DELETE)) {
-                                    queue.put(item);
-                                } else {
-                                    // a entity could not be removed disable the deletion of the parent folder. (current Entity)
-                                    foundNonDeletable = true;
-                                }
-                            } else {
-                                // the entity also cannot be deleted BUT the current User looses the permissions.
-                                foundInvisible = true;
-                            }
-                        }
-
-                        log.debug("Currently working on: {}.", currentEntity);
-
-                        if (foundInvisible && !foundNonDeletable) {
-                            // only invisible files left.
-                            log.debug("Found invisible FileSystemEntity {}", currentEntity);
-
-                            Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(currentEntity.getFileSystemId()));
-                            Update newUpdate = new Update();
-
-                            // user is either directly in the visible ids or in a group that is visible.
-                            long[] newIdsWithoutCurrentUserId = Arrays.stream(currentEntity.getVisibleForUserIds()).filter(userId -> userId != authenticatedUser.getUserId()).toArray();
-                            if (newIdsWithoutCurrentUserId.length != currentEntity.getVisibleForUserIds().length) {
-                                // apply it.
-                                newUpdate.set("visibleForUserIds", newIdsWithoutCurrentUserId);
-                            }
-
-                            // or user is in a group that can see the filesystem entity.
-                            long[] newGroupIds = currentEntity.getVisibleForGroupIds();
-                            if (newGroupIds.length != 0) {
-                                for (Group group : authenticatedUser.getGroups()) {
-                                    newGroupIds = Arrays.stream(newGroupIds).filter(id -> id != group.getGroupId()).toArray();
-                                }
-                                newUpdate.set("visibleForGroupIds", newGroupIds);
-                            }
-                            mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
-                        } else if (!foundInvisible && !foundNonDeletable) {
-                            // every child item of the entity can be deleted.
-                            log.debug("Found no invisible or non deletable FileSystemEntities.");
-                            fileSystemHelperService.deleteAndUnbindFileSystemEntity(currentEntity);
-                            returnList.add(fileSystemHelperService.createDTO(currentEntity, authenticatedUser, null));
-                        } else {
-                            // else some files are left. invisible or not. but the entity cannot be deleted.
-                            log.debug("Some visible entites could not be deleted.");
-                        }
-                    } else {
-                        fileSystemHelperService.deleteAndUnbindFileSystemEntity(currentEntity);
-                        returnList.add(fileSystemHelperService.createDTO(currentEntity, authenticatedUser, null));
-                    }
-                }
-            } while (!queue.isEmpty());
-        } catch (InterruptedException ex) {
-            log.error(ex);
-            throw new FileFighterDataException(ex.getMessage());
-        }
 
         // update the time stamps in the file tree
         fileSystemHelperService.recursivlyUpdateTimeStamps(parentEntity, authenticatedUser, fileSystemHelperService.getCurrentTimeStamp());
 
+        log.info("User is {}.", authenticatedUser);
+
+        ArrayList<FileSystemItem> returnList = new ArrayList<>();
+        recursivlyDeleteFileSystemEntity(parentEntity, authenticatedUser, returnList);
         return returnList;
+    }
+
+    private RecursiveReturn recursivlyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
+        boolean foundNonDeletable = false;
+        boolean foundInvisible = false;
+
+        // the parentEntity is already checked.
+        if (parentEntity.isFile() && fileSystemTypeRepository.findFileSystemTypeById(parentEntity.getTypeId()) != FileSystemType.FOLDER) {
+            log.debug("Found file to delete: {}.", parentEntity);
+            fileSystemHelperService.deleteAndUnbindFileSystemEntity(parentEntity);
+            returnList.add(fileSystemHelperService.createDTO(parentEntity, authenticatedUser, null));
+        } else {
+            if (parentEntity.getItemIds().length != 0) {
+                List<FileSystemEntity> items = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentEntity, authenticatedUser, false, false);
+                for (FileSystemEntity item : items) {
+                    if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.READ)) {
+                        if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.DELETE)) {
+                            RecursiveReturn recursiveReturn = recursivlyDeleteFileSystemEntity(item, authenticatedUser, returnList);
+                            foundInvisible = recursiveReturn.foundInvisibleEntities || foundInvisible;
+                            foundNonDeletable = recursiveReturn.foundNonDeletableEntities || foundNonDeletable;
+                        } else {
+                            // a entity could not be removed disable the deletion of the parent folder. (current Entity)
+                            foundNonDeletable = true;
+                        }
+                    } else {
+                        // the entity also cannot be deleted BUT the current User looses the permissions.
+                        foundInvisible = true;
+                    }
+                }
+
+                log.info("Currently working on: {}.", parentEntity);
+
+                if (foundInvisible && !foundNonDeletable) {
+                    // only invisible files left.
+                    log.info("Found invisible FileSystemEntity {}", parentEntity);
+                    fileSystemHelperService.removeVisibilityRightsOfFileSystemEntityForUser(parentEntity, authenticatedUser);
+                } else if (!foundInvisible && !foundNonDeletable) {
+                    // every child item of the entity can be deleted.
+                    log.info("Found no invisible or non deletable FileSystemEntities.");
+                    fileSystemHelperService.deleteAndUnbindFileSystemEntity(parentEntity);
+                    returnList.add(fileSystemHelperService.createDTO(parentEntity, authenticatedUser, null));
+                } else {
+                    // else some files are left. invisible or not. but the entity cannot be deleted.
+                    log.info("Some visible entites could not be deleted but are visible.");
+                }
+            } else {
+                fileSystemHelperService.deleteAndUnbindFileSystemEntity(parentEntity);
+                returnList.add(fileSystemHelperService.createDTO(parentEntity, authenticatedUser, null));
+            }
+        }
+        return new RecursiveReturn(foundInvisible, foundNonDeletable);
+    }
+
+    @Data
+    private static class RecursiveReturn {
+        private final boolean foundInvisibleEntities;
+        private final boolean foundNonDeletableEntities;
     }
 }
