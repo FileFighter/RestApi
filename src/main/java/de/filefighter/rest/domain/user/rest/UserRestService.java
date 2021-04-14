@@ -1,8 +1,8 @@
 package de.filefighter.rest.domain.user.rest;
 
 import de.filefighter.rest.domain.authentication.AuthenticationService;
-import de.filefighter.rest.domain.common.exceptions.InputSanitizerService;
-import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
+import de.filefighter.rest.domain.common.InputSanitizerService;
+import de.filefighter.rest.domain.filesystem.business.FileSystemHelperService;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
@@ -23,14 +23,16 @@ public class UserRestService implements UserRestServiceInterface {
 
     private final UserBusinessService userBusinessService;
     private final AccessTokenBusinessService accessTokenBusinessService;
-    private final FileSystemBusinessService fileSystemBusinessService;
     private final AuthenticationService authenticationService;
+    private final InputSanitizerService inputSanitizerService;
+    private final FileSystemHelperService fileSystemHelperService;
 
-    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService) {
+    public UserRestService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, AuthenticationService authenticationService, InputSanitizerService inputSanitizerService, FileSystemHelperService fileSystemHelperService) {
         this.userBusinessService = userBusinessService;
         this.accessTokenBusinessService = accessTokenBusinessService;
-        this.fileSystemBusinessService = fileSystemBusinessService;
         this.authenticationService = authenticationService;
+        this.inputSanitizerService = inputSanitizerService;
+        this.fileSystemHelperService = fileSystemHelperService;
     }
 
     @Override
@@ -66,13 +68,13 @@ public class UserRestService implements UserRestServiceInterface {
     public ResponseEntity<ServerResponse> registerNewUserWithAccessToken(UserRegisterForm newUser, String accessTokenHeader) {
         authenticationService.bearerAuthenticationWithAccessTokenAndGroup(accessTokenHeader, ADMIN);
         UserEntity registeredUserEntity = userBusinessService.registerNewUser(newUser);
-        fileSystemBusinessService.createBasicFilesForNewUser(registeredUserEntity);
+        fileSystemHelperService.createBasicFilesForNewUser(registeredUserEntity);
         return new ResponseEntity<>(new ServerResponse(HttpStatus.CREATED, "User successfully created."), HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<User> findUserByUsernameAndAccessToken(String username, String accessTokenHeader) {
-        String sanitizedUserName = InputSanitizerService.sanitizeString(username);
+        String sanitizedUserName = inputSanitizerService.sanitizeString(username);
         authenticationService.bearerAuthenticationWithAccessToken(accessTokenHeader);
         User foundUser = userBusinessService.findUserByUsername(sanitizedUserName);
         return new ResponseEntity<>(foundUser, HttpStatus.OK);

@@ -1,6 +1,6 @@
 package de.filefighter.rest.domain.health.business;
 
-import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
+import de.filefighter.rest.domain.filesystem.business.FileSystemHelperService;
 import de.filefighter.rest.domain.health.data.SystemHealth;
 import de.filefighter.rest.domain.health.data.SystemHealth.DataIntegrity;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
@@ -16,7 +16,7 @@ public class SystemHealthBusinessService {
 
     private final UserBusinessService userBusinessService;
     private final AccessTokenBusinessService accessTokenBusinessService;
-    private final FileSystemBusinessService fileSystemBusinessService;
+    private final FileSystemHelperService fileSystemHelperService;
     private final Environment environment;
 
     private final long serverStartedAt;
@@ -25,10 +25,10 @@ public class SystemHealthBusinessService {
     @Value("${filefighter.version}")
     String version;
 
-    public SystemHealthBusinessService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemBusinessService fileSystemBusinessService, Environment environment) {
+    public SystemHealthBusinessService(UserBusinessService userBusinessService, AccessTokenBusinessService accessTokenBusinessService, FileSystemHelperService fileSystemHelperService, Environment environment) {
         this.userBusinessService = userBusinessService;
         this.accessTokenBusinessService = accessTokenBusinessService;
-        this.fileSystemBusinessService = fileSystemBusinessService;
+        this.fileSystemHelperService = fileSystemHelperService;
         this.environment = environment;
         this.serverStartedAt = this.getCurrentEpochSeconds();
     }
@@ -38,7 +38,7 @@ public class SystemHealthBusinessService {
         return SystemHealth.builder()
                 .uptimeInSeconds(currentEpoch - serverStartedAt)
                 .userCount(userBusinessService.getUserCount())
-                .usedStorageInBytes(fileSystemBusinessService.getTotalFileSize())
+                .usedStorageInBytes(fileSystemHelperService.getTotalFileSize())
                 .dataIntegrity(calculateDataIntegrity())
                 .deployment(getDeploymentStatus())
                 .version("v" + this.version)

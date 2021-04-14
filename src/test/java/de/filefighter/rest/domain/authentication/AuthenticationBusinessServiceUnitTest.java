@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.authentication;
 
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.business.UserDTOService;
@@ -19,9 +20,10 @@ class AuthenticationBusinessServiceUnitTest {
 
     private final UserRepository userRepositoryMock = mock(UserRepository.class);
     private final UserDTOService userDtoServiceMock = mock(UserDTOService.class);
+    private final InputSanitizerService inputSanitizerServiceMock = mock(InputSanitizerService.class);
     private final AuthenticationBusinessService authenticationBusinessService = new AuthenticationBusinessService(
             userRepositoryMock,
-            userDtoServiceMock);
+            userDtoServiceMock, inputSanitizerServiceMock);
 
     @Test
     void authenticateUserWithUsernameAndPasswordThrows() {
@@ -52,6 +54,8 @@ class AuthenticationBusinessServiceUnitTest {
 
         when(userRepositoryMock.findByLowercaseUsernameAndPassword("user", "password")).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
+        when(inputSanitizerServiceMock.sanitizeString("user")).thenReturn("user");
+        when(inputSanitizerServiceMock.sanitizeString("password")).thenReturn("password");
 
         User actual = authenticationBusinessService.authenticateUserWithUsernameAndPassword(usernameAndPassword);
         assertEquals(dummyUser, actual);

@@ -7,14 +7,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 
 import java.util.HashMap;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
 
@@ -50,7 +49,22 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
                     !node.get("type").asText().equals("FOLDER"))
                 found = true;
         }
-        assertTrue(found);
+        Assertions.assertTrue(found);
+    }
+
+    @And("the response contains the file with name {string}")
+    public void theResponseContainsTheFileWithName(String name) throws JsonProcessingException {
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            if (node.get("name").asText().equals(name) &&
+                    !node.get("type").asText().equals("FOLDER"))
+                found = true;
+        }
+        Assertions.assertTrue(found);
     }
 
     @And("the response contains an empty list for files and folders")
@@ -59,7 +73,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
         if (!rootNode.isContainerNode())
             throw new AssertionError("Response was not an Array or empty.");
 
-        assertTrue(rootNode.isEmpty());
+        Assertions.assertTrue(rootNode.isEmpty());
     }
 
     @And("the response does not contains the file with fileSystemId {long} and name {string}")
@@ -77,7 +91,7 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
                     found = true;
                 }
             }
-            assertFalse(found);
+            Assertions.assertFalse(found);
         }
     }
 
@@ -94,6 +108,23 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
                     node.get("type").asText().equals("FOLDER"))
                 found = true;
         }
-        assertTrue(found);
+        Assertions.assertTrue(found);
     }
+
+    @And("the response contains the folder with name {string}")
+    public void theResponseContainsTheFolderWithName(String name) throws JsonProcessingException {
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            if (node.get("name").asText().equals(name) &&
+                    node.get("type").asText().equals("FOLDER"))
+                found = true;
+        }
+        Assertions.assertTrue(found);
+    }
+
+
 }
