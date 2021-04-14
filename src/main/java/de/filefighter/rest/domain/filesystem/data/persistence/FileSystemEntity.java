@@ -18,14 +18,15 @@ public class FileSystemEntity {
     private String path;
     @Builder.Default
     private long typeId = -1;
+    private String mimeType;
     private double size;
     private long lastUpdated;
     @Builder.Default
+    private long lastUpdatedBy = -1;
+    @Builder.Default
     private boolean isFile = true;
     @Builder.Default
-    private long createdByUserId = -1;
-    @Builder.Default
-    private long[] ownerIds = new long[0];
+    private long ownerId = -1;
     @Builder.Default
     private long[] visibleForGroupIds = new long[0];
     @Builder.Default

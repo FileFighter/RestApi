@@ -1,6 +1,10 @@
-package de.filefighter.rest.domain.common.exceptions;
+package de.filefighter.rest.domain.common;
 
+import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class InputSanitizerService {
@@ -10,16 +14,23 @@ public class InputSanitizerService {
     }
 
     /**
-     *
      * Sanitizes a String, so it can be used.
+     *
      * @param string String that needs to be sanitized.
      * @return string without whitespaces and without illegal characters.
      * @throws RequestDidntMeetFormalRequirementsException when string was empty.
      */
-    public static String sanitizeString(String string) {
-        if(!InputSanitizerService.stringIsValid(string))
+    public String sanitizeString(String string) {
+        if (!InputSanitizerService.stringIsValid(string))
             throw new RequestDidntMeetFormalRequirementsException("String was empty.");
         return string.replaceAll("\\s", "");
+    }
+
+    public String sanitizePath(String path) {
+        if (!pathIsValid(path))
+            throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
+
+        return sanitizeString(path);
     }
 
     public String sanitizeRequestHeader(String header, String testString) {
@@ -32,7 +43,18 @@ public class InputSanitizerService {
         return split[1];
     }
 
-    public String sanitizeTokenValue(String tokenValue){
-        return InputSanitizerService.sanitizeString(tokenValue);
+    public boolean pathIsValid(String path) {
+        String validString = sanitizeString(path);
+
+        Pattern pattern = Pattern.compile("[~#@*+:!?&%<>|\"^\\\\]");
+        Matcher matcher = pattern.matcher(validString);
+
+        boolean stringContainsDoubleSlash = validString.contains("//");
+
+        return !(matcher.find() || stringContainsDoubleSlash);
+    }
+
+    public String sanitizeTokenValue(String tokenValue) {
+        return this.sanitizeString(tokenValue);
     }
 }

@@ -20,7 +20,10 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
+import java.time.Instant;
 
+import static de.filefighter.rest.configuration.RestConfiguration.RUNTIME_USER_ID;
+import static de.filefighter.rest.domain.user.group.Group.SYSTEM;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Log4j2
@@ -93,7 +96,19 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdExistsAndHasThePath(long fileSystemId, long userId, String path, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .path(path)
-                .createdByUserId(userId)
+                .ownerId(userId)
+                .lastUpdatedBy(userId)
+                .fileSystemId(fileSystemId)
+                .name(name)
+                .build());
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} exists, has owner with userId {long} has the path {string} and name {string}")
+    public void filesystemitemWithTheFileSystemIdExistsHasOwnerWithUserIdHasThePathStringAndNameString(long fileSystemId, long ownerId, String path, String name) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .path(path)
+                .lastUpdatedBy(ownerId)
+                .ownerId(ownerId)
                 .fileSystemId(fileSystemId)
                 .name(name)
                 .build());
@@ -103,7 +118,19 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void fileSystemItemWithTheFileSystemIdExistsAndHasTheName(long fileSystemId, long userId, String name) {
         fileSystemRepository.save(FileSystemEntity.builder()
                 .name(name)
-                .createdByUserId(userId)
+                .ownerId(userId)
+                .lastUpdatedBy(userId)
+                .lastUpdated(Instant.now().getEpochSecond())
+                .fileSystemId(fileSystemId)
+                .build());
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} exists, has owner with userId {int} and name {string}")
+    public void filesystemitemWithTheFileSystemIdExistsHasOwnerWithUserIdAndName(long fileSystemId, long ownerId, String name) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .name(name)
+                .lastUpdatedBy(ownerId)
+                .ownerId(ownerId)
                 .fileSystemId(fileSystemId)
                 .build());
     }
@@ -133,7 +160,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     public void userIsOwnerOfFileOrFolderWithId(long userId, long fsItemId) {
         FileSystemEntity fileSystemEntity = fileSystemRepository.findByFileSystemId(fsItemId);
 
-        fileSystemEntity.setCreatedByUserId(userId);
+        fileSystemEntity.setLastUpdatedBy(userId);
         fileSystemRepository.save(fileSystemEntity);
     }
 
@@ -167,6 +194,18 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         assertTrue(actualValue >= value);
     }
 
+    @And("response contains a valid timestamp at key {string}.")
+    public void responseContainsValidTimeStampAtKey(String key) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        long actualValue = rootNode.get(key).asLong();
+
+        long validRange = 10;
+        long expected = Instant.now().getEpochSecond();
+
+        assertTrue(expected - validRange < actualValue && actualValue < expected + 10);
+    }
+
+
     @And("response contains key {string} and a different value than {string}")
     public void responseContainsKeyAndADifferentValueThan(String key, String differentValue) throws JsonProcessingException {
         JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
@@ -175,4 +214,40 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         assertNotEquals(differentValue, actualValue);
     }
 
+    @And("user with userId {long} has HomeFolder with Id {long}")
+    public void userWithUserIdHasHomeFolderWithId(long userId, long folderId) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .name("HOME_" + userId)
+                .lastUpdatedBy(RUNTIME_USER_ID)
+                .ownerId(userId)
+                .fileSystemId(folderId)
+                .path("/")
+                .typeId(0)
+                .isFile(false)
+                .editableForUserIds(new long[]{userId})
+                .build());
+    }
+
+    @And("runtime user exists")
+    public void runtimeUserExists() {
+        userRepository.save(UserEntity
+                .builder()
+                .userId(RUNTIME_USER_ID)
+                .username("FileFighter")
+                .lowercaseUsername("filefighter")
+                .password(null)
+                .refreshToken(null)
+                .groupIds(new long[]{SYSTEM.getGroupId()})
+                .build());
+    }
+
+
+    @And("response contains the user with userId {long} at key {string}")
+    public void responseContainsTheUserWithUserIdAtKey(long userId, String key) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(latestResponse.getBody());
+        JsonNode userNode = rootNode.get(key);
+        long actualUserId = userNode.get("userId").asLong();
+
+        assertEquals(userId, actualUserId);
+    }
 }
