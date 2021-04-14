@@ -27,13 +27,11 @@ import static de.filefighter.rest.domain.common.exceptions.InputSanitizerService
 @Service
 public class UserBusinessService {
 
+    public static final int USER_ID_MAX = 99999999;
     private final UserRepository userRepository;
     private final UserDTOService userDtoService;
     private final GroupRepository groupRepository;
     private final MongoTemplate mongoTemplate;
-
-    public static final int USER_ID_MAX = 99999999;
-
     @Value("${filefighter.disable-password-check}")
     public boolean passwordCheckDisabled;
 
@@ -241,6 +239,7 @@ public class UserBusinessService {
                 throw new UserNotUpdatedException("Username already taken.");
 
             update.set("username", username);
+            update.set("lowercaseUsername", username.toLowerCase());
             return true;
         }
         return false;
