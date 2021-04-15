@@ -12,12 +12,16 @@ Feature: Edit User Details
     Then response contains key "message" and value "User successfully updated."
     And response contains key "status" and value "Created"
     And response status code is 201
+    When user requests login with username "kangaroo" and password "secure_password"
+    Then response status code is 200
 
   Scenario: Successful change of password
     When user requests change of password with value "pigSystem1234" userId 1234 and accessToken "accessToken"
     Then response contains key "message" and value "User successfully updated."
     And response contains key "status" and value "Created"
     And response status code is 201
+    When user requests login with username "user" and password "pigSystem1234"
+    Then response status code is 200
 
   Scenario: Failed change of username; new username already assigned
     Given user with userId 1235 exists and has username "kangaroo", password "secure_password"
