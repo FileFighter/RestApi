@@ -2,6 +2,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -71,13 +72,14 @@ class FileSystemRestControllerUnitTest {
     @Test
     void uploadFileOrFolder() {
         FileSystemItem file = FileSystemItem.builder().build();
-        FileSystemItemUpdate upload = FileSystemItemUpdate.builder().build();
+        FileSystemUpload upload = FileSystemUpload.builder().build();
         String token = "sometoken";
+        long rootId = 123;
         ResponseEntity<FileSystemItem> responseEntity = new ResponseEntity<>(file, OK);
 
-        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(upload, token)).thenReturn(responseEntity);
+        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(rootId, upload, token)).thenReturn(responseEntity);
 
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(upload, token);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(rootId, upload, token);
         assertEquals(responseEntity, actualModel);
     }
 

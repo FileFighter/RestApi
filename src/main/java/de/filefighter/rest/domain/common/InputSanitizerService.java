@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.common;
 
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
@@ -31,6 +32,12 @@ public class InputSanitizerService {
             throw new RequestDidntMeetFormalRequirementsException("Path was not valid.");
 
         return sanitizeString(path);
+    }
+
+    public FileSystemUpload sanitizeUpload(FileSystemUpload fileSystemUpload) {
+        fileSystemUpload.setPath(sanitizePath(fileSystemUpload.getPath()));
+        fileSystemUpload.setName(sanitizeString(fileSystemUpload.getName()));
+        return fileSystemUpload;
     }
 
     public String sanitizeRequestHeader(String header, String testString) {

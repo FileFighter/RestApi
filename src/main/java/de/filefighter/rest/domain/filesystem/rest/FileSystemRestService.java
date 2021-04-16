@@ -3,8 +3,11 @@ package de.filefighter.rest.domain.filesystem.rest;
 import de.filefighter.rest.domain.authentication.AuthenticationService;
 import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
+import de.filefighter.rest.domain.filesystem.business.FileSystemUploadService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.domain.user.data.dto.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -19,11 +23,13 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     private final FileSystemBusinessService fileSystemBusinessService;
     private final AuthenticationService authenticationService;
     private final InputSanitizerService inputSanitizerService;
+    private final FileSystemUploadService fileSystemUploadService;
 
-    public FileSystemRestService(FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService, InputSanitizerService inputSanitizerService) {
+    public FileSystemRestService(FileSystemBusinessService fileSystemBusinessService, AuthenticationService authenticationService, InputSanitizerService inputSanitizerService, FileSystemUploadService fileSystemUploadService) {
         this.fileSystemBusinessService = fileSystemBusinessService;
         this.authenticationService = authenticationService;
         this.inputSanitizerService = inputSanitizerService;
+        this.fileSystemUploadService = fileSystemUploadService;
     }
 
     @Override
@@ -47,8 +53,19 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(FileSystemItemUpdate fileSystemItemUpdate, String accessToken) {
-        return null;
+    public ResponseEntity<FileSystemItem> uploadFileSystemItemWithAccessToken(long rootItemId, FileSystemUpload fileSystemUpload, String accessToken) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
+        FileSystemUpload sanitizedUpload = inputSanitizerService.sanitizeUpload(fileSystemUpload);
+
+        return new ResponseEntity<>(fileSystemUploadService.uploadFileSystemItem(rootItemId, sanitizedUpload, authenticatedUser), HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadOfFileSystemItem(long rootItemId, List<FileSystemUpload> fileSystemUploads, String accessToken) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
+        List<FileSystemUpload> sanitizedUploads = fileSystemUploads.stream().map(inputSanitizerService::sanitizeUpload).collect(Collectors.toList());
+
+        return new ResponseEntity<>(fileSystemUploadService.preflightUploadFileSystemItem(rootItemId, sanitizedUploads, authenticatedUser), HttpStatus.OK);
     }
 
     @Override

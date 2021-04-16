@@ -2,6 +2,8 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -54,14 +56,24 @@ public class FileSystemRestController {
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
     }
 
-    @PostMapping(FS_BASE_URI + "upload")
+    @PostMapping(FS_BASE_URI + "{fsItemId}/upload")
     public ResponseEntity<FileSystemItem> uploadFileOrFolder(
-            @RequestBody FileSystemItemUpdate fileSystemItemUpdate,
-            @RequestHeader(value = "Authorization") String accessToken
-    ) {
+            @PathVariable long fsItemId,
+            @RequestBody FileSystemUpload fileSystemUpload,
+            @RequestHeader(value = "Authorization") String accessToken) {
 
-        log.info("Tried uploading new FileSystemItem {}", fileSystemItemUpdate);
-        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fileSystemItemUpdate, accessToken);
+        log.info("Tried uploading new FileSystemUpload {}", fileSystemUpload);
+        return fileSystemRestService.uploadFileSystemItemWithAccessToken(fsItemId, fileSystemUpload, accessToken);
+    }
+
+    @PostMapping(FS_BASE_URI + "{fsItemId}/upload/preflight")
+    public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadFileOrFolder(
+            @PathVariable long fsItemId,
+            @RequestBody List<FileSystemUpload> fileSystemUpload,
+            @RequestHeader(value = "Authorization") String accessToken) {
+
+        log.info("Preflight for {} in id {}.", fileSystemUpload, fsItemId);
+        return fileSystemRestService.preflightUploadOfFileSystemItem(fsItemId, fileSystemUpload, accessToken);
     }
 
     @PutMapping(FS_BASE_URI + "{fsItemId}/update")
