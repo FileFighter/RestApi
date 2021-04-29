@@ -55,20 +55,21 @@ public class FileSystemUploadService {
                 String currentAbsolutePath = paths[i];
                 String currentFolderName = fileSystemHelperService.getEntityNameFromPath(currentAbsolutePath);
 
-                // bla/blub/fasel.txt
-                // bla/blub/haus.txt
-                //
                 PreflightResponse alreadyExistingResponse = responses.get(currentAbsolutePath);
+                log.debug("Current path {} already has response: {}.", currentAbsolutePath, alreadyExistingResponse);
+                log.debug("map: {}", responses);
+
                 if (null == alreadyExistingResponse) {
                     PreflightResponse preflightResponse = handlePreflightFolder(currentAbsolutePath,
                             currentFolderName,
                             responses,
                             uploadParent, authenticatedUser);
+                    log.debug("Path {} now has the response {}.", currentAbsolutePath, preflightResponse);
                     responses.put(currentAbsolutePath, preflightResponse);
                 }
             }
+            log.debug("here is this file {}", upload);
             // here is the file.
-
         }
         return null;
     }
@@ -99,17 +100,20 @@ public class FileSystemUploadService {
                 if (alreadyHandledParent != null) {
                     // 2. parent is in map
                     switch (alreadyHandledParent) {
-                        case NAME_WAS_NOT_VALID,
-                                FOLDER_CANT_BE_CREATED,
-                                FOLDER_CANT_BE_MERGED,
-                                STATEMENT_CANNOT_BE_MADE -> {
+                        case FOLDER_CANT_BE_CREATED:
+
+                        case FOLDER_CANT_BE_MERGED:
+
+                        case STATEMENT_CANNOT_BE_MADE:
+
+                        case NAME_WAS_NOT_VALID:
                             // When the parent name was not valid we cannot say something about the children.
                             return PreflightResponse.STATEMENT_CANNOT_BE_MADE;
-                        }
-                        case FOLDER_CAN_BE_CREATED -> {
+
+                        case FOLDER_CAN_BE_CREATED:
                             return PreflightResponse.FOLDER_CAN_BE_CREATED;
-                        }
-                        case FOLDER_CAN_BE_MERGED -> {
+
+                        case FOLDER_CAN_BE_MERGED:
                             // 3. get parent from db  (cache this with another map)
                             FileSystemEntity alreadyExistingParentFolder = fileSystemRepository.findByPathAndOwnerId(parentPath, uploadParent.getOwnerId());
                             if (alreadyExistingParentFolder == null) {
@@ -118,8 +122,9 @@ public class FileSystemUploadService {
                             }
                             parent = alreadyExistingParentFolder;
                             parentsChildren = alreadyExistingParentFolder.getItemIds();
-                        }
-                        default -> log.warn("Found enum type not explicitly handled {} when trying to handle parent {}.", alreadyHandledParent, parentPath);
+                            break;
+                        default:
+                            log.warn("Found enum type not explicitly handled {} when trying to handle parent {}.", alreadyHandledParent, parentPath);
                     }
                 } else {
                     // parent needs to be in the map or the upload parent
@@ -132,7 +137,7 @@ public class FileSystemUploadService {
             // CHECK PERMISSIONS
             if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.READ) ||
                     !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.CHANGE)) {
-                return PreflightResponse.FOLDER_CANT_BE_MERGED;
+                return PreflightResponse.FOLDER_CANT_BE_CREATED;
             }
 
             // CHECK FOR EXISTING FILE WITH SAME NAME. (we already checked for a folder.)
@@ -140,9 +145,9 @@ public class FileSystemUploadService {
             List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), currentFolderName);
 
             if (!alreadyExistingFilesWithSameName.isEmpty()) {
-                return PreflightResponse.FOLDER_CANT_BE_MERGED;
+                return PreflightResponse.FOLDER_CANT_BE_CREATED;
             }
-            return PreflightResponse.FOLDER_CAN_BE_MERGED;
+            return PreflightResponse.FOLDER_CAN_BE_CREATED;
         } else {
             // a folder already exists with the current path.
             if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(alreadyExistingFolder, authenticatedUser, InteractionType.READ) ||
