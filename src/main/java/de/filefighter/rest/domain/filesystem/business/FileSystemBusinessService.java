@@ -74,7 +74,7 @@ public class FileSystemBusinessService {
         pathToFind = fileSystemHelperService.removeTrailingBackSlashes(pathToFind).toLowerCase();
 
         // find the folder with matching path.
-        ArrayList<FileSystemEntity> listOfPossibleDirectories = fileSystemRepository.findByPath(pathToFind);
+        List<FileSystemEntity> listOfPossibleDirectories = fileSystemRepository.findByPath(pathToFind);
         if (null == listOfPossibleDirectories) // does return null and not a empty collection.
             throw new FileSystemContentsNotAccessibleException();
 

@@ -313,6 +313,15 @@ class FileSystemHelperServiceUnitTest {
     }
 
     @Test
+    void getParentPathFromPathWorks() {
+        String path = "/baum/foo/bar/var/schmutz";
+        assertEquals("/baum/foo/bar/var", fileSystemHelperService.getParentPathFromPath(path));
+
+        path = "/baum";
+        assertEquals("/", fileSystemHelperService.getParentPathFromPath(path));
+    }
+
+    @Test
     void recursivlyUpdateTimeStampsWorks() {
         long fsItemId = 420;
         long fsItemId2 = 1234;

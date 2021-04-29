@@ -51,10 +51,10 @@ public class FileSystemHelperService {
             addPermissionsToSets(visibleForUserIds, visibleForGroupIds, editableForUserIds, editableGroupIds, entity);
         }
 
-        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setVisibleForGroupIds(Arrays.stream(visibleForGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setEditableForUserIds(Arrays.stream(editableForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setEditableFoGroupIds(Arrays.stream(editableGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setVisibleForUserIds(this.transformLongCollectionTolongArray(visibleForUserIds));
+        parentFileSystemEntity.setVisibleForGroupIds(this.transformLongCollectionTolongArray(visibleForGroupIds));
+        parentFileSystemEntity.setEditableForUserIds(this.transformLongCollectionTolongArray(editableForUserIds));
+        parentFileSystemEntity.setEditableFoGroupIds(this.transformLongCollectionTolongArray(editableGroupIds));
         return parentFileSystemEntity;
     }
 
@@ -282,8 +282,39 @@ public class FileSystemHelperService {
         }
     }
 
+    public String[] splitPathIntoEnitityPaths(String path, String basePath) {
+        Object[] paths = Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).toArray();
+        String[] returnString = new String[paths.length];
+
+        StringBuilder pathStringBuilder = new StringBuilder(basePath);
+        for (int i = 0; i < paths.length; i++) {
+            if (pathStringBuilder.toString().charAt(pathStringBuilder.toString().length() - 1) != '/') {
+                pathStringBuilder.append("/");
+            }
+            pathStringBuilder.append(paths[i]);
+            returnString[i] = pathStringBuilder.toString();
+        }
+        return returnString;
+    }
+
+    public String getEntityNameFromPath(String path) {
+        String[] splittedPath = path.split("/");
+        try {
+            return splittedPath[splittedPath.length - 1];
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            log.debug("path was {}.", path);
+            throw new FileFighterDataException("Path to check was not valid");
+        }
+    }
+
+    public String getParentPathFromPath(String path) {
+        String entityName = getEntityNameFromPath(path);
+        String parent = path.substring(0, path.length() - entityName.length() - 1);
+        return parent.equals("") ? "/" : parent;
+    }
+
     public double getTotalFileSize() {
-        ArrayList<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
+        List<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
         if (null == entities)
             throw new FileFighterDataException("Couldn't find any Home directories!");
 
@@ -292,6 +323,20 @@ public class FileSystemHelperService {
             size += entity.getSize();
         }
         return size;
+    }
+
+    public Long[] transformlongArrayToLong(long[] arrayToTransform) {
+        Long[] longArgument = new Long[arrayToTransform.length];
+        int i = 0;
+
+        for (long temp : arrayToTransform) {
+            longArgument[i++] = temp;
+        }
+        return longArgument;
+    }
+
+    public long[] transformLongCollectionTolongArray(Collection<Long> collectionToTransform) {
+        return Arrays.stream(collectionToTransform.toArray(new Long[0])).mapToLong(Long::longValue).toArray();
     }
 
     public long getFileSystemEntityCount() {
