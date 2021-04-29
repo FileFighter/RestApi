@@ -286,6 +286,10 @@ public class FileSystemHelperService {
         Object[] paths = Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).toArray();
         String[] returnString = new String[paths.length];
 
+        // if the path is empty or null make it look like its a "/"
+        if (null == basePath || basePath.isEmpty() || basePath.isBlank()) {
+            basePath = "/";
+        }
         StringBuilder pathStringBuilder = new StringBuilder(basePath);
         for (int i = 0; i < paths.length; i++) {
             if (pathStringBuilder.toString().charAt(pathStringBuilder.toString().length() - 1) != '/') {

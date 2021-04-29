@@ -14,10 +14,7 @@ import de.filefighter.rest.domain.user.data.dto.User;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -46,10 +43,12 @@ public class FileSystemUploadService {
                 || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(uploadParent, authenticatedUser, InteractionType.READ))
             throw new FileSystemItemCouldNotBeUploadedException();
 
+        List<FileSystemUploadPreflightResponse> preflightResponses = new ArrayList<>();
         HashMap<String, PreflightResponse> responses = new HashMap<>();
 
         for (FileSystemUpload upload : uploads) {
             String[] paths = fileSystemHelperService.splitPathIntoEnitityPaths(upload.getPath(), uploadParent.getPath());
+            String[] relativePath = fileSystemHelperService.splitPathIntoEnitityPaths(upload.getPath(), "");
 
             for (int i = 0; i < paths.length - 1; i++) {
                 String currentAbsolutePath = paths[i];
@@ -66,18 +65,34 @@ public class FileSystemUploadService {
                             uploadParent, authenticatedUser);
                     log.debug("Path {} now has the response {}.", currentAbsolutePath, preflightResponse);
                     responses.put(currentAbsolutePath, preflightResponse);
+
+                    // build the response for the folder
+                    preflightResponses.add(new FileSystemUploadPreflightResponse(
+                            currentFolderName,
+                            relativePath[i],
+                            false,
+                            preflightResponse.isPermissionIsSufficient(),
+                            preflightResponse.isNameAlreadyInUse(),
+                            preflightResponse.isNameIsValid()
+                    ));
                 }
-
-                // TODO: build the response for the folder
-
             }
             log.debug("here is this file {}", upload);
             // here is the file.
             PreflightResponse fileResponse = handlePreflightFile(upload.getPath(), upload.getName(), responses, uploadParent, authenticatedUser);
 
-            // TODO: build the response and add it to list
+            // build the response and add it to list
+
+            preflightResponses.add(new FileSystemUploadPreflightResponse(
+                    upload.getName(),
+                    upload.getPath(),
+                    true,
+                    fileResponse.isPermissionIsSufficient(),
+                    fileResponse.isNameAlreadyInUse(),
+                    fileResponse.isNameIsValid()
+            ));
         }
-        return null;
+        return preflightResponses;
     }
 
     public PreflightResponse handlePreflightFolder(String currentAbsolutePath, String currentFolderName, Map<String, PreflightResponse> responses, FileSystemEntity uploadParent, User authenticatedUser) {
