@@ -67,9 +67,10 @@ public class FileSystemUploadService {
                     responses.put(currentAbsolutePath, preflightResponse);
 
                     // build the response for the folder
+                    String relativeFolderPath = fileSystemHelperService.removeLeadingSlash(relativePath[i]);
                     preflightResponses.add(new FileSystemUploadPreflightResponse(
                             currentFolderName,
-                            relativePath[i],
+                            relativeFolderPath,
                             false,
                             preflightResponse.isPermissionIsSufficient(),
                             preflightResponse.isNameAlreadyInUse(),
@@ -79,13 +80,14 @@ public class FileSystemUploadService {
             }
             log.debug("here is this file {}", upload);
             // here is the file.
-            PreflightResponse fileResponse = handlePreflightFile(upload.getPath(), upload.getName(), responses, uploadParent, authenticatedUser);
+            String absolutPathToFile = paths[paths.length - 1];
+            PreflightResponse fileResponse = handlePreflightFile(absolutPathToFile, upload.getName(), responses, uploadParent, authenticatedUser);
 
             // build the response and add it to list
-
+            String relativeFilePathWithoutLeadingSlash = fileSystemHelperService.removeLeadingSlash(upload.getPath());
             preflightResponses.add(new FileSystemUploadPreflightResponse(
                     upload.getName(),
-                    upload.getPath(),
+                    relativeFilePathWithoutLeadingSlash,
                     true,
                     fileResponse.isPermissionIsSufficient(),
                     fileResponse.isNameAlreadyInUse(),

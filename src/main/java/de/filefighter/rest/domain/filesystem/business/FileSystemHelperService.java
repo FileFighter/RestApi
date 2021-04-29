@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
 import de.filefighter.rest.configuration.RestConfiguration;
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -337,6 +338,16 @@ public class FileSystemHelperService {
             longArgument[i++] = temp;
         }
         return longArgument;
+    }
+
+    public String removeLeadingSlash(String path) {
+        if (!InputSanitizerService.stringIsValid(path))
+            throw new IllegalArgumentException("Couldn't remove leading slash because the path was not a valid String.");
+
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return path;
     }
 
     public long[] transformLongCollectionTolongArray(Collection<Long> collectionToTransform) {
