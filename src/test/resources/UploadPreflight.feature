@@ -36,7 +36,7 @@ Feature: Upload Files Preflight
     And the response contains a entity with the path "armee/unterkünfte.avi" that has key "isFile" with value "true"
 
   Scenario: name conflict folder and file
-    When the user with token "9000000" wants to do a preflight containing a file with the name "gebäude/Bergfried.avi", path "Bergfried.avi", mimeType "text/html" and size 123 to the folder with the id 1234
+    When the user with token "9000000" wants to do a preflight containing a file with the name "Bergfried.avi", path "gebäude/Bergfried.avi", mimeType "text/html" and size 123 to the folder with the id 1234
     Then response status code is 200
     Then the response contains a entity with the path "gebäude" that has key "name" with value "gebäude"
     And the response contains a entity with the path "gebäude" that has key "nameAlreadyInUse" with value "true"
@@ -55,7 +55,7 @@ Feature: Upload Files Preflight
     When the user with token "9000000" wants to do a preflight containing a file with the name "file", path "~~dsa~~/file", mimeType "text/html" and size 123 to the folder with the id 1234
     Then response status code is 200
     And the response contains a entity with the path "~~dsa~~" that has key "nameIsValid" with value "false"
-    And the response contains a entity with the path "file" that has key "nameIsValid" with value "true"
+    And the response contains a entity with the path "~~dsa~~/file" that has key "nameIsValid" with value "true"
 
   Scenario: permission not sufficient, folder not viewable
     When the user with token "420" wants to do a preflight containing a file with the name "file", path "file", mimeType "text/html" and size 123 to the folder with the id 1234
@@ -72,14 +72,17 @@ Feature: Upload Files Preflight
 
   Scenario: permission not sufficient, folder editable, but subfolder not editable
     Given user with the userId 420 is allowed to EDIT the fileSystemItem with the fileSystemId 1234
-    When the user with token "420" wants to do a preflight containing a file with the name "gebäude/Bergfried.avi", path "Bergfried.avi", mimeType "text/html" and size 123 to the folder with the id 1234
+    Given user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 1234
+    When the user with token "420" wants to do a preflight containing a file with the name "Bergfried.avi", path "gebäude/Bergfried.avi", mimeType "text/html" and size 123 to the folder with the id 1234
     Then response status code is 200
     Then the response contains a entity with the path "gebäude" that has key "name" with value "gebäude"
     And the response contains a entity with the path "gebäude" that has key "nameAlreadyInUse" with value "true"
     And the response contains a entity with the path "gebäude" that has key "permissionIsSufficient" with value "false"
     And the response contains a entity with the path "gebäude/Bergfried.avi" that has key "name" with value "Bergfried.avi"
-    And the response contains a entity with the path "gebäude/Bergfried.avi" that has key "nameAlreadyInUse" with value "true"
-    And the response contains a entity with the path "gebäude/Bergfried.avi" that has key "permissionIsSufficient" with value "false"
+    And the response contains a entity with the path "gebäude/Bergfried.avi" that has key "nameAlreadyInUse" with value "false"
+    And the response contains a entity with the path "gebäude/Bergfried.avi" that has key "permissionIsSufficient" with value "true"
+    And the response contains a entity with the path "gebäude/Bergfried.avi" that has key "nameIsValid" with value "true"
+
 
 
 

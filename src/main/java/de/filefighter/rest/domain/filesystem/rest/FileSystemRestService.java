@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FileSystemRestService implements FileSystemRestServiceInterface {
@@ -63,9 +62,10 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     @Override
     public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadOfFileSystemItem(long rootItemId, List<FileSystemUpload> fileSystemUploads, String accessToken) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
-        List<FileSystemUpload> sanitizedUploads = fileSystemUploads.stream().map(inputSanitizerService::sanitizeUpload).collect(Collectors.toList());
+        // Do not sanitize this because we want the have the exact information where the path is not valid.
+        // List<FileSystemUpload> sanitizedUploads = fileSystemUploads.stream().map(inputSanitizerService::sanitizeUpload).collect(Collectors.toList())
 
-        return new ResponseEntity<>(fileSystemUploadService.preflightUploadFileSystemItem(rootItemId, sanitizedUploads, authenticatedUser), HttpStatus.OK);
+        return new ResponseEntity<>(fileSystemUploadService.preflightUploadFileSystemItem(rootItemId, fileSystemUploads, authenticatedUser), HttpStatus.OK);
     }
 
     @Override

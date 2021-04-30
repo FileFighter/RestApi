@@ -2,6 +2,7 @@ package de.filefighter.rest.domain.filesystem.business;
 
 import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
+import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
@@ -47,6 +48,9 @@ public class FileSystemUploadService {
         HashMap<String, PreflightResponse> responses = new HashMap<>();
 
         for (FileSystemUpload upload : uploads) {
+            if (null == upload)
+                throw new RequestDidntMeetFormalRequirementsException("Upload was null");
+
             String[] paths = fileSystemHelperService.splitPathIntoEnitityPaths(upload.getPath(), uploadParent.getPath());
             String[] relativePath = fileSystemHelperService.splitPathIntoEnitityPaths(upload.getPath(), "");
 
@@ -82,6 +86,7 @@ public class FileSystemUploadService {
             // here is the file.
             String absolutPathToFile = paths[paths.length - 1];
             PreflightResponse fileResponse = handlePreflightFile(absolutPathToFile, upload.getName(), responses, uploadParent, authenticatedUser);
+            log.debug("Response: {} for upload {}", fileResponse, upload);
 
             // build the response and add it to list
             String relativeFilePathWithoutLeadingSlash = fileSystemHelperService.removeLeadingSlash(upload.getPath());
