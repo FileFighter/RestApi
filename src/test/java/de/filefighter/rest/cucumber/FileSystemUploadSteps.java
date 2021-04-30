@@ -6,17 +6,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.filefighter.rest.RestApplicationIntegrationTest;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.PreflightResponse;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
+@Log4j2
 public class FileSystemUploadSteps extends RestApplicationIntegrationTest {
 
     private final ObjectMapper objectMapper;
@@ -44,6 +48,33 @@ public class FileSystemUploadSteps extends RestApplicationIntegrationTest {
 
         String jsonBody = objectMapper.writeValueAsString(uploadItem);
         executeRestApiCall(HttpMethod.POST, url, header, jsonBody);
+    }
+
+    @Then("the response contains a entity with the path {string} that has the preflight response {string}")
+    public void theResponseContainsAEntityThatHasThePreflightResponse(String path, String preflightResponse) throws JsonProcessingException {
+        PreflightResponse response = Arrays.stream(PreflightResponse.values()).filter(preflight -> preflight.name().equals(preflightResponse))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Didnt't find Preflight Response with name: " + preflightResponse));
+
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            if (node.get("path").asText().equals(path)) {
+                boolean nameIsValidMatches = node.get("nameIsValid").asBoolean() == response.isNameIsValid();
+                boolean nameAlreadyInUseMatches = node.get("nameAlreadyInUse").asBoolean() == response.isNameAlreadyInUse();
+                boolean permissionIsSufficientMatches = node.get("permissionIsSufficient").asBoolean() == response.isPermissionIsSufficient();
+
+                if (nameIsValidMatches && nameAlreadyInUseMatches && permissionIsSufficientMatches) {
+                    found = true;
+                } else {
+                    log.debug("Found an entity with matching path but non matching values.");
+                }
+            }
+        }
+        Assertions.assertTrue(found);
     }
 
     @Then("the response contains a entity with the path {string} that has key {string} with value {string}")
