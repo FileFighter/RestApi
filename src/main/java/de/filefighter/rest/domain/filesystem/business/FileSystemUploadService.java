@@ -11,8 +11,14 @@ import de.filefighter.rest.domain.filesystem.data.dto.upload.PreflightResponse;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeUploadedException;
+import de.filefighter.rest.domain.filesystem.type.FileSystemType;
+import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.data.dto.User;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -21,17 +27,151 @@ import java.util.*;
 @Service
 public class FileSystemUploadService {
 
+
+    // TODO: make the whole stuff incasesensitive
+
     private final FileSystemRepository fileSystemRepository;
     private final FileSystemHelperService fileSystemHelperService;
     private final InputSanitizerService inputSanitizerService;
+    private final FileSystemTypeRepository fileSystemTypeRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, InputSanitizerService inputSanitizerService) {
+    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, InputSanitizerService inputSanitizerService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemHelperService = fileSystemHelperService;
         this.inputSanitizerService = inputSanitizerService;
+        this.fileSystemTypeRepository = fileSystemTypeRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public FileSystemItem uploadFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, User authenticatedUser) {
+        FileSystemEntity uploadParent = fileSystemRepository.findByFileSystemId(rootItemId);
+        if (null == uploadParent)
+            throw new FileSystemItemCouldNotBeUploadedException();
+
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(uploadParent, authenticatedUser, InteractionType.CHANGE)
+                || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(uploadParent, authenticatedUser, InteractionType.READ))
+            throw new FileSystemItemCouldNotBeUploadedException();
+
+        String[] paths = fileSystemHelperService.splitPathIntoEnitityPaths(fileSystemUpload.getPath(), uploadParent.getPath());
+
+        List<FileSystemEntity> entitiesToUpdate = new ArrayList<>();
+        List<FileSystemEntity> entitiesToCreate = new ArrayList<>();
+        FileSystemEntity latestEntity = uploadParent;
+        long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
+
+        //TODO: update size, timestamps, user
+
+        for (int i = 0; i < paths.length - 1; i++) {
+            String currentAbsolutePath = paths[i];
+            String currentEntityName = fileSystemHelperService.getEntityNameFromPath(currentAbsolutePath);
+            currentAbsolutePath = currentAbsolutePath.toLowerCase();
+
+            log.info("Checking folder path: {}", currentAbsolutePath);
+
+            // does it exist?
+            FileSystemEntity alreadyExistingFolder = fileSystemRepository.findByPathAndOwnerId(currentAbsolutePath, uploadParent.getOwnerId());
+            if (null == alreadyExistingFolder) {
+                // are you allowed to create it?
+                if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.CHANGE)
+                        || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.READ))
+                    throw new FileSystemItemCouldNotBeUploadedException();
+
+                // does a file with the same name already exist?
+                Long[] childrenIdsLong = fileSystemHelperService.transformlongArrayToLong(latestEntity.getItemIds());
+                List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), currentEntityName);
+                if (!alreadyExistingFilesWithSameName.isEmpty())
+                    throw new FileSystemItemCouldNotBeUploadedException("A File with the same name already exists when creating the new folder " + currentEntityName);
+
+                // create empty folder
+                // TODO fix the size
+                FileSystemEntity newFolder = FileSystemEntity.builder()
+                        .fileSystemId(fileSystemHelperService.generateNextFileSystemId())
+                        .isFile(false)
+                        .visibleForUserIds(latestEntity.getVisibleForUserIds())
+                        .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
+                        .editableFoGroupIds(latestEntity.getEditableFoGroupIds())
+                        .editableForUserIds(latestEntity.getEditableForUserIds())
+                        .ownerId(latestEntity.getOwnerId())
+                        .lastUpdatedBy(authenticatedUser.getUserId())
+                        .typeId(FileSystemType.FOLDER.getId())
+                        .path(currentAbsolutePath)
+                        .name(currentEntityName)
+                        .lastUpdated(fileSystemHelperService.getCurrentTimeStamp())
+                        .build();
+
+                // add latestEntityTo list and add current id to itemids array.
+                latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(latestEntity.getItemIds(), newFolder.getFileSystemId()));
+                entitiesToUpdate.add(latestEntity);
+
+                // set new folder entity as latest folder entity
+                latestEntity = newFolder;
+                entitiesToCreate.add(newFolder);
+            } else {
+                // are you allowed to merge it?
+                if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(alreadyExistingFolder, authenticatedUser, InteractionType.CHANGE)
+                        || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(alreadyExistingFolder, authenticatedUser, InteractionType.READ))
+                    throw new FileSystemItemCouldNotBeUploadedException();
+
+                // if yes add alreadyExistingFolder to latest Folder entity
+                entitiesToUpdate.add(latestEntity);
+                latestEntity = alreadyExistingFolder;
+            }
+        }
+        // here comes the file.
+        // are you allowed?
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.CHANGE)
+                || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.READ))
+            throw new FileSystemItemCouldNotBeUploadedException();
+
+        // check for existing file or folder
+        Long[] childrenIdsLong = fileSystemHelperService.transformlongArrayToLong(latestEntity.getItemIds());
+        List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), fileSystemUpload.getName());
+        if (alreadyExistingFilesWithSameName.size() > 1)
+            throw new FileFighterDataException("Found more than one entity with the same name in folder: " + latestEntity);
+
+        // if name already exists and is folder -> exception. if file delete old and save new.
+        if (!alreadyExistingFilesWithSameName.isEmpty()) {
+            if (alreadyExistingFilesWithSameName.get(0).getTypeId() == FileSystemType.FOLDER.getId()) {
+                throw new FileSystemItemCouldNotBeUploadedException("A Folder with the same name '" + fileSystemUpload.getName() + "' already exists.");
+            }
+            FileSystemEntity fileToOverwrite = alreadyExistingFilesWithSameName.get(0);
+            fileSystemHelperService.deleteAndUnbindFileSystemEntity(fileToOverwrite);
+        }
+
+        FileSystemEntity newFile = FileSystemEntity.builder()
+                .fileSystemId(fileSystemHelperService.generateNextFileSystemId())
+                .isFile(true)
+                .visibleForUserIds(latestEntity.getVisibleForUserIds())
+                .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
+                .editableFoGroupIds(latestEntity.getEditableFoGroupIds())
+                .editableForUserIds(latestEntity.getEditableForUserIds())
+                .ownerId(latestEntity.getOwnerId())
+                .lastUpdatedBy(authenticatedUser.getUserId())
+                .lastUpdated(timeStamp)
+                .typeId(fileSystemTypeRepository.parseMimeType(fileSystemUpload.getMimeType()).getId())
+                .name(fileSystemUpload.getName())
+                .size(fileSystemUpload.getSize())
+                .build();
+
+        // add latestEntityTo list and add current id to itemids array.
+        latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(latestEntity.getItemIds(), newFile.getFileSystemId()));
+        entitiesToUpdate.add(latestEntity);
+        entitiesToCreate.add(newFile);
+
+        // update
+        entitiesToUpdate.forEach(entity -> {
+            Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(entity.getFileSystemId()));
+            Update newUpdate = new Update();
+            newUpdate.set("lastUpdated", timeStamp);
+            newUpdate.set("lastUpdatedBy", authenticatedUser.getUserId());
+            newUpdate.set("itemIds", entity.getItemIds());
+            newUpdate.set("size", entity.getSize() + fileSystemUpload.getSize());
+            mongoTemplate.findAndModify(query, newUpdate, FileSystemEntity.class);
+        });
+        // create
+        fileSystemRepository.insert(entitiesToCreate);
+
         return null;
     }
 

@@ -330,6 +330,15 @@ public class FileSystemHelperService {
         return size;
     }
 
+    public long[] addLongToLongArray(long[] array, long newLong) {
+        long[] newArray = new long[array.length + 1];
+        for (int i = 0; i < array.length; i++) {
+            newArray[i] = array[i];
+        }
+        newArray[array.length] = newLong;
+        return newArray;
+    }
+
     public Long[] transformlongArrayToLong(long[] arrayToTransform) {
         Long[] longArgument = new Long[arrayToTransform.length];
         int i = 0;
