@@ -60,8 +60,6 @@ public class FileSystemUploadService {
         FileSystemEntity latestEntity = uploadParent;
         long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
 
-        //TODO: update size, timestamps, user
-
         for (int i = 0; i < paths.length - 1; i++) {
             String currentAbsolutePath = paths[i];
             String currentEntityName = fileSystemHelperService.getEntityNameFromPath(currentAbsolutePath);
@@ -84,7 +82,6 @@ public class FileSystemUploadService {
                     throw new FileSystemItemCouldNotBeUploadedException("A File with the same name already exists when creating the new folder " + currentEntityName);
 
                 // create empty folder
-                // TODO fix the size
                 FileSystemEntity newFolder = FileSystemEntity.builder()
                         .fileSystemId(fileSystemHelperService.generateNextFileSystemId())
                         .isFile(false)
@@ -171,6 +168,9 @@ public class FileSystemUploadService {
         });
         // create
         fileSystemRepository.insert(entitiesToCreate);
+
+        // update timestamp from parent upwards
+        fileSystemHelperService.recursivlyUpdateTimeStamps(uploadParent, authenticatedUser, timeStamp);
 
         return null;
     }
