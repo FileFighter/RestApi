@@ -28,7 +28,7 @@ import java.util.*;
 public class FileSystemUploadService {
 
 
-    // TODO: make the whole stuff incasesensitive
+    // TODO: make the whole stuff caseinsensitive
 
     private final FileSystemRepository fileSystemRepository;
     private final FileSystemHelperService fileSystemHelperService;
@@ -116,6 +116,8 @@ public class FileSystemUploadService {
             }
         }
         // here comes the file.
+        log.info("Checking file path: {} / {}", uploadParent.getPath(), fileSystemUpload.getPath());
+
         // are you allowed?
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.CHANGE)
                 || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.READ))
@@ -132,12 +134,14 @@ public class FileSystemUploadService {
             if (alreadyExistingFilesWithSameName.get(0).getTypeId() == FileSystemType.FOLDER.getId()) {
                 throw new FileSystemItemCouldNotBeUploadedException("A Folder with the same name '" + fileSystemUpload.getName() + "' already exists.");
             }
+            // TODO: Bug
             FileSystemEntity fileToOverwrite = alreadyExistingFilesWithSameName.get(0);
             fileSystemHelperService.deleteAndUnbindFileSystemEntity(fileToOverwrite);
         }
 
+        // TODO check if the ids really need to be depending on the db.
         FileSystemEntity newFile = FileSystemEntity.builder()
-                .fileSystemId(fileSystemHelperService.generateNextFileSystemId())
+                .fileSystemId(fileSystemHelperService.generateNextFileSystemId() + 1)
                 .isFile(true)
                 .visibleForUserIds(latestEntity.getVisibleForUserIds())
                 .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
@@ -156,7 +160,9 @@ public class FileSystemUploadService {
         entitiesToUpdate.add(latestEntity);
         entitiesToCreate.add(newFile);
 
-        // update
+        // TODO: size does not get updated up the tree
+
+        // update everything except the itemIds, because that is done above.
         entitiesToUpdate.forEach(entity -> {
             Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(entity.getFileSystemId()));
             Update newUpdate = new Update();

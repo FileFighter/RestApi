@@ -34,6 +34,7 @@ public class InputSanitizerService {
         return sanitizeString(path);
     }
 
+    // TODO assure that the path and name are valid
     public FileSystemUpload sanitizeUpload(FileSystemUpload fileSystemUpload) {
         fileSystemUpload.setPath(sanitizePath(fileSystemUpload.getPath()));
         fileSystemUpload.setName(sanitizeString(fileSystemUpload.getName()));
