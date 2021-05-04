@@ -93,4 +93,24 @@ public class FileSystemUploadSteps extends RestApplicationIntegrationTest {
         }
         Assertions.assertTrue(found);
     }
+
+    @When("the user with token {string} wants to upload a file with the name {string}, path {string}, mimeType {string} and size {double} to the folder with the id {long}")
+    public void theUserWithTokenWantsToUploadAFileWithTheNamePathMimeTypeAndSizeToTheFolderWithTheId(String accessToken, String name, String path, String mimetype, double size, long id) throws JsonProcessingException {
+        String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;
+        String url = BASE_API_URI + FS_BASE_URI + id + "/upload";
+
+        HashMap<String, String> header = new HashMap<>();
+        header.put("Authorization", authHeaderString);
+
+        ArrayList<FileSystemUpload> uploadItem = new ArrayList<>();
+        uploadItem.add(FileSystemUpload.builder()
+                .name(name)
+                .path(path)
+                .mimeType(mimetype)
+                .size(size)
+                .build());
+
+        String jsonBody = objectMapper.writeValueAsString(uploadItem);
+        executeRestApiCall(HttpMethod.POST, url, header, jsonBody);
+    }
 }
