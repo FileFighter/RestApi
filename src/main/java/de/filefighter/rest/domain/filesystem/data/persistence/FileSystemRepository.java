@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.filesystem.data.persistence;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public interface FileSystemRepository extends MongoRepository<FileSystemEntity, 
 
     Long deleteByFileSystemId(long fileSystemId);
 
+    @Query(collation =  "{ locale: 'en', strength: 2 }")
     List<FileSystemEntity> findAllByFileSystemIdInAndName(List<Long> fileSystemId, String name);
 }
 
