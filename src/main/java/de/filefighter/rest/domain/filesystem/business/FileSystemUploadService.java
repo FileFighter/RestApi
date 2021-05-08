@@ -134,7 +134,6 @@ public class FileSystemUploadService {
             if (alreadyExistingFilesWithSameName.get(0).getTypeId() == FileSystemType.FOLDER.getId()) {
                 throw new FileSystemItemCouldNotBeUploadedException("A Folder with the same name '" + fileSystemUpload.getName() + "' already exists.");
             }
-            // TODO: Bug
             FileSystemEntity fileToOverwrite = alreadyExistingFilesWithSameName.get(0);
             fileSystemHelperService.deleteAndUnbindFileSystemEntity(fileToOverwrite);
         }
@@ -156,7 +155,9 @@ public class FileSystemUploadService {
                 .build();
 
         // add latestEntityTo list and add current id to itemids array.
-        latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(latestEntity.getItemIds(), newFile.getFileSystemId()));
+        // this is so bad
+        long[] newIds = Arrays.stream(latestEntity.getItemIds()).filter(id -> id != alreadyExistingFilesWithSameName.get(0).getFileSystemId()).toArray();
+        latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(newIds, newFile.getFileSystemId()));
         entitiesToUpdate.add(latestEntity);
         entitiesToCreate.add(newFile);
 

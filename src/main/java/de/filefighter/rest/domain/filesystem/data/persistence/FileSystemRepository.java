@@ -18,7 +18,10 @@ public interface FileSystemRepository extends MongoRepository<FileSystemEntity, 
 
     Long deleteByFileSystemId(long fileSystemId);
 
-    @Query(collation =  "{ locale: 'en', strength: 2 }")
+    @Query(collation = "{ locale: 'en', strength: 2 }")
     List<FileSystemEntity> findAllByFileSystemIdInAndName(List<Long> fileSystemId, String name);
+
+    // this does work tho.
+    FileSystemEntity findByItemIdsContaining(long id);
 }
 
