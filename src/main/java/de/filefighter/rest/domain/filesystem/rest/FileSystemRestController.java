@@ -57,7 +57,7 @@ public class FileSystemRestController {
     }
 
     @PostMapping(FS_BASE_URI + "{fsItemId}/upload")
-    public ResponseEntity<FileSystemItem> uploadFileOrFolder(
+    public ResponseEntity<List<FileSystemItem>> uploadFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody FileSystemUpload fileSystemUpload,
             @RequestHeader(value = "Authorization") String accessToken) {

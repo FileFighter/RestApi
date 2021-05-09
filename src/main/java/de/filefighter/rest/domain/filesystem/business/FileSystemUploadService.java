@@ -13,6 +13,7 @@ import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemReposito
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeUploadedException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
+import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,16 +36,18 @@ public class FileSystemUploadService {
     private final InputSanitizerService inputSanitizerService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final MongoTemplate mongoTemplate;
+    private final UserBusinessService userBusinessService;
 
-    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, InputSanitizerService inputSanitizerService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate) {
+    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, InputSanitizerService inputSanitizerService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate, UserBusinessService userBusinessService) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemHelperService = fileSystemHelperService;
         this.inputSanitizerService = inputSanitizerService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
         this.mongoTemplate = mongoTemplate;
+        this.userBusinessService = userBusinessService;
     }
 
-    public FileSystemItem uploadFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, User authenticatedUser) {
+    public List<FileSystemItem> uploadFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, User authenticatedUser) {
         FileSystemEntity uploadParent = fileSystemRepository.findByFileSystemId(rootItemId);
         if (null == uploadParent)
             throw new FileSystemItemCouldNotBeUploadedException();
@@ -57,6 +60,9 @@ public class FileSystemUploadService {
 
         List<FileSystemEntity> entitiesToUpdate = new ArrayList<>();
         List<FileSystemEntity> entitiesToCreate = new ArrayList<>();
+
+        List<FileSystemItem> returnItems = new ArrayList<>();
+
         FileSystemEntity latestEntity = uploadParent;
         long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
 
@@ -104,6 +110,7 @@ public class FileSystemUploadService {
                 // set new folder entity as latest folder entity
                 latestEntity = newFolder;
                 entitiesToCreate.add(newFolder);
+                returnItems.add(fileSystemHelperService.createDTO(newFolder, authenticatedUser, currentAbsolutePath));
             } else {
                 // are you allowed to merge it?
                 if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(alreadyExistingFolder, authenticatedUser, InteractionType.CHANGE)
@@ -112,6 +119,7 @@ public class FileSystemUploadService {
 
                 // if yes add alreadyExistingFolder to latest Folder entity
                 entitiesToUpdate.add(latestEntity);
+                returnItems.add(fileSystemHelperService.createDTO(alreadyExistingFolder, authenticatedUser, currentAbsolutePath));
                 latestEntity = alreadyExistingFolder;
             }
         }
@@ -160,6 +168,8 @@ public class FileSystemUploadService {
         latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(newIds, newFile.getFileSystemId()));
         entitiesToUpdate.add(latestEntity);
         entitiesToCreate.add(newFile);
+        returnItems.add(fileSystemHelperService.createDTO(newFile, authenticatedUser, paths[paths.length - 1]));
+
 
         // TODO: size does not get updated up the tree
 
@@ -179,7 +189,7 @@ public class FileSystemUploadService {
         // update timestamp from parent upwards
         fileSystemHelperService.recursivlyUpdateTimeStamps(uploadParent, authenticatedUser, timeStamp);
 
-        return null;
+        return returnItems;
     }
 
     public List<FileSystemUploadPreflightResponse> preflightUploadFileSystemItem(long rootItemId, List<FileSystemUpload> uploads, User authenticatedUser) {

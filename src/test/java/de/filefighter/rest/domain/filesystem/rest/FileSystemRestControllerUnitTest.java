@@ -73,13 +73,16 @@ class FileSystemRestControllerUnitTest {
     void uploadFileOrFolder() {
         FileSystemItem file = FileSystemItem.builder().build();
         FileSystemUpload upload = FileSystemUpload.builder().build();
+        List<FileSystemItem> items = new ArrayList<>();
+        items.add(file);
+
         String token = "sometoken";
         long rootId = 123;
-        ResponseEntity<FileSystemItem> responseEntity = new ResponseEntity<>(file, OK);
+        ResponseEntity<List<FileSystemItem>> responseEntity = new ResponseEntity<>(items, OK);
 
         when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(rootId, upload, token)).thenReturn(responseEntity);
 
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(rootId, upload, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.uploadFileOrFolder(rootId, upload, token);
         assertEquals(responseEntity, actualModel);
     }
 
