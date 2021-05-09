@@ -164,8 +164,9 @@ class FileSystemBusinessServiceUnitTest {
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
         entities.add(fileSystemEntity);
 
+        String itemName = "baum.txt";
         ArrayList<FileSystemEntity> children = new ArrayList<>();
-        FileSystemEntity child = FileSystemEntity.builder().build();
+        FileSystemEntity child = FileSystemEntity.builder().name(itemName).build();
         FileSystemItem childItem = FileSystemItem.builder().build();
         children.add(child);
 
@@ -174,7 +175,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemRepositoryMock.findByPath(path)).thenReturn(entities);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, InteractionType.READ)).thenReturn(true);
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(fileSystemEntity, user, true, false)).thenReturn(children);
-        when(fileSystemHelperServiceMock.createDTO(child, user, requestingPath + path)).thenReturn(childItem);
+        when(fileSystemHelperServiceMock.createDTO(child, user, requestingPath + path + itemName)).thenReturn(childItem);
 
         ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(requestingPath, user);
         assertEquals(1, fileSystemItems.size());

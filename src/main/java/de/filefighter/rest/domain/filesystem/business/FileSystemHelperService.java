@@ -200,7 +200,7 @@ public class FileSystemHelperService {
 
         if (absolutePathWithUsername != null) {
             if (absolutePathWithUsername.equals("/")) {
-                absolutePathWithUsername = absolutePathWithUsername + ownerOfFileSystemItem.getUsername(); // this is only for the case of the path = "/"
+                absolutePathWithUsername = (absolutePathWithUsername + ownerOfFileSystemItem.getUsername()).toLowerCase(); // this is only for the case of the path = "/"
                 entityName = ownerOfFileSystemItem.getUsername();
             } else {
                 absolutePathWithUsername = this.removeTrailingBackSlashes(absolutePathWithUsername).toLowerCase();

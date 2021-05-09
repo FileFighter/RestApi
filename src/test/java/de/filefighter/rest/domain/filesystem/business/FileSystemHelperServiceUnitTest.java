@@ -234,7 +234,7 @@ class FileSystemHelperServiceUnitTest {
         when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
 
-        FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath);
+        FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath + name);
 
         assertEquals(createdByUserId, actual.getLastUpdatedBy().getUserId());
         assertEquals(fileSystemId, actual.getFileSystemId());
@@ -242,7 +242,7 @@ class FileSystemHelperServiceUnitTest {
         assertEquals(name, actual.getName());
         assertEquals(size, actual.getSize());
         assertEquals(FileSystemType.UNDEFINED, actual.getType());
-        assertEquals(basePath + name, actual.getPath());
+        assertEquals((basePath + name).toLowerCase(), actual.getPath());
         assertTrue(actual.isShared());
     }
 
