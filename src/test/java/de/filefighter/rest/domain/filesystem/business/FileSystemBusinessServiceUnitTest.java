@@ -177,6 +177,7 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(fileSystemEntity, user, true, false)).thenReturn(children);
         when(fileSystemHelperServiceMock.createDTO(child, user, requestingPath + path + itemName)).thenReturn(childItem);
 
+        System.out.println(requestingPath + path + itemName);
         ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(requestingPath, user);
         assertEquals(1, fileSystemItems.size());
         assertEquals(fileSystemItem, fileSystemItems.get(0));

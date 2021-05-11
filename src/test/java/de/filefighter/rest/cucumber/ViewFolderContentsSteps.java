@@ -126,5 +126,22 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
         Assertions.assertTrue(found);
     }
 
+    @And("the response contains the item with path {string} and name {string} and mimeType {string} and type {string} and size {double}")
+    public void theResponseContainsTheFileWithPathAndNameAndMimeTypeAndTypeAndSize(String path, String name, String mimeType, String enumType, double size) throws JsonProcessingException {
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
 
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            if ((node.get("name").asText().equals(name) &&
+                    node.get("path").asText().equals(path) &&
+                    node.get("mimeType").asText().equals(mimeType) &&
+                    node.get("type").asText().equals(enumType) &&
+                    node.get("size").asDouble() == size)) {
+                found = true;
+            }
+        }
+        Assertions.assertTrue(found);
+    }
 }

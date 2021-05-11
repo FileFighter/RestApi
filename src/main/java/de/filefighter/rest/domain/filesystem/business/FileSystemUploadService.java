@@ -15,6 +15,7 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
+import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -55,6 +56,17 @@ public class FileSystemUploadService {
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(uploadParent, authenticatedUser, InteractionType.CHANGE)
                 || !fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(uploadParent, authenticatedUser, InteractionType.READ))
             throw new FileSystemItemCouldNotBeUploadedException();
+
+        if (uploadParent.isFile() || uploadParent.getTypeId() != FileSystemType.FOLDER.getId())
+            throw new FileSystemItemCouldNotBeUploadedException("Tried uploading to a file. Upload to a folder instead.");
+
+        // get owner
+        User ownerOfParent;
+        try {
+            ownerOfParent = userBusinessService.getUserById(uploadParent.getOwnerId());
+        } catch (UserNotFoundException exception) {
+            throw new FileFighterDataException("Owner of upload parent entity could not be found.");
+        }
 
         String[] paths = fileSystemHelperService.splitPathIntoEnitityPaths(fileSystemUpload.getPath(), uploadParent.getPath());
 
@@ -110,7 +122,7 @@ public class FileSystemUploadService {
                 // set new folder entity as latest folder entity
                 latestEntity = newFolder;
                 entitiesToCreate.add(newFolder);
-                returnItems.add(fileSystemHelperService.createDTO(newFolder, authenticatedUser, currentAbsolutePath));
+                returnItems.add(fileSystemHelperService.createDTO(newFolder, authenticatedUser, "/" + ownerOfParent.getUsername() + currentAbsolutePath));
             } else {
                 // are you allowed to merge it?
                 if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(alreadyExistingFolder, authenticatedUser, InteractionType.CHANGE)
@@ -119,7 +131,7 @@ public class FileSystemUploadService {
 
                 // if yes add alreadyExistingFolder to latest Folder entity
                 entitiesToUpdate.add(latestEntity);
-                returnItems.add(fileSystemHelperService.createDTO(alreadyExistingFolder, authenticatedUser, currentAbsolutePath));
+                returnItems.add(fileSystemHelperService.createDTO(alreadyExistingFolder, authenticatedUser, "/" + ownerOfParent.getUsername() + currentAbsolutePath));
                 latestEntity = alreadyExistingFolder;
             }
         }
@@ -163,12 +175,15 @@ public class FileSystemUploadService {
                 .build();
 
         // add latestEntityTo list and add current id to itemids array.
-        // this is so bad
-        long[] newIds = Arrays.stream(latestEntity.getItemIds()).filter(id -> id != alreadyExistingFilesWithSameName.get(0).getFileSystemId()).toArray();
+        // if the file was overwritten then remove the id from parent.
+        long[] newIds = latestEntity.getItemIds();
+        if (!alreadyExistingFilesWithSameName.isEmpty()) {
+            newIds = Arrays.stream(latestEntity.getItemIds()).filter(id -> id != alreadyExistingFilesWithSameName.get(0).getFileSystemId()).toArray();
+        }
         latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(newIds, newFile.getFileSystemId()));
         entitiesToUpdate.add(latestEntity);
         entitiesToCreate.add(newFile);
-        returnItems.add(fileSystemHelperService.createDTO(newFile, authenticatedUser, paths[paths.length - 1]));
+        returnItems.add(fileSystemHelperService.createDTO(newFile, authenticatedUser, "/" + ownerOfParent.getUsername() + paths[paths.length - 1]));
 
 
         // TODO: size does not get updated up the tree

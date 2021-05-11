@@ -112,7 +112,12 @@ public class FileSystemBusinessService {
                     fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, true, false);
 
             for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
-                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind + fileSystemEntityInFolder.getName()));
+                String absolutePathToEntity = "/" + ownerOfRequestedFolder.getUsername() + pathToFind;
+                if (!pathToFind.equals("/")) {
+                    absolutePathToEntity = absolutePathToEntity + "/";
+                }
+                absolutePathToEntity = absolutePathToEntity + fileSystemEntityInFolder.getName();
+                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, absolutePathToEntity));
             }
 
             return fileSystemItems;

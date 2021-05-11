@@ -102,15 +102,13 @@ public class FileSystemUploadSteps extends RestApplicationIntegrationTest {
         HashMap<String, String> header = new HashMap<>();
         header.put("Authorization", authHeaderString);
 
-        ArrayList<FileSystemUpload> uploadItem = new ArrayList<>();
-        uploadItem.add(FileSystemUpload.builder()
+        String jsonBody = objectMapper.writeValueAsString(FileSystemUpload.builder()
                 .name(name)
                 .path(path)
                 .mimeType(mimetype)
                 .size(size)
                 .build());
 
-        String jsonBody = objectMapper.writeValueAsString(uploadItem);
         executeRestApiCall(HttpMethod.POST, url, header, jsonBody);
     }
 }
