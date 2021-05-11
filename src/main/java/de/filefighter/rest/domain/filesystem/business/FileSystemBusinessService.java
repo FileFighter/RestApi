@@ -45,6 +45,9 @@ public class FileSystemBusinessService {
         String pathToFind;
         User ownerOfRequestedFolder = null;
 
+        // make path case insensitive
+        path = path.toLowerCase();
+
         if (path.equals("/")) {
             pathToFind = "/";
         } else {

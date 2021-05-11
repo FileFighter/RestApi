@@ -213,7 +213,6 @@
                                     </includes>
                                     <excludes>
                                         <!-- NOT IMPLEMENTED YET -->
-                                        <exclude>*FileSystemRestService</exclude>
                                         <exclude>*PermissionRestService</exclude>
                                     </excludes>
                                     <limits>
