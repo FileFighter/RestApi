@@ -57,7 +57,7 @@ public class FileSystemBusinessService {
             // the first path must be the the username.
             try {
                 ownerOfRequestedFolder = userBusinessService.findUserByUsername(pathWithoutSlashes[1]);
-                String[] fileSystemPath = path.split(ownerOfRequestedFolder.getUsername());
+                String[] fileSystemPath = path.split(ownerOfRequestedFolder.getUsername().toLowerCase());
                 if (fileSystemPath.length == 1) {
                     if (!fileSystemPath[0].equals("/"))
                         throw new FileSystemContentsNotAccessibleException();
