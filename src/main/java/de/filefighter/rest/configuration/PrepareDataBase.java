@@ -45,7 +45,7 @@ public class PrepareDataBase {
     String date;
 
     @Bean
-    @Profile({"dev", "prod, stage", "debug"})
+    @Profile({"dev", "prod", "stage", "debug"})
     @Autowired
     CommandLineRunner veryImportantFileFighterStartScript(Environment environment) {
         return args -> {
@@ -61,7 +61,7 @@ public class PrepareDataBase {
             System.out.println();
             System.out.println("Version v" + version + ", Last updated at: " + date + "");
             System.out.println("Environment: " + Arrays.toString(environment.getActiveProfiles()));
-            System.out.println("Started: " + new Date().toString());
+            System.out.println("Started: " + new Date());
             System.out.println("Running on http://localhost:" + serverPort);
             System.out.println();
             System.out.println("Developed by Gimleux, Valentin, Open-Schnick.");

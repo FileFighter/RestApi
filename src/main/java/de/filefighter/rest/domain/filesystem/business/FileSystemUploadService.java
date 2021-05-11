@@ -160,7 +160,7 @@ public class FileSystemUploadService {
 
         // TODO check if the ids really need to be depending on the db.
         FileSystemEntity newFile = FileSystemEntity.builder()
-                .fileSystemId(fileSystemHelperService.generateNextFileSystemId() + 1)
+                .fileSystemId(fileSystemHelperService.generateNextFileSystemId() + 1) // why  plus 1?
                 .isFile(true)
                 .visibleForUserIds(latestEntity.getVisibleForUserIds())
                 .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
@@ -169,6 +169,7 @@ public class FileSystemUploadService {
                 .ownerId(latestEntity.getOwnerId())
                 .lastUpdatedBy(authenticatedUser.getUserId())
                 .lastUpdated(timeStamp)
+                .mimeType(fileSystemUpload.getMimeType())
                 .typeId(fileSystemTypeRepository.parseMimeType(fileSystemUpload.getMimeType()).getId())
                 .name(fileSystemUpload.getName())
                 .size(fileSystemUpload.getSize())

@@ -37,7 +37,7 @@ Feature: Upload Files
     And user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 72
     When the user with token "420" wants to upload a file with the name "eggs.food", path "eggs.food", mimeType "text/html" and size 123 to the folder with the id 42
     Then response status code is 201
-    And the response contains the item with path "/Richard/gebäude/eggs.food" and name "eggs.food" and mimeType "text/html" and type "TEXT" and size 123
+    And the response contains the item with path "/richard/gebäude/eggs.food" and name "eggs.food" and mimeType "text/html" and type "TEXT" and size 123
     When user with token "420" wants to see the content of folder with path "/Richard/gebäude"
     Then the response contains the file with name "eggs.food"
     Then the response contains the file with fileSystemId 72 and name "Bergfried.avi"
@@ -58,7 +58,7 @@ Feature: Upload Files
   Scenario: Successful interaction, upload of file in folder
     When the user with token "9000000" wants to upload a file with the name "NaDasIstJaGesternNichtSoGutGelaufen.mp3", path "kiSounds/NaDasIstJaGesternNichtSoGutGelaufen.mp3", mimeType "audio/mpeg" and size 99989 to the folder with the id 1234
     Then response status code is 201
-    And the response contains the item with path "/Richard/kiSounds/NaDasIstJaGesternNichtSoGutGelaufen.mp3" and name "NaDasIstJaGesternNichtSoGutGelaufen.mp3" and mimeType "audio/mpeg" and type "AUDIO" and size 99989
+    And the response contains the item with path "/richard/kisounds/nadasistjagesternnichtsogutgelaufen.mp3" and name "NaDasIstJaGesternNichtSoGutGelaufen.mp3" and mimeType "audio/mpeg" and type "AUDIO" and size 99989
     When user with token "9000000" wants to see the content of folder with path "/Richard"
     Then the response contains the folder with name "kiSounds"
     When user with token "9000000" wants to see the content of folder with path "/Richard/kiSounds"

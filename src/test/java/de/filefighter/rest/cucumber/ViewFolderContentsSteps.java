@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
 
+@Log4j2
 public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
 
     private final ObjectMapper objectMapper;
@@ -134,11 +136,22 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
 
         boolean found = false;
         for (JsonNode node : rootNode) {
-            if ((node.get("name").asText().equals(name) &&
-                    node.get("path").asText().equals(path) &&
-                    node.get("mimeType").asText().equals(mimeType) &&
-                    node.get("type").asText().equals(enumType) &&
-                    node.get("size").asDouble() == size)) {
+            String jName = node.get("name").asText();
+            String jPath = node.get("path").asText();
+            String jMimeType = node.get("mimeType").asText();
+            String jType = node.get("type").asText();
+            double jSize = node.get("size").asDouble();
+            log.debug("Check {} : {}", jName, name);
+            log.debug("Check {} : {}", jPath, path);
+            log.debug("Check {} : {}", jMimeType, mimeType);
+            log.debug("Check {} : {}", jType, enumType);
+            log.debug("Check {} : {}", jSize, size);
+
+            if ((jName.equals(name) &&
+                    jPath.equals(path) &&
+                    jMimeType.equals(mimeType) &&
+                    jType.equals(enumType) &&
+                    jSize == size)) {
                 found = true;
             }
         }
