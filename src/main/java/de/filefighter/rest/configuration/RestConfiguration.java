@@ -8,11 +8,12 @@ public class RestConfiguration {
     public static final String AUTHORIZATION_BEARER_PREFIX = "Bearer ";
     public static final String FS_BASE_URI = "/filesystem/";
     public static final String FS_PATH_HEADER = "X-FF-PATH";
+    public static final String FS_CURRENT_ID_HEADER = "X-FF-CURRENT";
     public static final String USER_BASE_URI = "/users/";
     public static final String DEFAULT_ERROR_URI = "/error";
     public static final long RUNTIME_USER_ID = 0;
 
-    private RestConfiguration(){
+    private RestConfiguration() {
         // Cannot be instantiated.
     }
 }

@@ -28,16 +28,16 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void getContentsOfFolder() {
-        ArrayList<FileSystemItem> itemArrayList = new ArrayList<>();
+        List<FileSystemItem> itemArrayList = new ArrayList<>();
         itemArrayList.add(FileSystemItem.builder().build());
 
-        ResponseEntity<ArrayList<FileSystemItem>> expectedModel = new ResponseEntity<>(itemArrayList, HttpStatus.OK);
+        ResponseEntity<List<FileSystemItem>> expectedModel = new ResponseEntity<>(itemArrayList, HttpStatus.OK);
         String path = "/username/data.txt";
         String token = "token";
 
         when(fileSystemRestServiceMock.getContentsOfFolderByPathAndAccessToken(path, token)).thenReturn(expectedModel);
 
-        ResponseEntity<ArrayList<FileSystemItem>> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
         assertEquals(itemArrayList, actualModel.getBody());
     }
 

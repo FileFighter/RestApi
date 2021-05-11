@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
 import de.filefighter.rest.configuration.RestConfiguration;
+import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -147,9 +148,13 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(fileSystemEntity, user, InteractionType.READ)).thenReturn(true);
         when(fileSystemHelperServiceMock.createDTO(fileSystemEntity, user, path)).thenReturn(fileSystemItem);
 
-        ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(path, user);
+        Pair<List<FileSystemItem>, Long> result = fileSystemBusinessService.getFolderContentsByPath(path, user);
+        List<FileSystemItem> fileSystemItems = result.getFirst();
+        long currentId = result.getSecond();
+
         assertEquals(1, fileSystemItems.size());
         assertEquals(fileSystemItem, fileSystemItems.get(0));
+        assertEquals(-1, currentId);
     }
 
     @Test
@@ -157,9 +162,10 @@ class FileSystemBusinessServiceUnitTest {
         String ownerName = "foobar";
         String path = "/";
         String requestingPath = path + ownerName;
+        long fileSystemId = 12345;
         long userId = 420;
         User user = User.builder().userId(userId).username(ownerName).build();
-        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().path("/").ownerId(userId).lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).isFile(false).lastUpdatedBy(userId).typeId(FOLDER.getId()).build();
+        FileSystemEntity fileSystemEntity = FileSystemEntity.builder().fileSystemId(fileSystemId).path("/").ownerId(userId).lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID).isFile(false).lastUpdatedBy(userId).typeId(FOLDER.getId()).build();
         FileSystemItem fileSystemItem = FileSystemItem.builder().build();
         ArrayList<FileSystemEntity> entities = new ArrayList<>();
         entities.add(fileSystemEntity);
@@ -177,10 +183,13 @@ class FileSystemBusinessServiceUnitTest {
         when(fileSystemHelperServiceMock.getFolderContentsOfEntityAndPermissions(fileSystemEntity, user, true, false)).thenReturn(children);
         when(fileSystemHelperServiceMock.createDTO(child, user, requestingPath + path + itemName)).thenReturn(childItem);
 
-        System.out.println(requestingPath + path + itemName);
-        ArrayList<FileSystemItem> fileSystemItems = (ArrayList<FileSystemItem>) fileSystemBusinessService.getFolderContentsByPath(requestingPath, user);
+        Pair<List<FileSystemItem>, Long> result = fileSystemBusinessService.getFolderContentsByPath(requestingPath, user);
+        List<FileSystemItem> fileSystemItems = result.getFirst();
+        long currentId = result.getSecond();
+
         assertEquals(1, fileSystemItems.size());
         assertEquals(fileSystemItem, fileSystemItems.get(0));
+        assertEquals(fileSystemId, currentId);
     }
 
     @Test

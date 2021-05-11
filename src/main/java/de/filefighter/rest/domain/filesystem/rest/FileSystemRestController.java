@@ -9,7 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -27,7 +26,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "contents")
-    public ResponseEntity<ArrayList<FileSystemItem>> getContentsOfFolder(
+    public ResponseEntity<List<FileSystemItem>> getContentsOfFolder(
             @RequestHeader(value = FS_PATH_HEADER, defaultValue = "/") String path,
             @RequestHeader(value = "Authorization") String accessToken
     ) {
