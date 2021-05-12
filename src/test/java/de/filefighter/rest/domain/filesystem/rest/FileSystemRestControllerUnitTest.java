@@ -3,6 +3,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,21 @@ class FileSystemRestControllerUnitTest {
 
         ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.searchFileOrFolderByName(name, token);
         assertEquals(expectedModel, actualModel);
+    }
+
+    @Test
+    void preflightUpload() {
+        List<FileSystemUpload> uploads = new ArrayList<>();
+        List<FileSystemUploadPreflightResponse> responses = new ArrayList<>();
+        long id = 1234;
+        String token = "asdhalskd";
+
+        ResponseEntity<List<FileSystemUploadPreflightResponse>> responseEntity = new ResponseEntity<>(responses, OK);
+        when(fileSystemRestServiceMock.preflightUploadOfFileSystemItem(id, uploads, token)).thenReturn(responseEntity);
+
+        ResponseEntity<List<FileSystemUploadPreflightResponse>> actualEntity = fileSystemRestController.preflightUploadFileOrFolder(id, uploads, token);
+
+        assertEquals(responseEntity, actualEntity);
     }
 
     @Test
