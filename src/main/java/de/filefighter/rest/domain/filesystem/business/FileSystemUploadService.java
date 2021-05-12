@@ -29,7 +29,6 @@ import java.util.*;
 @Service
 public class FileSystemUploadService {
 
-
     // TODO: make the whole stuff caseinsensitive
 
     private final FileSystemRepository fileSystemRepository;
@@ -68,7 +67,8 @@ public class FileSystemUploadService {
             throw new FileFighterDataException("Owner of upload parent entity could not be found.");
         }
 
-        String[] paths = fileSystemHelperService.splitPathIntoEnitityPaths(fileSystemUpload.getPath(), uploadParent.getPath());
+        // TODO: the thing is that folders that get uploaded will only have lowercase names.
+        String[] paths = fileSystemHelperService.splitPathIntoEnitityPaths(fileSystemUpload.getPath().toLowerCase(), uploadParent.getPath().toLowerCase());
 
         List<FileSystemEntity> entitiesToUpdate = new ArrayList<>();
         List<FileSystemEntity> entitiesToCreate = new ArrayList<>();
@@ -83,7 +83,7 @@ public class FileSystemUploadService {
             String currentEntityName = fileSystemHelperService.getEntityNameFromPath(currentAbsolutePath);
             currentAbsolutePath = currentAbsolutePath.toLowerCase();
 
-            log.info("Checking folder path: {}", currentAbsolutePath);
+            log.debug("Checking folder path: {}", currentAbsolutePath);
 
             // does it exist?
             FileSystemEntity alreadyExistingFolder = fileSystemRepository.findByPathAndOwnerId(currentAbsolutePath, uploadParent.getOwnerId());
@@ -136,7 +136,7 @@ public class FileSystemUploadService {
             }
         }
         // here comes the file.
-        log.info("Checking file path: {} / {}", uploadParent.getPath(), fileSystemUpload.getPath());
+        log.debug("Checking file path: {} / {}", uploadParent.getPath().toLowerCase(), fileSystemUpload.getPath().toLowerCase());
 
         // are you allowed?
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(latestEntity, authenticatedUser, InteractionType.CHANGE)

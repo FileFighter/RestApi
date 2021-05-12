@@ -332,9 +332,7 @@ public class FileSystemHelperService {
 
     public long[] addLongToLongArray(long[] array, long newLong) {
         long[] newArray = new long[array.length + 1];
-        for (int i = 0; i < array.length; i++) {
-            newArray[i] = array[i];
-        }
+        System.arraycopy(array, 0, newArray, 0, array.length);
         newArray[array.length] = newLong;
         return newArray;
     }

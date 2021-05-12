@@ -121,9 +121,14 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
 
         boolean found = false;
         for (JsonNode node : rootNode) {
-            if (node.get("name").asText().equals(name) &&
-                    node.get("type").asText().equals("FOLDER"))
+            String jName = node.get("name").asText();
+            String jType = node.get("type").asText();
+            log.debug("Check {} : {}", jType, "FOLDER");
+            log.debug("Check {} : {}", jName, name);
+
+            if (jName.equals(name) && jType.equals("FOLDER")) {
                 found = true;
+            }
         }
         Assertions.assertTrue(found);
     }
@@ -152,6 +157,26 @@ public class ViewFolderContentsSteps extends RestApplicationIntegrationTest {
                     jMimeType.equals(mimeType) &&
                     jType.equals(enumType) &&
                     jSize == size)) {
+                found = true;
+            }
+        }
+        Assertions.assertTrue(found);
+    }
+
+    @And("the response contains the file with name {string} and size {double}")
+    public void theResponseContainsTheFileWithNameAndSize(String name, double size) throws JsonProcessingException {
+        ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
+        if (!rootNode.isContainerNode() || rootNode.isEmpty())
+            throw new AssertionError("Response was not an Array or empty.");
+
+        boolean found = false;
+        for (JsonNode node : rootNode) {
+            String jName = node.get("name").asText();
+            double jSize = node.get("size").asDouble();
+            log.debug("Check {} : {}", jSize, size);
+            log.debug("Check {} : {}", jName, name);
+
+            if (jName.equals(name) && jSize == size) {
                 found = true;
             }
         }
