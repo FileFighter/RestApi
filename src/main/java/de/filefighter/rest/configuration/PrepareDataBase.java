@@ -180,6 +180,38 @@ public class PrepareDataBase {
         };
     }
 
+    private void addDevUsers(UserRepository userRepository) {
+        log.info("Inserting system runtime user. {}", userRepository.save(UserEntity
+                .builder()
+                .userId(RUNTIME_USER_ID)
+                .username("FileFighter")
+                .lowercaseUsername("filefighter")
+                .password(null)
+                .refreshToken(null)
+                .groupIds(new long[]{SYSTEM.getGroupId()})
+                .build()));
+
+        log.info("Inserting default users: {} {}.",
+                userRepository.save(UserEntity
+                        .builder()
+                        .userId(1)
+                        .username("user")
+                        .lowercaseUsername("user")
+                        .password("1234")
+                        .refreshToken("rft1234")
+                        .groupIds(new long[]{ADMIN.getGroupId()})
+                        .build()),
+                userRepository.save(UserEntity
+                        .builder()
+                        .userId(2)
+                        .username("user1")
+                        .lowercaseUsername("user1")
+                        .password("12345")
+                        .refreshToken("rft")
+                        .groupIds(new long[]{FAMILY.getGroupId()})
+                        .build()));
+    }
+
     private void addDefaultAdminAndRuntimeUser(UserRepository userRepository) {
         log.info("Database seems to be empty. Creating new default entities...");
         log.info("Inserting system runtime user: {}", userRepository.save(UserEntity
