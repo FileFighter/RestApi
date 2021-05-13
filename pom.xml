@@ -10,7 +10,7 @@
     </parent>
     <groupId>de.filefighter</groupId>
     <artifactId>rest</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <name>RestApi</name>
     <description>RestApi for FileFighter</description>
 
@@ -122,6 +122,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>2.4.4</version>
+        </dependency>
         <!-- TESTING -->
 
     </dependencies>
@@ -208,14 +213,14 @@
                                     </includes>
                                     <excludes>
                                         <!-- NOT IMPLEMENTED YET -->
-                                        <exclude>*FileSystemRestService</exclude>
                                         <exclude>*PermissionRestService</exclude>
+                                        <exclude>*FileSystemRestService</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>95%</minimum>
+                                            <minimum>85%</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

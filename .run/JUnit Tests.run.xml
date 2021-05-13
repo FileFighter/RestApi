@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run Unit Tests" type="JUnit" factoryName="JUnit">
+    <module name="RestApi"/>
     <useClassPathOnly />
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <option name="PACKAGE_NAME" value="" />

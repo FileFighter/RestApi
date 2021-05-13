@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
 import static de.filefighter.rest.configuration.RestConfiguration.RUNTIME_USER_ID;
 import static de.filefighter.rest.domain.user.group.Group.SYSTEM;
@@ -249,5 +250,20 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         long actualUserId = userNode.get("userId").asLong();
 
         assertEquals(userId, actualUserId);
+    }
+
+    @And("the response has a header {string} set with the value {string}")
+    public void theResponseHasAHeaderSetWithTheValue(String headerName, String value) {
+        List<String> headers = latestResponse.getHeaders().get(headerName);
+        if (null == headers || headers.isEmpty())
+            throw new AssertionError("Headers were empty");
+
+        boolean found = false;
+        for (String valueToTest : headers) {
+            if (valueToTest.equals(value)) {
+                found = true;
+            }
+        }
+        assertTrue(found);
     }
 }

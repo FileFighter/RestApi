@@ -234,7 +234,7 @@ class FileSystemHelperServiceUnitTest {
         when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
 
-        FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath);
+        FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath + name);
 
         assertEquals(createdByUserId, actual.getLastUpdatedBy().getUserId());
         assertEquals(fileSystemId, actual.getFileSystemId());
@@ -242,7 +242,7 @@ class FileSystemHelperServiceUnitTest {
         assertEquals(name, actual.getName());
         assertEquals(size, actual.getSize());
         assertEquals(FileSystemType.UNDEFINED, actual.getType());
-        assertEquals(basePath + name, actual.getPath());
+        assertEquals((basePath + name).toLowerCase(), actual.getPath());
         assertTrue(actual.isShared());
     }
 
@@ -310,6 +310,15 @@ class FileSystemHelperServiceUnitTest {
         verify(mongoTemplateMock, times(1)).findAndModify(queryArgumentCaptor.capture(), updateArgumentCaptor.capture(), eq(FileSystemEntity.class));
         assertEquals("Query: { \"fileSystemId\" : " + fsItemId + "}, Fields: {}, Sort: {}", queryArgumentCaptor.getValue().toString());
         assertEquals("{ \"$set\" : { \"visibleForUserIds\" : [ " + otherUserId + " ], \"visibleForGroupIds\" : [ " + otherGroupId + " ] } }", updateArgumentCaptor.getValue().toString());
+    }
+
+    @Test
+    void getParentPathFromPathWorks() {
+        String path = "/baum/foo/bar/var/schmutz";
+        assertEquals("/baum/foo/bar/var", fileSystemHelperService.getParentPathFromPath(path));
+
+        path = "/baum";
+        assertEquals("/", fileSystemHelperService.getParentPathFromPath(path));
     }
 
     @Test

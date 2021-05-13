@@ -45,7 +45,7 @@ public class PrepareDataBase {
     String date;
 
     @Bean
-    @Profile({"dev", "prod, stage", "debug"})
+    @Profile({"dev", "prod", "stage", "debug"})
     @Autowired
     CommandLineRunner veryImportantFileFighterStartScript(Environment environment) {
         return args -> {
@@ -74,7 +74,7 @@ public class PrepareDataBase {
     }
 
     @Bean
-    @Profile("prod")
+    @Profile({"prod", "stage"})
     CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
         return args -> {
             ArrayList<UserEntity> foundUsers = (ArrayList<UserEntity>) userRepository.findAll();
@@ -101,7 +101,8 @@ public class PrepareDataBase {
                         fileSystemRepository.save(FileSystemEntity.builder()
                                 .lastUpdatedBy(RUNTIME_USER_ID)
                                 .lastUpdated(Instant.now().getEpochSecond())
-                                .ownerId(1).fileSystemId(1)
+                                .ownerId(1)
+                                .fileSystemId(1)
                                 .isFile(true)
                                 .name("dummyFile.txt")
                                 .size(420)
@@ -175,38 +176,6 @@ public class PrepareDataBase {
                 log.info("Inserting AccessToken " + MESSAGE_ON_SUCCESS);
             } else {
                 log.error("Inserting AccessToken " + MESSAGE_ON_FAILURE);
-            }
-        };
-    }
-
-    @Bean
-    @Profile("stage")
-    CommandLineRunner initDataBaseStage(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
-        return args -> {
-            ArrayList<UserEntity> foundUsers = (ArrayList<UserEntity>) userRepository.findAll();
-            ArrayList<UserEntity> foundFileSystemEntities = (ArrayList<UserEntity>) userRepository.findAll();
-            accessTokenRepository.deleteAll(); // Cleanup purposes.
-
-            if (foundUsers.isEmpty() && foundFileSystemEntities.isEmpty()) {
-                addDevUsers(userRepository);
-                addTestingFileSystemItems(fileSystemRepository);
-
-                if (userRepository.findAll().size() == 2) {
-                    log.info("Inserting Users " + MESSAGE_ON_SUCCESS);
-                } else {
-                    log.error("Inserting Users " + MESSAGE_ON_FAILURE);
-                }
-
-                if (fileSystemRepository.findAll().size() == 6) {
-                    log.info("Inserting FileSystemEntities " + MESSAGE_ON_SUCCESS);
-                } else {
-                    log.error("Inserting FileSystemEntities " + MESSAGE_ON_FAILURE);
-                }
-            } else if (foundUsers.isEmpty() ^ foundFileSystemEntities.isEmpty()) {
-                // Exclusive "or".
-                throw new FileFighterDataException("The Database failed the sanity check, contact the developers or reinstall FileFighter.");
-            } else {
-                log.info("Checked Database, found Entities, didn't change anything.");
             }
         };
     }

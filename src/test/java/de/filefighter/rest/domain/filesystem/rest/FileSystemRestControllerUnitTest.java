@@ -2,6 +2,8 @@ package de.filefighter.rest.domain.filesystem.rest;
 
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -27,16 +29,16 @@ class FileSystemRestControllerUnitTest {
 
     @Test
     void getContentsOfFolder() {
-        ArrayList<FileSystemItem> itemArrayList = new ArrayList<>();
+        List<FileSystemItem> itemArrayList = new ArrayList<>();
         itemArrayList.add(FileSystemItem.builder().build());
 
-        ResponseEntity<ArrayList<FileSystemItem>> expectedModel = new ResponseEntity<>(itemArrayList, HttpStatus.OK);
+        ResponseEntity<List<FileSystemItem>> expectedModel = new ResponseEntity<>(itemArrayList, HttpStatus.OK);
         String path = "/username/data.txt";
         String token = "token";
 
         when(fileSystemRestServiceMock.getContentsOfFolderByPathAndAccessToken(path, token)).thenReturn(expectedModel);
 
-        ResponseEntity<ArrayList<FileSystemItem>> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.getContentsOfFolder(path, token);
         assertEquals(itemArrayList, actualModel.getBody());
     }
 
@@ -69,15 +71,34 @@ class FileSystemRestControllerUnitTest {
     }
 
     @Test
+    void preflightUpload() {
+        List<FileSystemUpload> uploads = new ArrayList<>();
+        List<FileSystemUploadPreflightResponse> responses = new ArrayList<>();
+        long id = 1234;
+        String token = "asdhalskd";
+
+        ResponseEntity<List<FileSystemUploadPreflightResponse>> responseEntity = new ResponseEntity<>(responses, OK);
+        when(fileSystemRestServiceMock.preflightUploadOfFileSystemItem(id, uploads, token)).thenReturn(responseEntity);
+
+        ResponseEntity<List<FileSystemUploadPreflightResponse>> actualEntity = fileSystemRestController.preflightUploadFileOrFolder(id, uploads, token);
+
+        assertEquals(responseEntity, actualEntity);
+    }
+
+    @Test
     void uploadFileOrFolder() {
         FileSystemItem file = FileSystemItem.builder().build();
-        FileSystemItemUpdate upload = FileSystemItemUpdate.builder().build();
+        FileSystemUpload upload = FileSystemUpload.builder().build();
+        List<FileSystemItem> items = new ArrayList<>();
+        items.add(file);
+
         String token = "sometoken";
-        ResponseEntity<FileSystemItem> responseEntity = new ResponseEntity<>(file, OK);
+        long rootId = 123;
+        ResponseEntity<List<FileSystemItem>> responseEntity = new ResponseEntity<>(items, OK);
 
-        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(upload, token)).thenReturn(responseEntity);
+        when(fileSystemRestServiceMock.uploadFileSystemItemWithAccessToken(rootId, upload, token)).thenReturn(responseEntity);
 
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.uploadFileOrFolder(upload, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.uploadFileOrFolder(rootId, upload, token);
         assertEquals(responseEntity, actualModel);
     }
 
