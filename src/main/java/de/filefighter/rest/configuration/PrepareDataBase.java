@@ -143,35 +143,8 @@ public class PrepareDataBase {
             log.info("Starting with clean accessToken collection.");
             accessTokenRepository.deleteAll();
 
-            log.info("Inserting system runtime user. {}", userRepository.save(UserEntity
-                    .builder()
-                    .userId(RUNTIME_USER_ID)
-                    .username("FileFighter")
-                    .lowercaseUsername("filefighter")
-                    .password(null)
-                    .refreshToken(null)
-                    .groupIds(new long[]{SYSTEM.getGroupId()})
-                    .build()));
-
-            log.info("Inserting default users: {} {}.",
-                    userRepository.save(UserEntity
-                            .builder()
-                            .userId(1)
-                            .username("user")
-                            .lowercaseUsername("user")
-                            .password("1234")
-                            .refreshToken("rft1234")
-                            .groupIds(new long[]{ADMIN.getGroupId()})
-                            .build()),
-                    userRepository.save(UserEntity
-                            .builder()
-                            .userId(2)
-                            .username("user1")
-                            .lowercaseUsername("user1")
-                            .password("12345")
-                            .refreshToken("rft")
-                            .groupIds(new long[]{FAMILY.getGroupId()})
-                            .build()));
+            addDevUsers(userRepository);
+            addTestingFileSystemItems(fileSystemRepository);
 
             log.info("Inserting default tokens: {} {}",
                     accessTokenRepository.save(AccessTokenEntity
@@ -187,7 +160,6 @@ public class PrepareDataBase {
                             .validUntil(Instant.now().getEpochSecond() + AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS)
                             .build()));
 
-            addTestingFileSystemItems(fileSystemRepository);
 
             if (userRepository.findAll().size() == 3) {
                 log.info("Inserting Users " + MESSAGE_ON_SUCCESS);
