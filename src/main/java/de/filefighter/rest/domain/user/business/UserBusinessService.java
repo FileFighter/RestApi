@@ -11,7 +11,6 @@ import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
 import de.filefighter.rest.domain.user.group.Group;
 import de.filefighter.rest.domain.user.group.GroupRepository;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -26,7 +25,6 @@ import java.util.regex.Pattern;
 import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
 
 @Service
-@Log4j2
 public class UserBusinessService {
 
     public static final int USER_ID_MAX = 99999999;
@@ -156,71 +154,29 @@ public class UserBusinessService {
             throw new UserNotUpdatedException("No updates specified.");
 
         if (null == authenticatedUser.getGroups())
-            throw new UserNotUpdatedException("Authenticated User is not allowed");
+            throw new UserNotUpdatedException("Authenticated User is not allowed.");
 
         boolean authenticatedUserIsAdmin = Arrays.stream(authenticatedUser.getGroups()).anyMatch(g -> g == Group.ADMIN);
         if (userId != authenticatedUser.getUserId() && !authenticatedUserIsAdmin)
             throw new UserNotUpdatedException("Only Admins are allowed to update other users.");
 
         UserEntity userEntityToUpdate = userRepository.findByUserId(userId);
+        if (null == userEntityToUpdate)
+            throw new UserNotUpdatedException("User does not exist, use register endpoint.");
+
+        if (Arrays.stream(userEntityToUpdate.getGroupIds()).asDoubleStream().anyMatch(id -> id == Group.SYSTEM.getGroupId()))
+            throw new UserNotUpdatedException("Runtime users cannot be modified.");
+
         Update newUpdate = new Update();
-        boolean changesWereMade = false;
 
-        // username
-        String username = userToUpdate.getUsername();
-        if (null != username) {
-            if (!stringIsValid(username))
-                throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
+        boolean changesWereMade = updateUserName(newUpdate, userToUpdate.getUsername());
+        boolean usernameIsValid = stringIsValid(userToUpdate.getUsername());
+        String lowerCaseUsername = usernameIsValid ? userToUpdate.getUsername().toLowerCase() : userEntityToUpdate.getLowercaseUsername();
+        boolean passwordWasUpdated = updatePassword(newUpdate, userToUpdate.getPassword(), userToUpdate.getConfirmationPassword(), lowerCaseUsername);
+        changesWereMade = passwordWasUpdated || changesWereMade;
 
-            User user = null;
-            try {
-                user = this.findUserByUsername(username);
-            } catch (UserNotFoundException ignored) {
-                log.info("Username '{}' is free to use.", username);
-            }
-
-            if (null != user)
-                throw new UserNotUpdatedException("Username already taken.");
-
-            changesWereMade = true;
-            newUpdate.set("username", username);
-        }
-
-        // pw
-        if (null != userToUpdate.getPassword()) {
-            String password = userToUpdate.getPassword();
-            String confirmation = userToUpdate.getConfirmationPassword();
-
-            if (!stringIsValid(password) || !stringIsValid(confirmation))
-                throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
-
-            if (!passwordIsValid(password))
-                throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
-
-            if (!password.contentEquals(confirmation))
-                throw new UserNotUpdatedException("Passwords do not match.");
-
-            if (password.toLowerCase().contains(userEntityToUpdate.getLowercaseUsername()))
-                throw new UserNotUpdatedException("Username must not appear in password.");
-
-            changesWereMade = true;
-            newUpdate.set("password", password);
-        }
-
-        // groups
-        if (null != userToUpdate.getGroupIds()) {
-            try {
-                for (Group group : groupRepository.getGroupsByIds(userToUpdate.getGroupIds())) {
-                    if (group == Group.ADMIN && !authenticatedUserIsAdmin)
-                        throw new UserNotUpdatedException("Only admins can add users to group " + Group.ADMIN.getDisplayName());
-                }
-            } catch (IllegalArgumentException exception) {
-                throw new UserNotUpdatedException("One or more groups do not exist.");
-            }
-
-            changesWereMade = true;
-            newUpdate.set("groupIds", userToUpdate.getGroupIds());
-        }
+        boolean userGroupsWereUpdated = updateGroups(newUpdate, userToUpdate.getGroupIds(), authenticatedUserIsAdmin);
+        changesWereMade = userGroupsWereUpdated || changesWereMade;
 
         if (!changesWereMade)
             throw new UserNotUpdatedException("No changes were made.");
@@ -228,6 +184,65 @@ public class UserBusinessService {
         Query query = new Query();
         query.addCriteria(Criteria.where("userId").is(userId));
         mongoTemplate.findAndModify(query, newUpdate, UserEntity.class);
+    }
+
+    private boolean updateGroups(Update newUpdate, long[] groupIds, boolean authenticatedUserIsAdmin) {
+        if (null != groupIds && groupIds.length != 0) {
+            try {
+                for (Group group : groupRepository.getGroupsByIds(groupIds)) {
+                    if (group == Group.SYSTEM)
+                        throw new UserNotUpdatedException("Users cannot be added to the '" + Group.SYSTEM.getDisplayName() + "' Group");
+                    if (group == Group.ADMIN && !authenticatedUserIsAdmin)
+                        throw new UserNotUpdatedException("Only admins can add users to group " + Group.ADMIN.getDisplayName() + ".");
+                }
+            } catch (IllegalArgumentException exception) {
+                throw new UserNotUpdatedException("One or more groups do not exist.");
+            }
+
+            newUpdate.set("groupIds", groupIds);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean updatePassword(Update newUpdate, String password, String confirmationPassword, String lowercaseUserName) {
+        if (null != password) {
+
+            if (!stringIsValid(password) || !stringIsValid(confirmationPassword))
+                throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
+
+            if (!passwordIsValid(password))
+                throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
+
+            if (!password.contentEquals(confirmationPassword))
+                throw new UserNotUpdatedException("Passwords do not match.");
+
+            if (password.toLowerCase().contains(lowercaseUserName))
+                throw new UserNotUpdatedException("Username must not appear in password.");
+
+            newUpdate.set("password", password);
+            //update refreshToken
+            String newRefreshToken = AccessTokenBusinessService.generateRandomTokenValue();
+            newUpdate.set("refreshToken", newRefreshToken);
+
+            return true;
+        }
+        return false;
+    }
+
+    private boolean updateUserName(Update update, String username) {
+        if (null != username) {
+            if (!stringIsValid(username))
+                throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
+
+            if (null != getUserWithUsername(username))
+                throw new UserNotUpdatedException("Username already taken.");
+
+            update.set("username", username);
+            update.set("lowercaseUsername", username.toLowerCase());
+            return true;
+        }
+        return false;
     }
 
     public long generateRandomUserId() {
