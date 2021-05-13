@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -39,11 +40,14 @@ public class FileSystemBusinessService {
     }
 
     @SuppressWarnings("java:S3776")
-    public List<FileSystemItem> getFolderContentsByPath(String path, User authenticatedUser) {
+    public Pair<List<FileSystemItem>, Long> getFolderContentsByPath(String path, User authenticatedUser) {
         String[] pathWithoutSlashes = path.split("/");
 
         String pathToFind;
         User ownerOfRequestedFolder = null;
+
+        // make path case insensitive
+        path = path.toLowerCase();
 
         if (path.equals("/")) {
             pathToFind = "/";
@@ -57,7 +61,7 @@ public class FileSystemBusinessService {
             // the first path must be the the username.
             try {
                 ownerOfRequestedFolder = userBusinessService.findUserByUsername(pathWithoutSlashes[1]);
-                String[] fileSystemPath = path.split(ownerOfRequestedFolder.getUsername());
+                String[] fileSystemPath = path.split(ownerOfRequestedFolder.getUsername().toLowerCase());
                 if (fileSystemPath.length == 1) {
                     if (!fileSystemPath[0].equals("/"))
                         throw new FileSystemContentsNotAccessibleException();
@@ -74,7 +78,7 @@ public class FileSystemBusinessService {
         pathToFind = fileSystemHelperService.removeTrailingBackSlashes(pathToFind).toLowerCase();
 
         // find the folder with matching path.
-        ArrayList<FileSystemEntity> listOfPossibleDirectories = fileSystemRepository.findByPath(pathToFind);
+        List<FileSystemEntity> listOfPossibleDirectories = fileSystemRepository.findByPath(pathToFind);
         if (null == listOfPossibleDirectories) // does return null and not a empty collection.
             throw new FileSystemContentsNotAccessibleException();
 
@@ -91,7 +95,7 @@ public class FileSystemBusinessService {
                 fileSystemItems.add(fileSystemHelperService.createDTO(folder, authenticatedUser, "/"));
             }
 
-            return fileSystemItems;
+            return new Pair<>(fileSystemItems, -1L);
         } else {
             User finalOwnerOfRequestedFolder = ownerOfRequestedFolder;
             listOfPossibleDirectories.removeIf(entity -> (entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId() || entity.getOwnerId() != finalOwnerOfRequestedFolder.getUserId()));
@@ -104,18 +108,24 @@ public class FileSystemBusinessService {
                 throw new FileFighterDataException("Found more than one folder with the path " + pathToFind);
 
             // check if the autheticatedUser can access this.
-            if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(listOfPossibleDirectories.get(0), authenticatedUser, InteractionType.READ))
+            FileSystemEntity parentFolder = listOfPossibleDirectories.get(0);
+            if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parentFolder, authenticatedUser, InteractionType.READ))
                 throw new FileSystemContentsNotAccessibleException();
 
             ArrayList<FileSystemItem> fileSystemItems = new ArrayList<>();
             List<FileSystemEntity> folderContents =
-                    fileSystemHelperService.getFolderContentsOfEntityAndPermissions(listOfPossibleDirectories.get(0), authenticatedUser, true, false);
+                    fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parentFolder, authenticatedUser, true, false);
 
             for (FileSystemEntity fileSystemEntityInFolder : folderContents) {
-                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, "/" + ownerOfRequestedFolder.getUsername() + pathToFind));
+                String absolutePathToEntity = "/" + ownerOfRequestedFolder.getUsername() + pathToFind;
+                if (!pathToFind.equals("/")) {
+                    absolutePathToEntity = absolutePathToEntity + "/";
+                }
+                absolutePathToEntity = absolutePathToEntity + fileSystemEntityInFolder.getName();
+                fileSystemItems.add(fileSystemHelperService.createDTO(fileSystemEntityInFolder, authenticatedUser, absolutePathToEntity));
             }
 
-            return fileSystemItems;
+            return new Pair<>(fileSystemItems, parentFolder.getFileSystemId());
         }
     }
 

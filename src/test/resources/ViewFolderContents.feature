@@ -19,6 +19,7 @@ Feature: View Folder
     When user with token "900000" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
+    And the response has a header "X-FF-CURRENT" set with the value "42"
 
   Scenario: Successful interaction shared folder
     # the folder
@@ -28,6 +29,7 @@ Feature: View Folder
     When user with token "222222" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
+    And the response has a header "X-FF-CURRENT" set with the value "42"
 
   Scenario: Folder does not exist
     When user with token "900000" wants to see the content of folder with path "/Richard/bla/fasel"
@@ -46,6 +48,7 @@ Feature: View Folder
     When user with token "222222" wants to see the content of folder with path "/Richard/bla"
     Then response status code is 200
     And the response contains the file with fileSystemId 72 and name "wow.txt"
+    And the response has a header "X-FF-CURRENT" set with the value "42"
 
   Scenario: empty directory
     Given fileSystemItem with the fileSystemId 44 exists, has owner with userId 1234 has the path "/empty" and name "empty"
@@ -53,11 +56,13 @@ Feature: View Folder
     When user with token "900000" wants to see the content of folder with path "/Richard/empty"
     Then response status code is 200
     And the response contains an empty list for files and folders
+    And the response has a header "X-FF-CURRENT" set with the value "44"
 
   Scenario: root folder
     When user with token "900000" wants to see the content of folder with path "/"
     Then response status code is 200
     And the response contains the folder with name "Richard"
+    And the response has a header "X-FF-CURRENT" set with the value "-1"
 
   Scenario: root folder shared
     Given user with the userId 420 is allowed to VIEW the fileSystemItem with the fileSystemId 1234
@@ -65,6 +70,7 @@ Feature: View Folder
     Then response status code is 200
     And the response contains the folder with name "Richard"
     And the response contains the folder with name "Nasir"
+    And the response has a header "X-FF-CURRENT" set with the value "-1"
 
   Scenario: nested shared folder
     Given fileSystemItem with the fileSystemId 4 exists, has owner with userId 1234 has the path "/pläne" and name "pläne"
@@ -90,3 +96,5 @@ Feature: View Folder
     When user with token "222222" wants to see the content of folder with path "/Richard/pläne/städte/jerusalem"
     Then response status code is 200
     And the response contains the file with fileSystemId 13 and name "we_will_take.mp3"
+    And the response has a header "X-FF-CURRENT" set with the value "12"
+

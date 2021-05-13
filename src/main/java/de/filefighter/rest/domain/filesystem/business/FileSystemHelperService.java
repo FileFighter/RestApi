@@ -1,6 +1,7 @@
 package de.filefighter.rest.domain.filesystem.business;
 
 import de.filefighter.rest.configuration.RestConfiguration;
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
@@ -51,10 +52,10 @@ public class FileSystemHelperService {
             addPermissionsToSets(visibleForUserIds, visibleForGroupIds, editableForUserIds, editableGroupIds, entity);
         }
 
-        parentFileSystemEntity.setVisibleForUserIds(Arrays.stream(visibleForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setVisibleForGroupIds(Arrays.stream(visibleForGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setEditableForUserIds(Arrays.stream(editableForUserIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
-        parentFileSystemEntity.setEditableFoGroupIds(Arrays.stream(editableGroupIds.toArray(new Long[0])).mapToLong(Long::longValue).toArray());
+        parentFileSystemEntity.setVisibleForUserIds(this.transformLongCollectionTolongArray(visibleForUserIds));
+        parentFileSystemEntity.setVisibleForGroupIds(this.transformLongCollectionTolongArray(visibleForGroupIds));
+        parentFileSystemEntity.setEditableForUserIds(this.transformLongCollectionTolongArray(editableForUserIds));
+        parentFileSystemEntity.setEditableFoGroupIds(this.transformLongCollectionTolongArray(editableGroupIds));
         return parentFileSystemEntity;
     }
 
@@ -199,10 +200,10 @@ public class FileSystemHelperService {
 
         if (absolutePathWithUsername != null) {
             if (absolutePathWithUsername.equals("/")) {
-                absolutePathWithUsername = absolutePathWithUsername + ownerOfFileSystemItem.getUsername(); // this is only for the case of the path = "/"
+                absolutePathWithUsername = (absolutePathWithUsername + ownerOfFileSystemItem.getUsername()).toLowerCase(); // this is only for the case of the path = "/"
                 entityName = ownerOfFileSystemItem.getUsername();
             } else {
-                absolutePathWithUsername = this.removeTrailingBackSlashes(absolutePathWithUsername) + "/" + fileSystemEntity.getName();
+                absolutePathWithUsername = this.removeTrailingBackSlashes(absolutePathWithUsername).toLowerCase();
             }
         }
 
@@ -282,8 +283,43 @@ public class FileSystemHelperService {
         }
     }
 
+    public String[] splitPathIntoEnitityPaths(String path, String basePath) {
+        Object[] paths = Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).toArray();
+        String[] returnString = new String[paths.length];
+
+        // if the path is empty or null make it look like its a "/"
+        if (null == basePath || basePath.isEmpty() || basePath.isBlank()) {
+            basePath = "/";
+        }
+        StringBuilder pathStringBuilder = new StringBuilder(basePath);
+        for (int i = 0; i < paths.length; i++) {
+            if (pathStringBuilder.toString().charAt(pathStringBuilder.toString().length() - 1) != '/') {
+                pathStringBuilder.append("/");
+            }
+            pathStringBuilder.append(paths[i]);
+            returnString[i] = pathStringBuilder.toString();
+        }
+        return returnString;
+    }
+
+    public String getEntityNameFromPath(String path) {
+        String[] splittedPath = path.split("/");
+        try {
+            return splittedPath[splittedPath.length - 1];
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            log.debug("path was {}.", path);
+            throw new FileFighterDataException("Path to check was not valid");
+        }
+    }
+
+    public String getParentPathFromPath(String path) {
+        String entityName = getEntityNameFromPath(path);
+        String parent = path.substring(0, path.length() - entityName.length() - 1);
+        return parent.equals("") ? "/" : parent;
+    }
+
     public double getTotalFileSize() {
-        ArrayList<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
+        List<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
         if (null == entities)
             throw new FileFighterDataException("Couldn't find any Home directories!");
 
@@ -292,6 +328,37 @@ public class FileSystemHelperService {
             size += entity.getSize();
         }
         return size;
+    }
+
+    public long[] addLongToLongArray(long[] array, long newLong) {
+        long[] newArray = new long[array.length + 1];
+        System.arraycopy(array, 0, newArray, 0, array.length);
+        newArray[array.length] = newLong;
+        return newArray;
+    }
+
+    public Long[] transformlongArrayToLong(long[] arrayToTransform) {
+        Long[] longArgument = new Long[arrayToTransform.length];
+        int i = 0;
+
+        for (long temp : arrayToTransform) {
+            longArgument[i++] = temp;
+        }
+        return longArgument;
+    }
+
+    public String removeLeadingSlash(String path) {
+        if (!InputSanitizerService.stringIsValid(path))
+            throw new IllegalArgumentException("Couldn't remove leading slash because the path was not a valid String.");
+
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return path;
+    }
+
+    public long[] transformLongCollectionTolongArray(Collection<Long> collectionToTransform) {
+        return Arrays.stream(collectionToTransform.toArray(new Long[0])).mapToLong(Long::longValue).toArray();
     }
 
     public long getFileSystemEntityCount() {

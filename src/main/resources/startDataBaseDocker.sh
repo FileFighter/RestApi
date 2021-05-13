@@ -13,7 +13,7 @@ if [[ $(docker ps -a --format "{{.Names}}" | grep $DB_NAME) ]]; then
   docker start $DB_NAME
 else
   echo "Found no container, creating and starting one."
-  docker create -p 27017:27017 --name $DB_NAME mongo:latest
+  docker create -p 20000:27017 --name $DB_NAME mongo:latest
   docker start $DB_NAME
 fi
 

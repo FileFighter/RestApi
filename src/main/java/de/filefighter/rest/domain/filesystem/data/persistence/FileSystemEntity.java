@@ -2,11 +2,16 @@ package de.filefighter.rest.domain.filesystem.data.persistence;
 
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Data
 @Document(collection = "filesystem")
+@CompoundIndexes({
+        @CompoundIndex(name = "name_case", def = "{'name' : 1},{ collation: { locale: 'en', strength: 2 } }")
+})
 @Builder
 public class FileSystemEntity {
 
