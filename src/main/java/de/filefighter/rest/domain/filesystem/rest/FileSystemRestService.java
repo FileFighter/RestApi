@@ -40,6 +40,7 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
 
         Pair<List<FileSystemItem>, Long> folderContents = fileSystemBusinessService.getFolderContentsByPath(cleanPathString, authenticatedUser);
         HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set("Access-Control-Expose-Headers", RestConfiguration.FS_CURRENT_ID_HEADER);
         responseHeaders.set(RestConfiguration.FS_CURRENT_ID_HEADER, folderContents.getSecond().toString());
         return new ResponseEntity<>(folderContents.getFirst(), responseHeaders, HttpStatus.OK);
     }

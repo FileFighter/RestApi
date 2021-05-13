@@ -77,6 +77,7 @@ public class FileSystemUploadService {
 
         FileSystemEntity latestEntity = uploadParent;
         long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
+        long latestFileSystemId = fileSystemHelperService.generateNextFileSystemId();
 
         for (int i = 0; i < paths.length - 1; i++) {
             String currentAbsolutePath = paths[i];
@@ -101,7 +102,7 @@ public class FileSystemUploadService {
 
                 // create empty folder
                 FileSystemEntity newFolder = FileSystemEntity.builder()
-                        .fileSystemId(fileSystemHelperService.generateNextFileSystemId())
+                        .fileSystemId(latestFileSystemId)
                         .isFile(false)
                         .visibleForUserIds(latestEntity.getVisibleForUserIds())
                         .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
@@ -114,6 +115,9 @@ public class FileSystemUploadService {
                         .name(currentEntityName)
                         .lastUpdated(fileSystemHelperService.getCurrentTimeStamp())
                         .build();
+
+                // update id
+                latestFileSystemId++;
 
                 // add latestEntityTo list and add current id to itemids array.
                 latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(latestEntity.getItemIds(), newFolder.getFileSystemId()));
@@ -158,9 +162,8 @@ public class FileSystemUploadService {
             fileSystemHelperService.deleteAndUnbindFileSystemEntity(fileToOverwrite);
         }
 
-        // TODO check if the ids really need to be depending on the db.
         FileSystemEntity newFile = FileSystemEntity.builder()
-                .fileSystemId(fileSystemHelperService.generateNextFileSystemId() + 1) // why  plus 1?
+                .fileSystemId(latestFileSystemId)
                 .isFile(true)
                 .visibleForUserIds(latestEntity.getVisibleForUserIds())
                 .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
