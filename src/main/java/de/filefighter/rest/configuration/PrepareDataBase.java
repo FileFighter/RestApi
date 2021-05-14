@@ -1,6 +1,7 @@
 package de.filefighter.rest.configuration;
 
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
+import de.filefighter.rest.domain.filesystem.business.IdGenerationService;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
@@ -95,7 +96,6 @@ public class PrepareDataBase {
                                 .name("HOME_1")
                                 .size(420)
                                 .typeId(FOLDER.getId())
-                                .visibleForGroupIds(new long[]{UNDEFINED.getGroupId(), FAMILY.getGroupId(), ADMIN.getGroupId()})
                                 .itemIds(new long[]{1})
                                 .build()),
                         fileSystemRepository.save(FileSystemEntity.builder()
@@ -108,8 +108,6 @@ public class PrepareDataBase {
                                 .size(420)
                                 .typeId(TEXT.getId())
                                 .mimeType("text/plain")
-                                .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
-                                .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
                                 .build()));
 
                 if (userRepository.findAll().size() == 2) {
@@ -178,6 +176,11 @@ public class PrepareDataBase {
                 log.error("Inserting AccessToken " + MESSAGE_ON_FAILURE);
             }
         };
+    }
+
+    @Bean
+    CommandLineRunner finishDatabaseWork(IdGenerationService idGenerationService) {
+        return args -> idGenerationService.initializeService();
     }
 
     private void addDevUsers(UserRepository userRepository) {
