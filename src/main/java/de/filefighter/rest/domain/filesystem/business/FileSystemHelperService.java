@@ -34,12 +34,14 @@ public class FileSystemHelperService {
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final UserBusinessService userBusinessService;
     private final MongoTemplate mongoTemplate;
+    private final IdGenerationService idGenerationService;
 
-    public FileSystemHelperService(FileSystemRepository fileSystemRepository, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService, MongoTemplate mongoTemplate) {
+    public FileSystemHelperService(FileSystemRepository fileSystemRepository, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService, MongoTemplate mongoTemplate, IdGenerationService idGenerationService) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
         this.userBusinessService = userBusinessService;
         this.mongoTemplate = mongoTemplate;
+        this.idGenerationService = idGenerationService;
     }
 
     public FileSystemEntity sumUpAllPermissionsOfFileSystemEntities(FileSystemEntity parentFileSystemEntity, List<FileSystemEntity> fileSystemEntities) {
@@ -224,7 +226,7 @@ public class FileSystemHelperService {
     public void createBasicFilesForNewUser(UserEntity registeredUserEntity) {
         fileSystemRepository.save(FileSystemEntity
                 .builder()
-                .fileSystemId(generateNextFileSystemId())
+                .fileSystemId(idGenerationService.consumeNext())
                 .ownerId(registeredUserEntity.getUserId())
                 .lastUpdatedBy(RestConfiguration.RUNTIME_USER_ID)
                 .lastUpdated(getCurrentTimeStamp())
@@ -363,11 +365,6 @@ public class FileSystemHelperService {
 
     public long getFileSystemEntityCount() {
         return fileSystemRepository.count();
-    }
-
-    // This will update the field. -> Everytime this function gets called a id gets taken. Which means some ids could be lost, when calling this function and not creating something.
-    public long generateNextFileSystemId() {
-        return getFileSystemEntityCount() + 1;
     }
 
     public long getCurrentTimeStamp() {
