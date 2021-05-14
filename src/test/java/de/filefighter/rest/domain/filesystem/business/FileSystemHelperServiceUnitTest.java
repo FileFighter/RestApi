@@ -35,8 +35,14 @@ class FileSystemHelperServiceUnitTest {
     private final FileSystemRepository fileSystemRepositoryMock = mock(FileSystemRepository.class);
     private final FileSystemTypeRepository fileSystemTypeRepositoryMock = mock(FileSystemTypeRepository.class);
     private final MongoTemplate mongoTemplateMock = mock(MongoTemplate.class);
+    private final IdGenerationService idGenerationServiceMock = mock(IdGenerationService.class);
 
-    private final FileSystemHelperService fileSystemHelperService = new FileSystemHelperService(fileSystemRepositoryMock, fileSystemTypeRepositoryMock, userBusinessServiceMock, mongoTemplateMock);
+    private final FileSystemHelperService fileSystemHelperService = new FileSystemHelperService(
+            fileSystemRepositoryMock,
+            fileSystemTypeRepositoryMock,
+            userBusinessServiceMock,
+            mongoTemplateMock,
+            idGenerationServiceMock);
 
     @Test
     void sumUpAllPermissionsOfFileSystemEntitiesWorks() {

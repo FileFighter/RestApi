@@ -37,14 +37,16 @@ public class FileSystemUploadService {
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final MongoTemplate mongoTemplate;
     private final UserBusinessService userBusinessService;
+    private final IdGenerationService idGenerationService;
 
-    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, InputSanitizerService inputSanitizerService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate, UserBusinessService userBusinessService) {
+    public FileSystemUploadService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, InputSanitizerService inputSanitizerService, FileSystemTypeRepository fileSystemTypeRepository, MongoTemplate mongoTemplate, UserBusinessService userBusinessService, IdGenerationService idGenerationService) {
         this.fileSystemRepository = fileSystemRepository;
         this.fileSystemHelperService = fileSystemHelperService;
         this.inputSanitizerService = inputSanitizerService;
         this.fileSystemTypeRepository = fileSystemTypeRepository;
         this.mongoTemplate = mongoTemplate;
         this.userBusinessService = userBusinessService;
+        this.idGenerationService = idGenerationService;
     }
 
     public List<FileSystemItem> uploadFileSystemItem(long rootItemId, FileSystemUpload fileSystemUpload, User authenticatedUser) {
@@ -77,7 +79,6 @@ public class FileSystemUploadService {
 
         FileSystemEntity latestEntity = uploadParent;
         long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
-        long latestFileSystemId = fileSystemHelperService.generateNextFileSystemId();
 
         for (int i = 0; i < paths.length - 1; i++) {
             String currentAbsolutePath = paths[i];
@@ -102,7 +103,7 @@ public class FileSystemUploadService {
 
                 // create empty folder
                 FileSystemEntity newFolder = FileSystemEntity.builder()
-                        .fileSystemId(latestFileSystemId)
+                        .fileSystemId(idGenerationService.consumeNext())
                         .isFile(false)
                         .visibleForUserIds(latestEntity.getVisibleForUserIds())
                         .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
@@ -116,14 +117,12 @@ public class FileSystemUploadService {
                         .lastUpdated(fileSystemHelperService.getCurrentTimeStamp())
                         .build();
 
-                // update id
-                latestFileSystemId++;
-
                 // add latestEntityTo list and add current id to itemids array.
                 latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(latestEntity.getItemIds(), newFolder.getFileSystemId()));
                 entitiesToUpdate.add(latestEntity);
 
                 // set new folder entity as latest folder entity
+                log.debug("Creating new Folder {}", newFolder);
                 latestEntity = newFolder;
                 entitiesToCreate.add(newFolder);
                 returnItems.add(fileSystemHelperService.createDTO(newFolder, authenticatedUser, "/" + ownerOfParent.getUsername() + currentAbsolutePath));
@@ -134,6 +133,7 @@ public class FileSystemUploadService {
                     throw new FileSystemItemCouldNotBeUploadedException();
 
                 // if yes add alreadyExistingFolder to latest Folder entity
+                log.debug("Merging existing Folder {}", alreadyExistingFolder);
                 entitiesToUpdate.add(latestEntity);
                 returnItems.add(fileSystemHelperService.createDTO(alreadyExistingFolder, authenticatedUser, "/" + ownerOfParent.getUsername() + currentAbsolutePath));
                 latestEntity = alreadyExistingFolder;
@@ -159,11 +159,12 @@ public class FileSystemUploadService {
                 throw new FileSystemItemCouldNotBeUploadedException("A Folder with the same name '" + fileSystemUpload.getName() + "' already exists.");
             }
             FileSystemEntity fileToOverwrite = alreadyExistingFilesWithSameName.get(0);
+            log.debug("Found file to overwrite. Deleting it now. {}", fileToOverwrite);
             fileSystemHelperService.deleteAndUnbindFileSystemEntity(fileToOverwrite);
         }
 
         FileSystemEntity newFile = FileSystemEntity.builder()
-                .fileSystemId(latestFileSystemId)
+                .fileSystemId(idGenerationService.consumeNext())
                 .isFile(true)
                 .visibleForUserIds(latestEntity.getVisibleForUserIds())
                 .visibleForGroupIds(latestEntity.getVisibleForGroupIds())
@@ -184,6 +185,7 @@ public class FileSystemUploadService {
         if (!alreadyExistingFilesWithSameName.isEmpty()) {
             newIds = Arrays.stream(latestEntity.getItemIds()).filter(id -> id != alreadyExistingFilesWithSameName.get(0).getFileSystemId()).toArray();
         }
+        log.debug("Creating new File {}", newFile);
         latestEntity.setItemIds(fileSystemHelperService.addLongToLongArray(newIds, newFile.getFileSystemId()));
         entitiesToUpdate.add(latestEntity);
         entitiesToCreate.add(newFile);
