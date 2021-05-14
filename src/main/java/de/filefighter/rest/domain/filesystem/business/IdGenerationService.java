@@ -1,6 +1,5 @@
 package de.filefighter.rest.domain.filesystem.business;
 
-import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import lombok.extern.log4j.Log4j2;
@@ -20,6 +19,7 @@ public class IdGenerationService {
         this.fileSystemRepository = fileSystemRepository;
     }
 
+    @SuppressWarnings("java:S3655")
     public void initializeService() {
         // we could optimize the fileSystemIds by looking at the free ids between 0 and the max id.
         List<FileSystemEntity> entityList = fileSystemRepository.findAll();
@@ -28,10 +28,13 @@ public class IdGenerationService {
                 .map(FileSystemEntity::getFileSystemId)
                 .max(Long::compare);
 
-        if (max.isEmpty())
-            throw new FileFighterDataException("Couln't calculate max fileSystemId");
+        if (entityList.isEmpty() && max.isEmpty()) {
+            log.warn("Database was empty. If this happens during production please contact the developers!");
+            counter = -1;
+        } else {
+            counter = max.get();
+        }
 
-        counter = max.get();
         log.debug("Found {} entities in the db.", entityList.size());
         log.debug("IdGeneration start set to {}.", counter);
     }

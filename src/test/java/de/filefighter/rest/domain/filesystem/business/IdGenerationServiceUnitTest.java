@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemReposito
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +32,16 @@ class IdGenerationServiceUnitTest {
         long nextId = idGenerationService.peekNext();
 
         assertEquals(101, nextId);
+    }
+
+    @Test
+    void initializeServiceWorksWhenDatabaseIsEmpty() {
+        when(fileSystemRepositoryMock.findAll()).thenReturn(Collections.emptyList());
+
+        idGenerationService.initializeService();
+        long nextId = idGenerationService.peekNext();
+
+        assertEquals(0, nextId);
     }
 
     @Test
