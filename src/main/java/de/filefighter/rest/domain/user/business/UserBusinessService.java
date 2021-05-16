@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.user.business;
 
+import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.RefreshToken;
 import de.filefighter.rest.domain.user.data.dto.User;
@@ -11,16 +12,15 @@ import de.filefighter.rest.domain.user.exceptions.UserNotRegisteredException;
 import de.filefighter.rest.domain.user.exceptions.UserNotUpdatedException;
 import de.filefighter.rest.domain.user.group.Group;
 import de.filefighter.rest.domain.user.group.GroupRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.regex.Pattern;
 
 import static de.filefighter.rest.domain.common.InputSanitizerService.stringIsValid;
 
@@ -32,14 +32,16 @@ public class UserBusinessService {
     private final UserDTOService userDtoService;
     private final GroupRepository groupRepository;
     private final MongoTemplate mongoTemplate;
-    @Value("${filefighter.disable-password-check}")
-    public boolean passwordCheckDisabled;
+    private final InputSanitizerService inputSanitizerService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserBusinessService(UserRepository userRepository, UserDTOService userDtoService, GroupRepository groupRepository, MongoTemplate mongoTemplate) {
+    public UserBusinessService(UserRepository userRepository, UserDTOService userDtoService, GroupRepository groupRepository, MongoTemplate mongoTemplate, InputSanitizerService inputSanitizerService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
         this.groupRepository = groupRepository;
         this.mongoTemplate = mongoTemplate;
+        this.inputSanitizerService = inputSanitizerService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public long getUserCount() {
@@ -96,14 +98,11 @@ public class UserBusinessService {
         if (!stringIsValid(password) || !stringIsValid(confirmationPassword))
             throw new UserNotRegisteredException("Wanted to change password, but password was not valid.");
 
-        if (!passwordIsValid(password))
-            throw new UserNotRegisteredException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
+        if (!inputSanitizerService.passwordIsValid(password))
+            throw new UserNotRegisteredException("Password needs to be a valid SHA-265 hash.");
 
         if (!password.contentEquals(confirmationPassword))
             throw new UserNotRegisteredException("Passwords do not match.");
-
-        if (password.toLowerCase().contains(username.toLowerCase()))
-            throw new UserNotRegisteredException("Username must not appear in password.");
 
         //check groups
         long[] userGroups = newUser.getGroupIds();
@@ -121,23 +120,18 @@ public class UserBusinessService {
             }
         }
 
+        // hash password.
+        String hashedPassword = passwordEncoder.encode(password);
+
         //create new user.
         return userRepository.save(UserEntity.builder()
                 .lowercaseUsername(username.toLowerCase())
                 .username(username)
                 .groupIds(userGroups)
-                .password(password)
+                .password(hashedPassword)
                 .refreshToken(AccessTokenBusinessService.generateRandomTokenValue())
                 .userId(generateRandomUserId())
                 .build());
-    }
-
-    public boolean passwordIsValid(String password) {
-        if (this.passwordCheckDisabled)
-            return true;
-
-        Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+).{8,20}$");
-        return pattern.matcher(password).matches();
     }
 
     /**
@@ -170,11 +164,8 @@ public class UserBusinessService {
         Update newUpdate = new Update();
 
         boolean changesWereMade = updateUserName(newUpdate, userToUpdate.getUsername());
-        boolean usernameIsValid = stringIsValid(userToUpdate.getUsername());
-        String lowerCaseUsername = usernameIsValid ? userToUpdate.getUsername().toLowerCase() : userEntityToUpdate.getLowercaseUsername();
-        boolean passwordWasUpdated = updatePassword(newUpdate, userToUpdate.getPassword(), userToUpdate.getConfirmationPassword(), lowerCaseUsername);
+        boolean passwordWasUpdated = updatePassword(newUpdate, userToUpdate.getPassword(), userToUpdate.getConfirmationPassword());
         changesWereMade = passwordWasUpdated || changesWereMade;
-
         boolean userGroupsWereUpdated = updateGroups(newUpdate, userToUpdate.getGroupIds(), authenticatedUserIsAdmin);
         changesWereMade = userGroupsWereUpdated || changesWereMade;
 
@@ -205,22 +196,22 @@ public class UserBusinessService {
         return false;
     }
 
-    private boolean updatePassword(Update newUpdate, String password, String confirmationPassword, String lowercaseUserName) {
+    private boolean updatePassword(Update newUpdate, String password, String confirmationPassword) {
         if (null != password) {
 
             if (!stringIsValid(password) || !stringIsValid(confirmationPassword))
                 throw new UserNotUpdatedException("Wanted to change password, but password was not valid.");
 
-            if (!passwordIsValid(password))
-                throw new UserNotUpdatedException("Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number.");
+            if (!inputSanitizerService.passwordIsValid(password))
+                throw new UserNotUpdatedException("Password needs to be a valid SHA-256 hash.");
 
             if (!password.contentEquals(confirmationPassword))
                 throw new UserNotUpdatedException("Passwords do not match.");
 
-            if (password.toLowerCase().contains(lowercaseUserName))
-                throw new UserNotUpdatedException("Username must not appear in password.");
+            // hash password.
+            String hashedPassword = passwordEncoder.encode(password);
 
-            newUpdate.set("password", password);
+            newUpdate.set("password", hashedPassword);
             //update refreshToken
             String newRefreshToken = AccessTokenBusinessService.generateRandomTokenValue();
             newUpdate.set("refreshToken", newRefreshToken);
