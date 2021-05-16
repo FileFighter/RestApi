@@ -67,7 +67,7 @@ public class PrepareDataBase {
             System.out.println("Running on http://localhost:" + serverPort);
             System.out.println();
             System.out.println("Developed by Gimleux, Valentin, Open-Schnick.");
-            System.out.println("Development Blog: https://blog.filefighter.de");
+            System.out.println("Development Blog: https://filefighter.de");
             System.out.println("The code can be found at: https://www.github.com/filefighter");
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
