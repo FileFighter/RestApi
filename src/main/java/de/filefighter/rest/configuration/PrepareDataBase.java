@@ -201,7 +201,7 @@ public class PrepareDataBase {
                         .userId(1)
                         .username("user")
                         .lowercaseUsername("user")
-                        .password(passwordEncoder.encode("03AC674216F3E15C761EE1A5E255F067953623C8B388B4459E13F978D7C846F4")) // 1234
+                        .password(passwordEncoder.encode("D3500EF92337ED226F500EE57084D8FEEE559D0E411A635BC861DFD8159C0FBC")) // 1234 with salt
                         .refreshToken("rft1234")
                         .groupIds(new long[]{ADMIN.getGroupId()})
                         .build()),
@@ -210,7 +210,7 @@ public class PrepareDataBase {
                         .userId(2)
                         .username("user1")
                         .lowercaseUsername("user1")
-                        .password(passwordEncoder.encode("5994471ABB01112AFCC18159F6CC74B4F511B99806DA59B3CAF5A9C173CACFC5")) // 12345
+                        .password(passwordEncoder.encode("6216104FA48274A78E291166EA2083E2EAAA5F4F200B2A8E83EE5B30D18019F0")) // 12345
                         .refreshToken("rft")
                         .groupIds(new long[]{FAMILY.getGroupId()})
                         .build()));
@@ -232,7 +232,7 @@ public class PrepareDataBase {
                 .userId(1)
                 .username("Admin")
                 .lowercaseUsername("admin")
-                .password(passwordEncoder.encode("8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918")) // admin
+                .password(passwordEncoder.encode("B6381E537A537181763A1A0E4CB00F6E70B57E01F18A2BF9AB602783BF8C22B3")) // admin
                 .refreshToken("rft1234")
                 .groupIds(new long[]{ADMIN.getGroupId()})
                 .build()));
