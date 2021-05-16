@@ -158,7 +158,7 @@ public class UserBusinessService {
         if (null == userEntityToUpdate)
             throw new UserNotUpdatedException("User does not exist, use register endpoint.");
 
-        if (Arrays.stream(userEntityToUpdate.getGroupIds()).asDoubleStream().anyMatch(id -> id == Group.SYSTEM.getGroupId()))
+        if (Arrays.stream(userEntityToUpdate.getGroupIds()).anyMatch(id -> id == Group.SYSTEM.getGroupId()))
             throw new UserNotUpdatedException("Runtime users cannot be modified.");
 
         Update newUpdate = new Update();
