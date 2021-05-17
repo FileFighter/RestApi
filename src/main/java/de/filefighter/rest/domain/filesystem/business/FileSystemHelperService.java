@@ -320,6 +320,23 @@ public class FileSystemHelperService {
         return parent.equals("") ? "/" : parent;
     }
 
+    public void getContentsOfFolderRecursivly(List<FileSystemItem> listToAdd, FileSystemEntity currentEntitiy, User authenticatedUser, String relativePath) {
+        if (currentEntitiy.isFile() || currentEntitiy.getTypeId() != FileSystemType.FOLDER.getId()) {
+            listToAdd.add(this.createDTO(currentEntitiy, authenticatedUser, relativePath + currentEntitiy.getName()));
+        } else {
+            List<FileSystemEntity> folderContents = this.getFolderContentsOfEntityAndPermissions(currentEntitiy, authenticatedUser, true, false);
+            if (currentEntitiy.getItemIds().length == 0) return;
+
+            if (null == folderContents || folderContents.isEmpty())
+                throw new FileFighterDataException("Found no children for FileSystemEntity with id " + currentEntitiy.getFileSystemId());
+
+            String nextRelativePath = relativePath + currentEntitiy.getName() + "/";
+            folderContents.stream()
+                    .filter(nextEntity -> this.userIsAllowedToInteractWithFileSystemEntity(nextEntity, authenticatedUser, InteractionType.READ))
+                    .forEach(nextEntity -> getContentsOfFolderRecursivly(listToAdd, nextEntity, authenticatedUser, nextRelativePath));
+        }
+    }
+
     public double getTotalFileSize() {
         List<FileSystemEntity> entities = fileSystemRepository.findByPath("/");
         if (null == entities)
@@ -361,10 +378,6 @@ public class FileSystemHelperService {
 
     public long[] transformLongCollectionTolongArray(Collection<Long> collectionToTransform) {
         return Arrays.stream(collectionToTransform.toArray(new Long[0])).mapToLong(Long::longValue).toArray();
-    }
-
-    public long getFileSystemEntityCount() {
-        return fileSystemRepository.count();
     }
 
     public long getCurrentTimeStamp() {

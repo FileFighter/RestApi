@@ -21,5 +21,7 @@ public interface FileSystemRepository extends MongoRepository<FileSystemEntity, 
 
     // this does work tho.
     FileSystemEntity findByItemIdsContaining(long id);
+
+    List<FileSystemEntity> findAllByFileSystemIdIn(long[] fileSystemIds);
 }
 

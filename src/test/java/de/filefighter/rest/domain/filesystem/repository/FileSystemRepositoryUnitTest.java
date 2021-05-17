@@ -36,7 +36,7 @@ public class FileSystemRepositoryUnitTest {
 
         itemsToInsert.add(fileSystemEntity);
         fileSystemRepository.insert(itemsToInsert);
-        List<FileSystemEntity> result = fileSystemRepository.findAllByFileSystemIdInAndName(idList, "somefolder");
+        List<FileSystemEntity> result = fileSystemRepository.findAllByFileSystemIdInAndNameIgnoreCase(idList, "somefolder");
 
         assertFalse(result.isEmpty());
     }

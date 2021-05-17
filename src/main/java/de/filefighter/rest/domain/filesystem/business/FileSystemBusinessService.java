@@ -8,6 +8,7 @@ import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDeletedException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDownloadedException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
@@ -209,11 +210,35 @@ public class FileSystemBusinessService {
     }
 
     public Pair<List<FileSystemItem>, String> downloadFileSystemEntity(List<Long> ids, User authenticatedUser) {
-        // also check for empty ids
+        // validate input and check for parent
+        FileSystemEntity foundParent = null;
+        List<FileSystemItem> returnList = new ArrayList<>();
+
         for (Long l : ids) {
-            log.info("Found: {}", l);
+            log.debug("Found id to download: {}", l);
+            if (null == l) {
+                break;
+            }
+
+            FileSystemEntity entityWithId = fileSystemRepository.findByFileSystemId(l);
+            if (null == entityWithId)
+                throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
+
+            if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entityWithId, authenticatedUser, InteractionType.READ))
+                throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
+
+            FileSystemEntity parent = fileSystemRepository.findByItemIdsContaining(l);
+            if (null == parent)
+                throw new FileFighterDataException("Parent for entity with id " + l + " not found.");
+
+            if (null == foundParent) {
+                foundParent = parent;
+            } else if (foundParent.getFileSystemId() != parent.getFileSystemId())
+                throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a command parent entity.");
+
+            fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entityWithId, authenticatedUser, "");
         }
-        return null;
+        return new Pair<>(returnList, null == foundParent ? null : foundParent.getName());
     }
 
     @AllArgsConstructor

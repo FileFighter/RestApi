@@ -19,16 +19,16 @@ Feature: Download Files
   Scenario: Successful interaction, download of file in personal folder
     When the user with token "Nasir" wants to download the fileSystemItems with Ids [72]
     Then response status code is 200
-    And the response contains a entity with the path "Bergfried.avi" that has key "name" with value "Bergfried.avi"
-    And the response contains a entity with the path "Bergfried.avi" that has key "fsItemId" with value "72"
-    And the response contains a entity with the path "Bergfried.avi" that has key "mimeType" with value "video/avi"
+    And the response contains a entity with the path "bergfried.avi" that has key "name" with value "Bergfried.avi"
+    And the response contains a entity with the path "bergfried.avi" that has key "fileSystemId" with value "72"
+    And the response contains a entity with the path "bergfried.avi" that has key "mimeType" with value "video/avi"
 
   Scenario: Successful interaction, download of folder in personal folder
     When the user with token "Nasir" wants to download the fileSystemItems with Ids [42]
     Then response status code is 200
-    And the response contains a entity with the path "Bergfried.avi" that has key "name" with value "Bergfried.avi"
-    And the response contains a entity with the path "Bergfried.avi" that has key "fsItemId" with value "72"
-    And the response contains a entity with the path "Bergfried.avi" that has key "mimeType" with value "video/avi"
+    And the response contains a entity with the path "bergfried.avi" that has key "name" with value "Bergfried.avi"
+    And the response contains a entity with the path "bergfried.avi" that has key "fileSystemId" with value "72"
+    And the response contains a entity with the path "bergfried.avi" that has key "mimeType" with value "video/avi"
     # this will be the name of the zip archive (could also return gebäude.zip)
     And the response has a header "X-FF-NAME" set with the value "gebäude"
 
@@ -38,8 +38,8 @@ Feature: Download Files
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 73
     When the user with token "Nasir" wants to download the fileSystemItems with Ids [72,73]
     Then response status code is 200
-    And the response contains a entity with the path "Bergfried.avi" that has key "name" with value "Bergfried.avi"
-    And the response contains a entity with the path "Torhaus.avi" that has key "name" with value "Torhaus.avi"
+    And the response contains a entity with the path "bergfried.avi" that has key "name" with value "Bergfried.avi"
+    And the response contains a entity with the path "torhaus.avi" that has key "name" with value "Torhaus.avi"
     And the response has a header "X-FF-NAME" set with the value "gebäude"
 
   Scenario: Successful interaction, download of file and folder
@@ -69,7 +69,7 @@ Feature: Download Files
     When the user with token "Richard" wants to download the fileSystemItems with Ids [72]
     Then response status code is 200
     And the response contains a entity with the path "Bergfried.avi" that has key "name" with value "Bergfried.avi"
-    And the response contains a entity with the path "Bergfried.avi" that has key "fsItemId" with value "72"
+    And the response contains a entity with the path "Bergfried.avi" that has key "fileSystemId" with value "72"
 
   Scenario: Successful interaction, download of shared file (group)
     Given group with the groupId 1 is allowed to VIEW the fileSystemItem with the fileSystemId 72
@@ -77,7 +77,7 @@ Feature: Download Files
     When the user with token "Richard" wants to download the fileSystemItems with Ids [72]
     Then response status code is 200
     And the response contains a entity with the path "Bergfried.avi" that has key "name" with value "Bergfried.avi"
-    And the response contains a entity with the path "Bergfried.avi" that has key "fsItemId" with value "72"
+    And the response contains a entity with the path "Bergfried.avi" that has key "fileSystemId" with value "72"
 
   Scenario: File does not exist
     When the user with token "Nasir" wants to download the fileSystemItems with Ids [666]
