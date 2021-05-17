@@ -50,11 +50,11 @@ class AuthenticationBusinessServiceUnitTest {
 
         ex = assertThrows(RequestDidntMeetFormalRequirementsException.class, () ->
                 authenticationBusinessService.authenticateUserWithUsernameAndPassword(base64EncodedUsernameOnly));
-        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix() + " Credentials didnt meet formal requirements.", ex.getMessage());
+        assertEquals(RequestDidntMeetFormalRequirementsException.getErrorMessagePrefix() + " Credentials didn't meet formal requirements.", ex.getMessage());
 
         UserNotAuthenticatedException noAuthEx = assertThrows(UserNotAuthenticatedException.class, () ->
                 authenticationBusinessService.authenticateUserWithUsernameAndPassword(base64EncodedUsernameAndPassword));
-        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " The password didnt match requirenments, please hash the password with SHA-256.", noAuthEx.getMessage());
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " The password didn't match requirements, please hash the password with SHA-256.", noAuthEx.getMessage());
 
         when(inputSanitizerServiceMock.passwordIsValid(any())).thenReturn(true);
         when(userRepositoryMock.findByLowercaseUsername(any())).thenReturn(null);

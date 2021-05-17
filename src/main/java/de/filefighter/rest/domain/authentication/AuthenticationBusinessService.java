@@ -45,13 +45,13 @@ public class AuthenticationBusinessService {
         String[] split = decodedUsernameAndPassword.split(":");
 
         if (split.length != 2)
-            throw new RequestDidntMeetFormalRequirementsException("Credentials didnt meet formal requirements.");
+            throw new RequestDidntMeetFormalRequirementsException("Credentials didn't meet formal requirements.");
 
         String lowerCaseUsername = inputSanitizerService.sanitizeString(split[0].toLowerCase());
         String password = inputSanitizerService.sanitizeString(split[1]);
 
         if (!inputSanitizerService.passwordIsValid(password))
-            throw new UserNotAuthenticatedException("The password didnt match requirenments, please hash the password with SHA-256.");
+            throw new UserNotAuthenticatedException("The password didn't match requirements, please hash the password with SHA-256.");
 
         UserEntity userEntity = userRepository.findByLowercaseUsername(lowerCaseUsername);
         if (null == userEntity)
