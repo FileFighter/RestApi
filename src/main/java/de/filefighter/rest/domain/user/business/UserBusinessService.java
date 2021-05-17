@@ -163,7 +163,7 @@ public class UserBusinessService {
 
         Update newUpdate = new Update();
 
-        boolean changesWereMade = updateUserName(newUpdate, userToUpdate.getUsername());
+        boolean changesWereMade = updateUserName(newUpdate, userEntityToUpdate, userToUpdate.getUsername());
         boolean passwordWasUpdated = updatePassword(newUpdate, userToUpdate.getPassword(), userToUpdate.getConfirmationPassword());
         changesWereMade = passwordWasUpdated || changesWereMade;
         boolean userGroupsWereUpdated = updateGroups(newUpdate, userToUpdate.getGroupIds(), authenticatedUserIsAdmin);
@@ -221,13 +221,19 @@ public class UserBusinessService {
         return false;
     }
 
-    private boolean updateUserName(Update update, String username) {
+    private boolean updateUserName(Update update, UserEntity userEntityToUpdate, String username) {
         if (null != username) {
             if (!stringIsValid(username))
                 throw new UserNotUpdatedException("Wanted to change username, but username was not valid.");
 
-            if (null != getUserWithUsername(username))
-                throw new UserNotUpdatedException("Username already taken.");
+            UserEntity userWithNewUsername = getUserWithUsername(username);
+            if (null != userWithNewUsername) {
+                if (userWithNewUsername.getUserId() == userEntityToUpdate.getUserId()) {
+                    return false;
+                } else {
+                    throw new UserNotUpdatedException("Username already taken.");
+                }
+            }
 
             update.set("username", username);
             update.set("lowercaseUsername", username.toLowerCase());
