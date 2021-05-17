@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class PrepareDataBase {
             System.out.println("Running on http://localhost:" + serverPort);
             System.out.println();
             System.out.println("Developed by Gimleux, Valentin, Open-Schnick.");
-            System.out.println("Development Blog: https://blog.filefighter.de");
+            System.out.println("Development Blog: https://filefighter.de");
             System.out.println("The code can be found at: https://www.github.com/filefighter");
             System.out.println();
             System.out.println("-------------------------------< REST API >-------------------------------");
@@ -76,14 +77,14 @@ public class PrepareDataBase {
 
     @Bean
     @Profile({"prod", "stage"})
-    CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository) {
+    CommandLineRunner initDataBaseProd(UserRepository userRepository, FileSystemRepository fileSystemRepository, AccessTokenRepository accessTokenRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             ArrayList<UserEntity> foundUsers = (ArrayList<UserEntity>) userRepository.findAll();
             ArrayList<UserEntity> foundFileSystemEntities = (ArrayList<UserEntity>) userRepository.findAll();
             accessTokenRepository.deleteAll(); // Cleanup purposes.
 
             if (foundUsers.isEmpty() && foundFileSystemEntities.isEmpty()) {
-                addDefaultAdminAndRuntimeUser(userRepository);
+                addDefaultAdminAndRuntimeUser(userRepository, passwordEncoder);
                 log.info("Inserting Home directories and default structure: {} {}.", fileSystemRepository.save(FileSystemEntity
                                 .builder()
                                 .lastUpdatedBy(RUNTIME_USER_ID)
@@ -132,7 +133,7 @@ public class PrepareDataBase {
 
     @Bean
     @Profile({"dev", "debug"})
-    CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository) {
+    CommandLineRunner initDataBaseDev(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             log.info("Starting with clean user collection.");
             userRepository.deleteAll();
@@ -141,7 +142,7 @@ public class PrepareDataBase {
             log.info("Starting with clean accessToken collection.");
             accessTokenRepository.deleteAll();
 
-            addDevUsers(userRepository);
+            addDevUsers(userRepository, passwordEncoder);
             addTestingFileSystemItems(fileSystemRepository);
 
             log.info("Inserting default tokens: {} {}",
@@ -183,7 +184,7 @@ public class PrepareDataBase {
         return args -> idGenerationService.initializeService();
     }
 
-    private void addDevUsers(UserRepository userRepository) {
+    private void addDevUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         log.info("Inserting system runtime user. {}", userRepository.save(UserEntity
                 .builder()
                 .userId(RUNTIME_USER_ID)
@@ -200,7 +201,7 @@ public class PrepareDataBase {
                         .userId(1)
                         .username("user")
                         .lowercaseUsername("user")
-                        .password("1234")
+                        .password(passwordEncoder.encode("D3500EF92337ED226F500EE57084D8FEEE559D0E411A635BC861DFD8159C0FBC")) // 1234 with salt
                         .refreshToken("rft1234")
                         .groupIds(new long[]{ADMIN.getGroupId()})
                         .build()),
@@ -209,13 +210,13 @@ public class PrepareDataBase {
                         .userId(2)
                         .username("user1")
                         .lowercaseUsername("user1")
-                        .password("12345")
+                        .password(passwordEncoder.encode("6216104FA48274A78E291166EA2083E2EAAA5F4F200B2A8E83EE5B30D18019F0")) // 12345
                         .refreshToken("rft")
                         .groupIds(new long[]{FAMILY.getGroupId()})
                         .build()));
     }
 
-    private void addDefaultAdminAndRuntimeUser(UserRepository userRepository) {
+    private void addDefaultAdminAndRuntimeUser(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         log.info("Database seems to be empty. Creating new default entities...");
         log.info("Inserting system runtime user: {}", userRepository.save(UserEntity
                 .builder()
@@ -231,7 +232,7 @@ public class PrepareDataBase {
                 .userId(1)
                 .username("Admin")
                 .lowercaseUsername("admin")
-                .password("admin")
+                .password(passwordEncoder.encode("B6381E537A537181763A1A0E4CB00F6E70B57E01F18A2BF9AB602783BF8C22B3")) // admin
                 .refreshToken("rft1234")
                 .groupIds(new long[]{ADMIN.getGroupId()})
                 .build()));

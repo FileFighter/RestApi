@@ -4,24 +4,26 @@ Feature: User Registration
 
   Background:
     Given database is empty
-    And user with userId 1234 exists and has username "user", password "Secure_password1"
+    And user with userId 1234 exists and has username "user", password "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0127"
     And accessToken with value "accessToken" exists for user 1234
     And user with userId 1234 is in group with groupId 1
+
+    # 86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0126
 
   Scenario: Failed registration because password does not match requirements.
     When user requests registration with username "kangaroo", password "short" and password confirmation "short" with accessToken "accessToken"
     Then response status code is 409
-    And response contains key "message" and value "User could not be registered. Password needs to be at least 8 characters long and, contains at least one uppercase and lowercase letter and a number."
+    And response contains key "message" and value "User could not be registered. Password needs to be a valid SHA-265 hash."
     And response contains key "status" and value "Conflict"
 
   Scenario: Successful registration with username, password and password confirmation.
-    When user requests registration with username "kangaroo", password "Pig-system12" and password confirmation "Pig-system12" with accessToken "accessToken"
+    When user requests registration with username "kangaroo", password "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0126" and password confirmation "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0126" with accessToken "accessToken"
     Then response status code is 201
     And response contains key "message" and value "User successfully created."
     And response contains key "status" and value "Created"
 
   Scenario: Successful registration with username, password and password confirmation; password matches password of other users.
-    When user requests registration with username "kangaroo", password "Secure_password1" and password confirmation "Secure_password1" with accessToken "accessToken"
+    When user requests registration with username "kangaroo", password "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0127" and password confirmation "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0127" with accessToken "accessToken"
     Then response status code is 201
     And response contains key "message" and value "User successfully created."
     And response contains key "status" and value "Created"
@@ -39,17 +41,12 @@ Feature: User Registration
     And response contains key "status" and value "Conflict"
 
   Scenario: Failed registration with username, password and deviating password confirmation.
-    When user requests registration with username "kangaroo", password "Pig-system12" and password confirmation "I-love-capitalism420" with accessToken "accessToken"
+    When user requests registration with username "kangaroo", password "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0127" and password confirmation "I-love-capitalism420" with accessToken "accessToken"
     Then response status code is 409
     And response contains key "message" and value "User could not be registered. Passwords do not match."
     And response contains key "status" and value "Conflict"
 
-  Scenario: Failed registration with username, password and password confirmation; username is part of password.
-    When user requests registration with username "kangaroo", password "Kangaroo-system1" and password confirmation "Kangaroo-system1" with accessToken "accessToken"
-    Then response status code is 409
-    And response contains key "message" and value "User could not be registered. Username must not appear in password."
-    And response contains key "status" and value "Conflict"
-
+    # the password is getting checked after the group user group check.
   Scenario: Failed registration with username, password and password confirmation; not in group ADMIN
     Given user 1236 exists
     And user with userId 1236 is in group with groupId -1

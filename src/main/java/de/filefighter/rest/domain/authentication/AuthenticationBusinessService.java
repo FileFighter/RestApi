@@ -10,6 +10,7 @@ import de.filefighter.rest.domain.user.data.persistence.UserRepository;
 import de.filefighter.rest.domain.user.exceptions.UserNotAuthenticatedException;
 import de.filefighter.rest.domain.user.group.Group;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -22,11 +23,13 @@ public class AuthenticationBusinessService {
     private final UserRepository userRepository;
     private final UserDTOService userDtoService;
     private final InputSanitizerService inputSanitizerService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService, InputSanitizerService inputSanitizerService) {
+    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService, InputSanitizerService inputSanitizerService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
         this.inputSanitizerService = inputSanitizerService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
@@ -47,8 +50,14 @@ public class AuthenticationBusinessService {
         String lowerCaseUsername = inputSanitizerService.sanitizeString(split[0].toLowerCase());
         String password = inputSanitizerService.sanitizeString(split[1]);
 
-        UserEntity userEntity = userRepository.findByLowercaseUsernameAndPassword(lowerCaseUsername, password);
+        if (!inputSanitizerService.passwordIsValid(password))
+            throw new UserNotAuthenticatedException("The password didnt match requirenments, please hash the password with SHA-256.");
+
+        UserEntity userEntity = userRepository.findByLowercaseUsername(lowerCaseUsername);
         if (null == userEntity)
+            throw new UserNotAuthenticatedException("No User found with this username and password.");
+
+        if (!passwordEncoder.matches(password, userEntity.getPassword()))
             throw new UserNotAuthenticatedException("No User found with this username and password.");
 
         return userDtoService.createDto(userEntity);

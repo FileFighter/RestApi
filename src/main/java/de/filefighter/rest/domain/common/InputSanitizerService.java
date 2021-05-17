@@ -2,6 +2,7 @@ package de.filefighter.rest.domain.common;
 
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
@@ -9,6 +10,9 @@ import java.util.regex.Pattern;
 
 @Service
 public class InputSanitizerService {
+
+    @Value("${filefighter.disable-password-check}")
+    private boolean passwordCheckDisabled;
 
     public static boolean stringIsValid(String s) {
         return !(null == s || s.isEmpty() || s.isBlank());
@@ -49,6 +53,14 @@ public class InputSanitizerService {
             throw new RequestDidntMeetFormalRequirementsException("Header does not contain '" + header + "', or format is invalid.");
         String[] split = testString.split(header);
         return split[1];
+    }
+
+    public boolean passwordIsValid(String password) {
+        if (this.passwordCheckDisabled)
+            return true;
+
+        Pattern pattern = Pattern.compile("\\b[A-Fa-f0-9]{64}\\b");
+        return pattern.matcher(password).matches();
     }
 
     public boolean pathIsValid(String path) {

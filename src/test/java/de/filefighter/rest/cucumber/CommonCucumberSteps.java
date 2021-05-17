@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -34,16 +35,17 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
     private final AccessTokenRepository accessTokenRepository;
     private final FileSystemRepository fileSystemRepository;
     private final ObjectMapper objectMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
-    MongoTemplate mongoTemplate;
-
-    @Autowired
-    public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository, ObjectMapper objectMapper) {
+    public CommonCucumberSteps(UserRepository userRepository, AccessTokenRepository accessTokenRepository, FileSystemRepository fileSystemRepository, ObjectMapper objectMapper, PasswordEncoder passwordEncoder, MongoTemplate mongoTemplate) {
         this.userRepository = userRepository;
         this.accessTokenRepository = accessTokenRepository;
         this.fileSystemRepository = fileSystemRepository;
         this.objectMapper = objectMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Given("database is empty")
@@ -63,12 +65,15 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
 
     @And("user with userId {long} exists and has username {string}, password {string} and refreshToken {string}")
     public void userWithIdExistsAndHasUsernamePasswordAndRefreshToken(long userId, String username, String password, String refreshTokenValue) {
+        // hashing the password
+        String hashedPw = passwordEncoder.encode(password);
+
         log.info("Creating User: " + userRepository.save(UserEntity
                 .builder()
                 .userId(userId)
                 .username(username)
                 .lowercaseUsername(username.toLowerCase())
-                .password(password)
+                .password(hashedPw)
                 .refreshToken(refreshTokenValue)
                 .build()));
     }
@@ -262,6 +267,7 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
         for (String valueToTest : headers) {
             if (valueToTest.equals(value)) {
                 found = true;
+                break;
             }
         }
         assertTrue(found);
