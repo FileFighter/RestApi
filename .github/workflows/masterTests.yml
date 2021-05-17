@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '11.0.8'
+          distribution: 'adopt'
           architecture: x64
       - name: Run Tests and update Sonar
         run: |
