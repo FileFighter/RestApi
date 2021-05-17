@@ -329,6 +329,14 @@ class UserBusinessServiceUnitTest {
         when(userRepositoryMock.findByUserId(userId)).thenReturn(userEntityMock);
 
         assertDoesNotThrow(() -> userBusinessService.updateUser(userId, userRegisterForm, authenticatedUser));
+
+        // updating the user with the same username works.
+        UserRegisterForm anotherOne = UserRegisterForm.builder().username(userEntityMock.getUsername()).build();
+        when(userRepositoryMock.findByLowercaseUsername(userEntityMock.getLowercaseUsername())).thenReturn(userEntityMock);
+
+        UserNotUpdatedException exception = assertThrows(UserNotUpdatedException.class,
+                () -> userBusinessService.updateUser(userId, anotherOne, authenticatedUser));
+        assertEquals(UserNotUpdatedException.getErrorMessagePrefix() + " No changes were made.", exception.getMessage());
     }
 
     @Test
