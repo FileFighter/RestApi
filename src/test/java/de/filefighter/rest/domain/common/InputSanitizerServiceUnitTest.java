@@ -107,6 +107,17 @@ class InputSanitizerServiceUnitTest {
     }
 
     @Test
+    void passwordIsValidWorks() {
+        String notLongEnough = "abcd";
+        String longEnoughButWrongCharacter = "Q86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742EC8B2B14B44A0126";
+        String validString = "86C9C198F7DF1F0E6633E21A12BCA14730A27070BBCC742FEC8B2B14B44A0126";
+
+        assertFalse(inputSanitizerService.passwordIsValid(notLongEnough));
+        assertFalse(inputSanitizerService.passwordIsValid(longEnoughButWrongCharacter));
+        assertTrue(inputSanitizerService.passwordIsValid(validString));
+    }
+
+    @Test
     void sanitizePathThrows() {
         String working0 = "/ foo / bar /      ";
         String working1 = "foo/bar/foobar";
