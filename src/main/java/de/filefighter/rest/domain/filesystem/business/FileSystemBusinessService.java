@@ -209,6 +209,10 @@ public class FileSystemBusinessService {
         return new RecursiveReturn(foundInvisible, foundNonDeletable);
     }
 
+    public List<FileSystemItem> downloadFileSystemEntity(long fsItemId, User authenticatedUser) {
+        return null;
+    }
+
     @AllArgsConstructor
     private static class RecursiveReturn {
         private final boolean foundInvisibleEntities;

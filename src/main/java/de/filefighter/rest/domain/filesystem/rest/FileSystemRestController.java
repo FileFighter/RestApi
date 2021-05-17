@@ -55,6 +55,15 @@ public class FileSystemRestController {
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
     }
 
+    @PostMapping(FS_BASE_URI + "{fsItemId}/download")
+    public ResponseEntity<List<FileSystemItem>> downloadFileOrFolder(
+            @PathVariable long fsItemId,
+            @RequestHeader(value = "Authorization") String accessToken) {
+
+        log.info("Tried downloading FileSystemEntity with the id {}", fsItemId);
+        return fileSystemRestService.downloadFileSystemEntity(fsItemId, accessToken);
+    }
+
     @PostMapping(FS_BASE_URI + "{fsItemId}/upload")
     public ResponseEntity<List<FileSystemItem>> uploadFileOrFolder(
             @PathVariable long fsItemId,

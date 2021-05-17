@@ -22,4 +22,6 @@ public interface FileSystemRestServiceInterface {
     ResponseEntity<FileSystemItem> updateFileSystemItemWithIdAndAccessToken(long fsItemId, FileSystemItemUpdate fileSystemItemUpdate, String accessToken);
 
     ResponseEntity<List<FileSystemItem>> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessToken);
+
+    ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(long fsItemId, String accessToken);
 }
