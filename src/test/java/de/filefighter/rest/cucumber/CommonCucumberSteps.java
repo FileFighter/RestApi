@@ -104,8 +104,21 @@ public class CommonCucumberSteps extends RestApplicationIntegrationTest {
                 .path(path)
                 .ownerId(userId)
                 .lastUpdatedBy(userId)
+                .lastUpdated(Instant.EPOCH.getEpochSecond())
                 .fileSystemId(fileSystemId)
                 .name(name)
+                .build());
+    }
+
+    @And("fileSystemItem with the fileSystemId {long} exists, has owner with userId {long} and name {string} and mimeType {string}")
+    public void filesystemitemWithTheFileSystemIdExistsHasOwnerWithUserIdAndNameAndMimeType(long fileSystemId, long userId, String name, String mimeType) {
+        fileSystemRepository.save(FileSystemEntity.builder()
+                .ownerId(userId)
+                .lastUpdatedBy(userId)
+                .lastUpdated(Instant.EPOCH.getEpochSecond())
+                .fileSystemId(fileSystemId)
+                .name(name)
+                .mimeType(mimeType)
                 .build());
     }
 

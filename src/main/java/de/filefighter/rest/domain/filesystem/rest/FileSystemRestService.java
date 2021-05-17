@@ -52,9 +52,14 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(long fsItemId, String accessTokenValue) {
+    public ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(List<Long> fsItemIds, String accessTokenValue) {
         User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenValue);
-        return new ResponseEntity<>(fileSystemBusinessService.downloadFileSystemEntity(fsItemId, authenticatedUser), HttpStatus.OK);
+        Pair<List<FileSystemItem>, String> listStringPair = fileSystemBusinessService.downloadFileSystemEntity(fsItemIds, authenticatedUser);
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set("Access-Control-Expose-Headers", RestConfiguration.FS_DOWNLOAD_NAME_HEADER);
+        responseHeaders.set(RestConfiguration.FS_DOWNLOAD_NAME_HEADER, listStringPair.getSecond());
+        return new ResponseEntity<>(listStringPair.getFirst(), responseHeaders, HttpStatus.OK);
     }
 
     @Override

@@ -25,12 +25,11 @@ import java.util.List;
 @Service
 public class FileSystemBusinessService {
 
+    public static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
     private final FileSystemRepository fileSystemRepository;
     private final FileSystemHelperService fileSystemHelperService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final UserBusinessService userBusinessService;
-
-    public static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
 
     public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService) {
         this.fileSystemRepository = fileSystemRepository;
@@ -209,7 +208,11 @@ public class FileSystemBusinessService {
         return new RecursiveReturn(foundInvisible, foundNonDeletable);
     }
 
-    public List<FileSystemItem> downloadFileSystemEntity(long fsItemId, User authenticatedUser) {
+    public Pair<List<FileSystemItem>, String> downloadFileSystemEntity(List<Long> ids, User authenticatedUser) {
+        // also check for empty ids
+        for (Long l : ids) {
+            log.info("Found: {}", l);
+        }
         return null;
     }
 
