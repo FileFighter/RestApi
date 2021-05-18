@@ -10,8 +10,12 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import javax.servlet.http.*;
+
+import java.util.Objects;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
+import static de.filefighter.rest.domain.token.business.AccessTokenBusinessService.ACCESS_TOKEN_DURATION_IN_SECONDS;
 
 @Log4j2
 @RestController
@@ -44,11 +48,19 @@ public class UserRestController {
     }
 
     @GetMapping(USER_BASE_URI + "auth")
-    public ResponseEntity<AccessToken> getAccessToken(
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
+    public ResponseEntity<AccessToken> getAccessToken(HttpServletResponse response,
+                                                      @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
 
+        ResponseEntity<AccessToken> responseEntity = userRestService.getAccessTokenByRefreshToken(refreshToken);
+
+        Cookie cookie = new Cookie(AUTHORIZATION_ACCESSTOKEN_COOKIE, Objects.requireNonNull(responseEntity.getBody()).getTokenValue());
+        cookie.setMaxAge((int) ACCESS_TOKEN_DURATION_IN_SECONDS);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+
+        response.addCookie(cookie);
         log.info("Requested login for token {}.", refreshToken);
-        return userRestService.getAccessTokenByRefreshToken(refreshToken);
+        return responseEntity;
     }
 
 
