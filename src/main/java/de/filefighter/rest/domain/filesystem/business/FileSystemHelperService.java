@@ -7,6 +7,7 @@ import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDownloadedException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 
@@ -187,8 +190,8 @@ public class FileSystemHelperService {
         User ownerOfFileSystemItem;
         User lastUpdatedByUser;
         try {
-            ownerOfFileSystemItem = userBusinessService.getUserById(fileSystemEntity.getOwnerId());
-            lastUpdatedByUser = userBusinessService.getUserById(fileSystemEntity.getLastUpdatedBy());
+            ownerOfFileSystemItem = userBusinessService.findUserById(fileSystemEntity.getOwnerId());
+            lastUpdatedByUser = userBusinessService.findUserById(fileSystemEntity.getLastUpdatedBy());
         } catch (UserNotFoundException exception) {
             log.debug("Found UserNotFoundException in createDTO. Entity: {}.", fileSystemEntity);
             throw new FileFighterDataException("Owner or auther of last change could not be found.");
@@ -330,11 +333,86 @@ public class FileSystemHelperService {
             if (null == folderContents || folderContents.isEmpty())
                 throw new FileFighterDataException("Found no children for FileSystemEntity with id " + currentEntitiy.getFileSystemId());
 
-            String nextRelativePath = relativePath + currentEntitiy.getName() + "/";
+            String nextRelativePath = "";
+            boolean currentEntityIsInRoot = currentEntitiy.getPath().equals("/");
+
+            if (currentEntityIsInRoot) {
+                nextRelativePath = relativePath + this.getOwnerUsernameForEntity(currentEntitiy) + "/";
+            } else if (!relativePath.equals("")) {
+                nextRelativePath = relativePath + currentEntitiy.getName() + "/";
+            }
+
+            String finalNextRelativePath = nextRelativePath;
             folderContents.stream()
                     .filter(nextEntity -> this.userIsAllowedToInteractWithFileSystemEntity(nextEntity, authenticatedUser, InteractionType.READ))
-                    .forEach(nextEntity -> getContentsOfFolderRecursivly(listToAdd, nextEntity, authenticatedUser, nextRelativePath));
+                    .forEach(nextEntity -> getContentsOfFolderRecursivly(listToAdd, nextEntity, authenticatedUser, finalNextRelativePath));
         }
+
+    }
+
+    public String getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(List<FileSystemEntity> entities, boolean allEntitiesAreInRoot) {
+        if (allEntitiesAreInRoot) {
+            StringBuilder sb = new StringBuilder();
+            entities.stream()
+                    .map(this::getOwnerUsernameForEntity)
+                    .distinct()
+                    .forEach(sb::append);
+            return sb.toString();
+        }
+
+        List<FileSystemEntity> parents = entities.stream()
+                .map(getParentForEntity())
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (parents.size() != 1)
+            throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a common parent entity.");
+
+        return parents.get(0).getName();
+    }
+
+    public String getNameOfZipWhenOnlyOneEntityNeedsToBeDownloaded(FileSystemEntity currentEntity, boolean allEntitiesAreInRoot) {
+        String zipName = null;
+
+        // if it is a file we dont need to set the header.
+        if (!currentEntity.isFile()) {
+            if (allEntitiesAreInRoot) {
+                // get owner name and set it as header.
+                User ownerOfCurrentEntity;
+                try {
+                    ownerOfCurrentEntity = userBusinessService.findUserById(currentEntity.getOwnerId());
+                } catch (UserNotFoundException ex) {
+                    log.debug(ex);
+                    throw new FileFighterDataException("Couldn't find the Owner of the fileSystemEntity with id " + currentEntity.getOwnerId());
+                }
+                zipName = ownerOfCurrentEntity.getUsername();
+            } else {
+                zipName = currentEntity.getName();
+            }
+        }
+
+        return zipName;
+    }
+
+    public Function<FileSystemEntity, FileSystemEntity> getParentForEntity() {
+        return entity -> {
+            if (!entity.isFile() && entity.getPath().equals("/")) return null;
+
+            FileSystemEntity parent = fileSystemRepository.findByItemIdsContaining(entity.getFileSystemId());
+            if (null == parent)
+                throw new FileFighterDataException("Couldn't find the parent of the fileSystemEntity with id " + entity.getFileSystemId());
+            return parent;
+        };
+    }
+
+    private String getOwnerUsernameForEntity(FileSystemEntity entity) {
+        User owner;
+        try {
+            owner = userBusinessService.findUserById(entity.getOwnerId());
+        } catch (UserNotFoundException ex) {
+            throw new FileFighterDataException("Owner for id " + entity.getOwnerId() + " could not be found.");
+        }
+        return owner.getUsername();
     }
 
     public double getTotalFileSize() {

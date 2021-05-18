@@ -64,7 +64,7 @@ public class FileSystemUploadService {
         // get owner
         User ownerOfParent;
         try {
-            ownerOfParent = userBusinessService.getUserById(uploadParent.getOwnerId());
+            ownerOfParent = userBusinessService.findUserById(uploadParent.getOwnerId());
         } catch (UserNotFoundException exception) {
             throw new FileFighterDataException("Owner of upload parent entity could not be found.");
         }

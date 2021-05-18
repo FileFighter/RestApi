@@ -57,7 +57,6 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
         Pair<List<FileSystemItem>, String> listStringPair = fileSystemBusinessService.downloadFileSystemEntity(fsItemIds, authenticatedUser);
 
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.set("Access-Control-Expose-Headers", RestConfiguration.FS_DOWNLOAD_NAME_HEADER);
         responseHeaders.set(RestConfiguration.FS_DOWNLOAD_NAME_HEADER, listStringPair.getSecond());
         return new ResponseEntity<>(listStringPair.getFirst(), responseHeaders, HttpStatus.OK);
     }

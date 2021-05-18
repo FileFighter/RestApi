@@ -38,7 +38,7 @@ public class UserRestService implements UserRestServiceInterface {
     @Override
     public ResponseEntity<User> getUserByUserIdAuthenticateWithAccessToken(String accessTokenWithHeader, long userId) {
         authenticationService.bearerAuthenticationWithAccessToken(accessTokenWithHeader);
-        User user = userBusinessService.getUserById(userId);
+        User user = userBusinessService.findUserById(userId);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 

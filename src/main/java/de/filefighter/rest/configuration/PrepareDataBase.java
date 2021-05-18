@@ -166,7 +166,7 @@ public class PrepareDataBase {
                 log.error("Inserting Users " + MESSAGE_ON_FAILURE);
             }
 
-            if (fileSystemRepository.findAll().size() == 8) {
+            if (fileSystemRepository.findAll().size() == 10) {
                 log.info("Inserting FileSystemEntities " + MESSAGE_ON_SUCCESS);
             } else {
                 log.error("Inserting FileSystemEntities " + MESSAGE_ON_FAILURE);
@@ -239,7 +239,7 @@ public class PrepareDataBase {
     }
 
     private void addTestingFileSystemItems(FileSystemRepository fileSystemRepository) {
-        log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}.",
+        log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}.",
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .lastUpdatedBy(RUNTIME_USER_ID)
                         .ownerId(1)
@@ -351,6 +351,7 @@ public class PrepareDataBase {
                         .ownerId(1)
                         .fileSystemId(8)
                         .isFile(false)
+                        .path("/somefolder/folder")
                         .name("folder")
                         .size(1232)
                         .typeId(FOLDER.getId())

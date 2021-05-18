@@ -48,7 +48,7 @@ public class UserBusinessService {
         return userRepository.count();
     }
 
-    public User getUserById(long userId) {
+    public User findUserById(long userId) {
         UserEntity userEntity = userRepository.findByUserId(userId);
         if (null == userEntity) {
             throw new UserNotFoundException(userId);

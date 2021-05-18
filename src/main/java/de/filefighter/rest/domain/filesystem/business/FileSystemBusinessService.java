@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -211,36 +213,48 @@ public class FileSystemBusinessService {
 
     public Pair<List<FileSystemItem>, String> downloadFileSystemEntity(List<Long> ids, User authenticatedUser) {
         // validate input and check for parent
-        FileSystemEntity foundParent = null;
-        List<FileSystemItem> returnList = new ArrayList<>();
+        if (ids.isEmpty())
+            return new Pair<>(new ArrayList<>(), null);
 
-        for (Long l : ids) {
-            log.debug("Found id to download: {}", l);
-            if (null == l) {
-                break;
-            }
+        List<FileSystemEntity> entities = ids.stream()
+                .filter(Objects::nonNull)
+                .map(fileSystemRepository::findByFileSystemId)
+                .filter(entity -> fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ))
+                .collect(Collectors.toList());
 
-            FileSystemEntity entityWithId = fileSystemRepository.findByFileSystemId(l);
-            if (null == entityWithId)
-                throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
-
-            if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entityWithId, authenticatedUser, InteractionType.READ))
-                throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
-
-            FileSystemEntity parent = fileSystemRepository.findByItemIdsContaining(l);
-            if (null == parent)
-                throw new FileFighterDataException("Parent for entity with id " + l + " not found.");
-
-            if (null == foundParent) {
-                foundParent = parent;
-            } else if (foundParent.getFileSystemId() != parent.getFileSystemId())
-                throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a command parent entity.");
-
-            fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entityWithId, authenticatedUser, "");
+        if (entities.size() != ids.size()) {
+            log.debug("Entities size and ids size does not match after validation");
+            throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
         }
-        return new Pair<>(returnList, null == foundParent ? null : foundParent.getName());
+
+        boolean allEntitiesAreInRoot = entities.stream().allMatch(entity -> !entity.isFile() && entity.getPath().equals("/"));
+        boolean singleEntity = entities.size() == 1;
+
+        List<FileSystemItem> returnList = new ArrayList<>();
+        String zipName;
+
+        if (singleEntity) {
+            FileSystemEntity currentEntity = entities.get(0);
+            zipName = fileSystemHelperService.getNameOfZipWhenOnlyOneEntityNeedsToBeDownloaded(currentEntity, allEntitiesAreInRoot);
+            fileSystemHelperService.getContentsOfFolderRecursivly(returnList, currentEntity, authenticatedUser, "");
+
+        } else {
+            zipName = fileSystemHelperService.getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(entities, allEntitiesAreInRoot);
+            if (!allEntitiesAreInRoot) {
+                long countOfDifferentParents = entities.stream()
+                        .map(fileSystemHelperService.getParentForEntity())
+                        .distinct()
+                        .count();
+
+                if (countOfDifferentParents != 1)
+                    throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a common parent entity.");
+            }
+            entities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, ""));
+        }
+        return new Pair<>(returnList, zipName);
     }
 
+    //TODO remove this.
     @AllArgsConstructor
     private static class RecursiveReturn {
         private final boolean foundInvisibleEntities;

@@ -202,7 +202,7 @@ class FileSystemHelperServiceUnitTest {
         FileSystemEntity entity = FileSystemEntity.builder().lastUpdatedBy(userId).build();
         User user = User.builder().build();
 
-        when(userBusinessServiceMock.getUserById(userId)).thenThrow(UserNotFoundException.class);
+        when(userBusinessServiceMock.findUserById(userId)).thenThrow(UserNotFoundException.class);
 
         FileFighterDataException ex = assertThrows(FileFighterDataException.class, () ->
                 fileSystemHelperService.createDTO(entity, user, null));
@@ -237,7 +237,7 @@ class FileSystemHelperServiceUnitTest {
                 .typeId(typeId)
                 .build();
 
-        when(userBusinessServiceMock.getUserById(createdByUserId)).thenReturn(userThatCreatedFile);
+        when(userBusinessServiceMock.findUserById(createdByUserId)).thenReturn(userThatCreatedFile);
         when(fileSystemTypeRepositoryMock.findFileSystemTypeById(typeId)).thenReturn(FileSystemType.UNDEFINED);
 
         FileSystemItem actual = fileSystemHelperService.createDTO(fileSystemEntity, authenticatedUser, basePath + name);
