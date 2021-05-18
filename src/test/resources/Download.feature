@@ -23,6 +23,13 @@ Feature: Download Files
     And the response contains a entity with the path "bergfried.avi" that has key "fileSystemId" with value "72"
     And the response contains a entity with the path "bergfried.avi" that has key "mimeType" with value "video/avi"
 
+  Scenario: Successful interaction, download of file in personal folder, authorization with cookie
+    When the user with a cookie-token "Nasir" wants to download the fileSystemItems with Ids [72]
+    Then response status code is 200
+    And the response contains a entity with the path "bergfried.avi" that has key "name" with value "Bergfried.avi"
+    And the response contains a entity with the path "bergfried.avi" that has key "fileSystemId" with value "72"
+    And the response contains a entity with the path "bergfried.avi" that has key "mimeType" with value "video/avi"
+
   Scenario: Successful interaction, download of folder in personal folder
     When the user with token "Nasir" wants to download the fileSystemItems with Ids [42]
     Then response status code is 200

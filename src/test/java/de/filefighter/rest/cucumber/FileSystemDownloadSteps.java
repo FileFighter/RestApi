@@ -38,4 +38,19 @@ public class FileSystemDownloadSteps extends RestApplicationIntegrationTest {
 
         executeRestApiCall(HttpMethod.GET, url, header);
     }
+
+    @When("the user with a cookie-token {string} wants to download the fileSystemItems with Ids {listOfLongs}")
+    public void theUserWithACookieTokenWantsToDownloadTheFileSystemItemsWithIds(String tokenValue, List<Long> ids) {
+        // parse ids
+        StringBuilder idParamString = new StringBuilder("?ids=");
+        for (Long l : ids) {
+            idParamString.append(l).append(",");
+        }
+        String url = BASE_API_URI + FS_BASE_URI + "download" + idParamString;
+
+        HashMap<String, String> header = new HashMap<>();
+        header.put("Cookie", "token=" + tokenValue + "; Path=*; Tue, 18 May 2021 16:31:27 GMT");
+
+        executeRestApiCall(HttpMethod.GET, url, header);
+    }
 }
