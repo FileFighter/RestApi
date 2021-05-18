@@ -52,8 +52,13 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken) {
-        return null;
+    public ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(List<Long> fsItemIds, Pair<String, String> accessTokenValueOrHeader) {
+        User authenticatedUser = authenticationService.authenticateUserWithCookieOrHeader(accessTokenValueOrHeader);
+        Pair<List<FileSystemItem>, String> listStringPair = fileSystemBusinessService.downloadFileSystemEntity(fsItemIds, authenticatedUser);
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.set(RestConfiguration.FS_DOWNLOAD_NAME_HEADER, listStringPair.getSecond());
+        return new ResponseEntity<>(listStringPair.getFirst(), responseHeaders, HttpStatus.OK);
     }
 
     @Override
@@ -74,13 +79,18 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> updateFileSystemItemWithIdAndAccessToken(long fsItemId, FileSystemItemUpdate fileSystemItemUpdate, String accessToken) {
+    public ResponseEntity<List<FileSystemItem>> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessTokenValue) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenValue);
+        return new ResponseEntity<>(fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken) {
         return null;
     }
 
     @Override
-    public ResponseEntity<List<FileSystemItem>> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessTokenValue) {
-        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenValue);
-        return new ResponseEntity<>(fileSystemBusinessService.deleteFileSystemItemById(fsItemId, authenticatedUser), HttpStatus.OK);
+    public ResponseEntity<FileSystemItem> updateFileSystemItemWithIdAndAccessToken(long fsItemId, FileSystemItemUpdate fileSystemItemUpdate, String accessToken) {
+        return null;
     }
 }

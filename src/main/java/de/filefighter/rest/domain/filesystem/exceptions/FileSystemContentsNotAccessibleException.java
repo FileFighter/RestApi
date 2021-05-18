@@ -6,7 +6,6 @@ public class FileSystemContentsNotAccessibleException extends RuntimeException i
 
     private static final String ERROR_MESSAGE_PREFIX = "Folder does not exist, or you are not allowed to see the folder.";
 
-
     public FileSystemContentsNotAccessibleException() {
         super(ERROR_MESSAGE_PREFIX);
     }

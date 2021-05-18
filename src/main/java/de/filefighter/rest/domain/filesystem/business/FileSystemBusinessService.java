@@ -8,29 +8,30 @@ import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemEntity;
 import de.filefighter.rest.domain.filesystem.data.persistence.FileSystemRepository;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemContentsNotAccessibleException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDeletedException;
+import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemCouldNotBeDownloadedException;
 import de.filefighter.rest.domain.filesystem.exceptions.FileSystemItemNotFoundException;
 import de.filefighter.rest.domain.filesystem.type.FileSystemType;
 import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
 public class FileSystemBusinessService {
 
+    public static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
     private final FileSystemRepository fileSystemRepository;
     private final FileSystemHelperService fileSystemHelperService;
     private final FileSystemTypeRepository fileSystemTypeRepository;
     private final UserBusinessService userBusinessService;
-
-    public static final String DELETION_FAILED_MSG = "Failed to delete FileSystemEntity with id ";
 
     public FileSystemBusinessService(FileSystemRepository fileSystemRepository, FileSystemHelperService fileSystemHelperService, FileSystemTypeRepository fileSystemTypeRepository, UserBusinessService userBusinessService) {
         this.fileSystemRepository = fileSystemRepository;
@@ -158,7 +159,7 @@ public class FileSystemBusinessService {
         return returnList;
     }
 
-    private RecursiveReturn recursivlyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
+    private Pair<Boolean, Boolean> recursivlyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
         boolean foundNonDeletable = false;
         boolean foundInvisible = false;
 
@@ -173,9 +174,9 @@ public class FileSystemBusinessService {
                 for (FileSystemEntity item : items) {
                     if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.READ)) {
                         if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.DELETE)) {
-                            RecursiveReturn recursiveReturn = recursivlyDeleteFileSystemEntity(item, authenticatedUser, returnList);
-                            foundInvisible = recursiveReturn.foundInvisibleEntities || foundInvisible;
-                            foundNonDeletable = recursiveReturn.foundNonDeletableEntities || foundNonDeletable;
+                            Pair<Boolean, Boolean> recursiveReturn = recursivlyDeleteFileSystemEntity(item, authenticatedUser, returnList);
+                            foundInvisible = recursiveReturn.getFirst() || foundInvisible;
+                            foundNonDeletable = recursiveReturn.getSecond() || foundNonDeletable;
                         } else {
                             // a entity could not be removed disable the deletion of the parent folder. (current Entity)
                             foundNonDeletable = true;
@@ -206,12 +207,57 @@ public class FileSystemBusinessService {
                 returnList.add(fileSystemHelperService.createDTO(parentEntity, authenticatedUser, null));
             }
         }
-        return new RecursiveReturn(foundInvisible, foundNonDeletable);
+        return new Pair<>(foundInvisible, foundNonDeletable);
     }
 
-    @AllArgsConstructor
-    private static class RecursiveReturn {
-        private final boolean foundInvisibleEntities;
-        private final boolean foundNonDeletableEntities;
+    public Pair<List<FileSystemItem>, String> downloadFileSystemEntity(List<Long> ids, User authenticatedUser) {
+        // validate input and check for parent
+        if (ids.isEmpty())
+            return new Pair<>(new ArrayList<>(), null);
+
+        List<FileSystemEntity> uncheckedEntities = ids.stream()
+                .filter(Objects::nonNull)
+                .map(id -> {
+                    FileSystemEntity possibleEntity = fileSystemRepository.findByFileSystemId(id);
+                    if (null == possibleEntity)
+                        throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
+
+                    return possibleEntity;
+                }).collect(Collectors.toList());
+
+        List<FileSystemEntity> checkedEntities = uncheckedEntities.stream()
+                .filter(entity -> fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ))
+                .collect(Collectors.toList());
+
+        if (checkedEntities.size() != uncheckedEntities.size()) {
+            log.debug("Entities size and ids size does not match after validation. pre: {} / after: {}", uncheckedEntities.size(), checkedEntities.size());
+            throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
+        }
+
+        boolean allEntitiesAreInRoot = checkedEntities.stream().allMatch(entity -> !entity.isFile() && entity.getPath().equals("/"));
+        boolean singleEntity = checkedEntities.size() == 1;
+
+        List<FileSystemItem> returnList = new ArrayList<>();
+        String zipName;
+
+        if (singleEntity) {
+            FileSystemEntity currentEntity = checkedEntities.get(0);
+            zipName = fileSystemHelperService.getNameOfZipWhenOnlyOneEntityNeedsToBeDownloaded(currentEntity, allEntitiesAreInRoot);
+            fileSystemHelperService.getContentsOfFolderRecursivly(returnList, currentEntity, authenticatedUser, "", false);
+
+        } else {
+            zipName = fileSystemHelperService.getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(checkedEntities, allEntitiesAreInRoot);
+            if (!allEntitiesAreInRoot) {
+                long countOfDifferentParents = checkedEntities.stream()
+                        .map(entity -> fileSystemHelperService.getParentNameEntity().apply(entity))
+                        .distinct()
+                        .count();
+
+                if (countOfDifferentParents != 1)
+                    throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a common parent entity.");
+            }
+            checkedEntities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, "", true));
+        }
+        return new Pair<>(returnList, zipName);
     }
 }

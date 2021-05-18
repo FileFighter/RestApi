@@ -117,7 +117,7 @@ class UserBusinessServiceUnitTest {
         when(userRepositoryMock.findByUserId(id)).thenReturn(null);
 
         UserNotFoundException ex = assertThrows(UserNotFoundException.class, () ->
-                userBusinessService.getUserById(id));
+                userBusinessService.findUserById(id));
 
         assertEquals(UserNotFoundException.getErrorMessagePrefix() + " UserId was " + id, ex.getMessage());
     }
@@ -131,7 +131,7 @@ class UserBusinessServiceUnitTest {
         when(userRepositoryMock.findByUserId(id)).thenReturn(dummyEntity);
         when(userDtoServiceMock.createDto(dummyEntity)).thenReturn(dummyUser);
 
-        User actual = userBusinessService.getUserById(id);
+        User actual = userBusinessService.findUserById(id);
         assertEquals(dummyUser, actual);
     }
 

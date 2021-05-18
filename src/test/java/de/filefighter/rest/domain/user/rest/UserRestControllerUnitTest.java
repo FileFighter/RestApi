@@ -8,6 +8,7 @@ import de.filefighter.rest.rest.ServerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +29,7 @@ class UserRestControllerUnitTest {
 
     @Test
     void registerNewUser() {
-        ServerResponse expected = new ServerResponse(OK,"");
+        ServerResponse expected = new ServerResponse(OK, "");
         ResponseEntity<ServerResponse> expectedEntity = new ResponseEntity<>(expected, CREATED);
 
         when(userRestServiceMock.registerNewUserWithAccessToken(any(), any())).thenReturn(expectedEntity);
@@ -57,8 +58,9 @@ class UserRestControllerUnitTest {
         ResponseEntity<AccessToken> accessTokenEntityModel = new ResponseEntity<>(accessToken, OK);
 
         when(userRestServiceMock.getAccessTokenByRefreshToken("token")).thenReturn(accessTokenEntityModel);
+        MockHttpServletResponse servletResponse = new MockHttpServletResponse();
 
-        ResponseEntity<AccessToken> actualAccessTokenEntity = userRestController.getAccessToken("token");
+        ResponseEntity<AccessToken> actualAccessTokenEntity = userRestController.getAccessToken(servletResponse, "token");
         assertEquals(accessTokenEntityModel, actualAccessTokenEntity);
     }
 
@@ -68,7 +70,7 @@ class UserRestControllerUnitTest {
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
         when(userRestServiceMock.getUserByUserIdAuthenticateWithAccessToken("token", 420)).thenReturn(expectedUser);
-        ResponseEntity<User> actualUser = userRestController.getUserInfo(420,"token");
+        ResponseEntity<User> actualUser = userRestController.getUserInfo(420, "token");
 
         assertEquals(expectedUser, actualUser);
     }
@@ -85,12 +87,12 @@ class UserRestControllerUnitTest {
     }
 
     @Test
-    void findUserByUsername(){
+    void findUserByUsername() {
         User user = User.builder().userId(420).groups(null).username("kevin").build();
         ResponseEntity<User> expectedUser = new ResponseEntity<>(user, OK);
 
-        String username="kevin";
-        String accessToken="token";
+        String username = "kevin";
+        String accessToken = "token";
         when(userRestServiceMock.findUserByUsernameAndAccessToken(username, accessToken)).thenReturn(expectedUser);
 
         ResponseEntity<User> actualUser = userRestController.findUserByUsername(accessToken, username);

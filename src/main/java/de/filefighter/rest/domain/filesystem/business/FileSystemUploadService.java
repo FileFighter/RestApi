@@ -64,7 +64,7 @@ public class FileSystemUploadService {
         // get owner
         User ownerOfParent;
         try {
-            ownerOfParent = userBusinessService.getUserById(uploadParent.getOwnerId());
+            ownerOfParent = userBusinessService.findUserById(uploadParent.getOwnerId());
         } catch (UserNotFoundException exception) {
             throw new FileFighterDataException("Owner of upload parent entity could not be found.");
         }
@@ -97,7 +97,7 @@ public class FileSystemUploadService {
 
                 // does a file with the same name already exist?
                 Long[] childrenIdsLong = fileSystemHelperService.transformlongArrayToLong(latestEntity.getItemIds());
-                List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), currentEntityName);
+                List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndNameIgnoreCase(Arrays.asList(childrenIdsLong), currentEntityName);
                 if (!alreadyExistingFilesWithSameName.isEmpty())
                     throw new FileSystemItemCouldNotBeUploadedException("A File with the same name already exists when creating the new folder " + currentEntityName);
 
@@ -149,7 +149,7 @@ public class FileSystemUploadService {
 
         // check for existing file or folder
         Long[] childrenIdsLong = fileSystemHelperService.transformlongArrayToLong(latestEntity.getItemIds());
-        List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), fileSystemUpload.getName());
+        List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndNameIgnoreCase(Arrays.asList(childrenIdsLong), fileSystemUpload.getName());
         if (alreadyExistingFilesWithSameName.size() > 1)
             throw new FileFighterDataException("Found more than one entity with the same name in folder: " + latestEntity);
 
@@ -348,7 +348,7 @@ public class FileSystemUploadService {
 
             // CHECK FOR EXISTING FILE WITH SAME NAME. (we already checked for a folder.)
             Long[] childrenIdsLong = fileSystemHelperService.transformlongArrayToLong(parentsChildren);
-            List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), currentFolderName);
+            List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndNameIgnoreCase(Arrays.asList(childrenIdsLong), currentFolderName);
 
             if (!alreadyExistingFilesWithSameName.isEmpty()) {
                 return PreflightResponse.FOLDER_CANT_BE_CREATED;
@@ -433,7 +433,7 @@ public class FileSystemUploadService {
 
             // CHECK FOR EXISTING FILE WITH SAME NAME. (we already checked for a folder.)
             Long[] childrenIdsLong = fileSystemHelperService.transformlongArrayToLong(parentsChildren);
-            List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndName(Arrays.asList(childrenIdsLong), currentFileName);
+            List<FileSystemEntity> alreadyExistingFilesWithSameName = fileSystemRepository.findAllByFileSystemIdInAndNameIgnoreCase(Arrays.asList(childrenIdsLong), currentFileName);
 
             if (!alreadyExistingFilesWithSameName.isEmpty()) {
                 return PreflightResponse.FILE_CAN_BE_OVERWRITEN;

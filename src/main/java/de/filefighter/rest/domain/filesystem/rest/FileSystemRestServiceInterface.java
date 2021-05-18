@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.rest;
 
+import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
@@ -22,4 +23,6 @@ public interface FileSystemRestServiceInterface {
     ResponseEntity<FileSystemItem> updateFileSystemItemWithIdAndAccessToken(long fsItemId, FileSystemItemUpdate fileSystemItemUpdate, String accessToken);
 
     ResponseEntity<List<FileSystemItem>> deleteFileSystemItemWithIdAndAccessToken(long fsItemId, String accessToken);
+
+    ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(List<Long> fsItemIds, Pair<String, String> authPair);
 }
