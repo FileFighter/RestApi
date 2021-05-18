@@ -8,7 +8,10 @@ public interface AuthenticationServiceInterface {
 
     User bearerAuthenticationWithAccessToken(String accessTokenWithHeader);
 
+    User authenticationWithAccessToken(String accessToken);
+
     User bearerAuthenticationWithRefreshToken(String refreshTokenWithHeader);
 
     void bearerAuthenticationWithAccessTokenAndGroup(String accessTokenWithHeader, Group group);
+
 }
