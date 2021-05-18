@@ -38,6 +38,13 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     }
 
     @Override
+    public User cookieAuthenticationWithAccessToken(String accessTokenFromCookie) {
+        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(accessTokenFromCookie);
+        AccessToken validAccessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
+        return authenticationBusinessService.authenticateUserWithAccessToken(validAccessToken);
+    }
+
+    @Override
     public User bearerAuthenticationWithRefreshToken(String refreshTokenWithHeader) {
         String sanitizedHeaderValue = inputSanitizerService.sanitizeRequestHeader(AUTHORIZATION_BEARER_PREFIX, refreshTokenWithHeader);
         String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(sanitizedHeaderValue);
