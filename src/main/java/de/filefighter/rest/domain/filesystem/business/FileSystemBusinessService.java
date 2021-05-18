@@ -236,7 +236,7 @@ public class FileSystemBusinessService {
         if (singleEntity) {
             FileSystemEntity currentEntity = entities.get(0);
             zipName = fileSystemHelperService.getNameOfZipWhenOnlyOneEntityNeedsToBeDownloaded(currentEntity, allEntitiesAreInRoot);
-            fileSystemHelperService.getContentsOfFolderRecursivly(returnList, currentEntity, authenticatedUser, "");
+            fileSystemHelperService.getContentsOfFolderRecursivly(returnList, currentEntity, authenticatedUser, "", false);
 
         } else {
             zipName = fileSystemHelperService.getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(entities, allEntitiesAreInRoot);
@@ -249,7 +249,7 @@ public class FileSystemBusinessService {
                 if (countOfDifferentParents != 1)
                     throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a common parent entity.");
             }
-            entities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, ""));
+            entities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, "", true));
         }
         return new Pair<>(returnList, zipName);
     }

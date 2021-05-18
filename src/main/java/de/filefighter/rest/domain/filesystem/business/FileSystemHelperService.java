@@ -323,7 +323,7 @@ public class FileSystemHelperService {
         return parent.equals("") ? "/" : parent;
     }
 
-    public void getContentsOfFolderRecursivly(List<FileSystemItem> listToAdd, FileSystemEntity currentEntitiy, User authenticatedUser, String relativePath) {
+    public void getContentsOfFolderRecursivly(List<FileSystemItem> listToAdd, FileSystemEntity currentEntitiy, User authenticatedUser, String relativePath, boolean multipleEntitiesInCurrentEntity) {
         if (currentEntitiy.isFile() || currentEntitiy.getTypeId() != FileSystemType.FOLDER.getId()) {
             listToAdd.add(this.createDTO(currentEntitiy, authenticatedUser, relativePath + currentEntitiy.getName()));
         } else {
@@ -333,21 +333,32 @@ public class FileSystemHelperService {
             if (null == folderContents || folderContents.isEmpty())
                 throw new FileFighterDataException("Found no children for FileSystemEntity with id " + currentEntitiy.getFileSystemId());
 
-            String nextRelativePath = "";
+            boolean currentRunIsTheFirst = relativePath.equals("");
             boolean currentEntityIsInRoot = currentEntitiy.getPath().equals("/");
 
-            if (currentEntityIsInRoot) {
-                nextRelativePath = relativePath + this.getOwnerUsernameForEntity(currentEntitiy) + "/";
-            } else if (!relativePath.equals("")) {
-                nextRelativePath = relativePath + currentEntitiy.getName() + "/";
-            }
+            String nextRelativePath = getNextRelativePath(currentEntitiy, relativePath, multipleEntitiesInCurrentEntity, currentRunIsTheFirst, currentEntityIsInRoot);
 
-            String finalNextRelativePath = nextRelativePath;
             folderContents.stream()
                     .filter(nextEntity -> this.userIsAllowedToInteractWithFileSystemEntity(nextEntity, authenticatedUser, InteractionType.READ))
-                    .forEach(nextEntity -> getContentsOfFolderRecursivly(listToAdd, nextEntity, authenticatedUser, finalNextRelativePath));
+                    .forEach(nextEntity -> getContentsOfFolderRecursivly(listToAdd, nextEntity, authenticatedUser, nextRelativePath, folderContents.size() > 1));
         }
 
+    }
+
+    private String getNextRelativePath(FileSystemEntity currentEntitiy, String relativePath, boolean multipleEntitiesInCurrentEntity, boolean currentRunIsTheFirst, boolean currentEntityIsInRoot) {
+        String nextRelativePath = "";
+        if (currentRunIsTheFirst) {
+            if (multipleEntitiesInCurrentEntity) {
+                if (currentEntityIsInRoot) {
+                    nextRelativePath = relativePath + this.getOwnerUsernameForEntity(currentEntitiy) + "/";
+                } else {
+                    nextRelativePath = relativePath + currentEntitiy.getName() + "/";
+                }
+            }
+        } else {
+            nextRelativePath = relativePath + currentEntitiy.getName() + "/";
+        }
+        return nextRelativePath;
     }
 
     public String getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(List<FileSystemEntity> entities, boolean allEntitiesAreInRoot) {
