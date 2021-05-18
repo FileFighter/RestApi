@@ -97,7 +97,6 @@ public class PrepareDataBase {
                                 .name("HOME_1")
                                 .size(420)
                                 .typeId(FOLDER.getId())
-                                .itemIds(new long[]{1})
                                 .build()));
 
                 if (userRepository.findAll().size() == 2) {
