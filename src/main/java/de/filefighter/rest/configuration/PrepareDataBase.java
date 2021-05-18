@@ -166,7 +166,7 @@ public class PrepareDataBase {
                 log.error("Inserting Users " + MESSAGE_ON_FAILURE);
             }
 
-            if (fileSystemRepository.findAll().size() == 8) {
+            if (fileSystemRepository.findAll().size() == 10) {
                 log.info("Inserting FileSystemEntities " + MESSAGE_ON_SUCCESS);
             } else {
                 log.error("Inserting FileSystemEntities " + MESSAGE_ON_FAILURE);
@@ -239,7 +239,7 @@ public class PrepareDataBase {
     }
 
     private void addTestingFileSystemItems(FileSystemRepository fileSystemRepository) {
-        log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}.",
+        log.info("Inserting default fsItems:\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}\n {}.",
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .lastUpdatedBy(RUNTIME_USER_ID)
                         .ownerId(1)
@@ -306,7 +306,7 @@ public class PrepareDataBase {
                         .typeId(FOLDER.getId())
                         .editableFoGroupIds(new long[]{FAMILY.getGroupId()})
                         .visibleForGroupIds(new long[]{FAMILY.getGroupId()})
-                        .itemIds(new long[]{4, 5, 6})
+                        .itemIds(new long[]{4, 5, 6, 8})
                         .build()),
                 fileSystemRepository.save(FileSystemEntity.builder()
                         .lastUpdatedBy(1)
@@ -341,6 +341,29 @@ public class PrepareDataBase {
                         .fileSystemId(6)
                         .isFile(true)
                         .name("invisible_secret_video.mp4")
+                        .size(1232)
+                        .typeId(VIDEO.getId())
+                        .mimeType("video/mp4")
+                        .build()),
+                fileSystemRepository.save(FileSystemEntity.builder()
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
+                        .fileSystemId(8)
+                        .isFile(false)
+                        .path("/somefolder/folder")
+                        .name("folder")
+                        .size(1232)
+                        .typeId(FOLDER.getId())
+                        .itemIds(new long[]{9})
+                        .build()),
+                fileSystemRepository.save(FileSystemEntity.builder()
+                        .lastUpdatedBy(1)
+                        .lastUpdated(Instant.now().getEpochSecond())
+                        .ownerId(1)
+                        .fileSystemId(9)
+                        .isFile(true)
+                        .name("anotherVideo.mp4")
                         .size(1232)
                         .typeId(VIDEO.getId())
                         .mimeType("video/mp4")

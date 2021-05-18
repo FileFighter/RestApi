@@ -79,7 +79,6 @@ public class FileSystemUploadSteps extends RestApplicationIntegrationTest {
 
     @Then("the response contains a entity with the path {string} that has key {string} with value {string}")
     public void theResponseContainsAEntityWithThePathThatHasKeyWithValue(String path, String key, String value) throws JsonProcessingException {
-
         ArrayNode rootNode = (ArrayNode) objectMapper.readTree(latestResponse.getBody());
         if (!rootNode.isContainerNode() || rootNode.isEmpty())
             throw new AssertionError("Response was not an Array or empty.");

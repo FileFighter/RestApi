@@ -361,7 +361,7 @@ class FileSystemBusinessServiceUnitTest {
         FileSystemEntity entity = FileSystemEntity.builder().name(name).lastUpdatedBy(userId).build();
         FileSystemItem item = FileSystemItem.builder().build();
 
-        when(userBusinessServiceMock.getUserById(userId)).thenReturn(dummyUser);
+        when(userBusinessServiceMock.findUserById(userId)).thenReturn(dummyUser);
         when(fileSystemRepositoryMock.findByFileSystemId(id)).thenReturn(entity);
         when(fileSystemHelperServiceMock.userIsAllowedToInteractWithFileSystemEntity(entity, dummyUser, InteractionType.READ)).thenReturn(true);
         when(fileSystemHelperServiceMock.createDTO(entity, dummyUser, null)).thenReturn(item);

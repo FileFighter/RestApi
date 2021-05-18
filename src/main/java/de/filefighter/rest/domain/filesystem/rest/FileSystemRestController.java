@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.rest;
 
+import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
@@ -53,6 +54,16 @@ public class FileSystemRestController {
 
         log.info("Searching for file or folder with name {}", name);
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
+    }
+
+    @GetMapping(FS_BASE_URI + "download")
+    public ResponseEntity<List<FileSystemItem>> downloadFileOrFolder(
+            @RequestParam(name = "ids") List<Long> ids,
+            @CookieValue(name = AUTHORIZATION_ACCESS_TOKEN_COOKIE, required = false) String cookieValue,
+            @RequestHeader(value = "Authorization", required = false) String accessToken) {
+
+        log.info("Tried downloading FileSystemEntities with the ids {}", ids);
+        return fileSystemRestService.downloadFileSystemEntity(ids, new Pair<>(cookieValue, accessToken));
     }
 
     @PostMapping(FS_BASE_URI + "{fsItemId}/upload")

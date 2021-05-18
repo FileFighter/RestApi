@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.authentication;
 
+import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.group.Group;
 
@@ -8,7 +9,11 @@ public interface AuthenticationServiceInterface {
 
     User bearerAuthenticationWithAccessToken(String accessTokenWithHeader);
 
+    User cookieAuthenticationWithAccessToken(String accessToken);
+
     User bearerAuthenticationWithRefreshToken(String refreshTokenWithHeader);
 
     void bearerAuthenticationWithAccessTokenAndGroup(String accessTokenWithHeader, Group group);
+
+    User authenticateUserWithCookieOrHeader(Pair<String, String> accessTokenValueOrHeader);
 }
