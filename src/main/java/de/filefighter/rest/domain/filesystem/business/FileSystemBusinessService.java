@@ -15,7 +15,6 @@ import de.filefighter.rest.domain.filesystem.type.FileSystemTypeRepository;
 import de.filefighter.rest.domain.user.business.UserBusinessService;
 import de.filefighter.rest.domain.user.data.dto.User;
 import de.filefighter.rest.domain.user.exceptions.UserNotFoundException;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
@@ -160,7 +159,7 @@ public class FileSystemBusinessService {
         return returnList;
     }
 
-    private RecursiveReturn recursivlyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
+    private Pair<Boolean, Boolean> recursivlyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
         boolean foundNonDeletable = false;
         boolean foundInvisible = false;
 
@@ -175,9 +174,9 @@ public class FileSystemBusinessService {
                 for (FileSystemEntity item : items) {
                     if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.READ)) {
                         if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.DELETE)) {
-                            RecursiveReturn recursiveReturn = recursivlyDeleteFileSystemEntity(item, authenticatedUser, returnList);
-                            foundInvisible = recursiveReturn.foundInvisibleEntities || foundInvisible;
-                            foundNonDeletable = recursiveReturn.foundNonDeletableEntities || foundNonDeletable;
+                            Pair<Boolean, Boolean> recursiveReturn = recursivlyDeleteFileSystemEntity(item, authenticatedUser, returnList);
+                            foundInvisible = recursiveReturn.getFirst() || foundInvisible;
+                            foundNonDeletable = recursiveReturn.getSecond() || foundNonDeletable;
                         } else {
                             // a entity could not be removed disable the deletion of the parent folder. (current Entity)
                             foundNonDeletable = true;
@@ -208,7 +207,7 @@ public class FileSystemBusinessService {
                 returnList.add(fileSystemHelperService.createDTO(parentEntity, authenticatedUser, null));
             }
         }
-        return new RecursiveReturn(foundInvisible, foundNonDeletable);
+        return new Pair<>(foundInvisible, foundNonDeletable);
     }
 
     public Pair<List<FileSystemItem>, String> downloadFileSystemEntity(List<Long> ids, User authenticatedUser) {
@@ -260,12 +259,5 @@ public class FileSystemBusinessService {
             checkedEntities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, "", true));
         }
         return new Pair<>(returnList, zipName);
-    }
-
-    //TODO remove this.
-    @AllArgsConstructor
-    private static class RecursiveReturn {
-        private final boolean foundInvisibleEntities;
-        private final boolean foundNonDeletableEntities;
     }
 }
