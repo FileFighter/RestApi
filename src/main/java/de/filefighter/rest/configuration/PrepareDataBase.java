@@ -85,7 +85,7 @@ public class PrepareDataBase {
 
             if (foundUsers.isEmpty() && foundFileSystemEntities.isEmpty()) {
                 addDefaultAdminAndRuntimeUser(userRepository, passwordEncoder);
-                log.info("Inserting Home directories and default structure: {} {}.", fileSystemRepository.save(FileSystemEntity
+                log.info("Inserting Home directory and default structure: {}.", fileSystemRepository.save(FileSystemEntity
                                 .builder()
                                 .lastUpdatedBy(RUNTIME_USER_ID)
                                 .lastUpdated(Instant.now().getEpochSecond())
@@ -98,17 +98,6 @@ public class PrepareDataBase {
                                 .size(420)
                                 .typeId(FOLDER.getId())
                                 .itemIds(new long[]{1})
-                                .build()),
-                        fileSystemRepository.save(FileSystemEntity.builder()
-                                .lastUpdatedBy(RUNTIME_USER_ID)
-                                .lastUpdated(Instant.now().getEpochSecond())
-                                .ownerId(1)
-                                .fileSystemId(1)
-                                .isFile(true)
-                                .name("dummyFile.txt")
-                                .size(420)
-                                .typeId(TEXT.getId())
-                                .mimeType("text/plain")
                                 .build()));
 
                 if (userRepository.findAll().size() == 2) {
@@ -117,7 +106,7 @@ public class PrepareDataBase {
                     log.error("Inserting Users " + MESSAGE_ON_FAILURE);
                 }
 
-                if (fileSystemRepository.findAll().size() == 2) {
+                if (fileSystemRepository.findAll().size() == 1) {
                     log.info("Inserting FileSystemEntities " + MESSAGE_ON_SUCCESS);
                 } else {
                     log.error("Inserting FileSystemEntities " + MESSAGE_ON_FAILURE);
