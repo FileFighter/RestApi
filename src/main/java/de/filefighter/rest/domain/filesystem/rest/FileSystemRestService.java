@@ -52,8 +52,8 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(List<Long> fsItemIds, String accessTokenValue) {
-        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenValue);
+    public ResponseEntity<List<FileSystemItem>> downloadFileSystemEntity(List<Long> fsItemIds, Pair<String, String> accessTokenValueOrHeader) {
+        User authenticatedUser = authenticationService.authenticateUserWithCookieOrHeader(accessTokenValueOrHeader);
         Pair<List<FileSystemItem>, String> listStringPair = fileSystemBusinessService.downloadFileSystemEntity(fsItemIds, authenticatedUser);
 
         HttpHeaders responseHeaders = new HttpHeaders();
