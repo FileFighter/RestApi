@@ -38,8 +38,8 @@ public class AuthenticationService implements AuthenticationServiceInterface {
     }
 
     @Override
-    public User authenticationWithAccessToken(String accessToken) {
-        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(accessToken);
+    public User cookieAuthenticationWithAccessToken(String accessTokenFromCookie) {
+        String sanitizedTokenString = inputSanitizerService.sanitizeTokenValue(accessTokenFromCookie);
         AccessToken validAccessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
         return authenticationBusinessService.authenticateUserWithAccessToken(validAccessToken);
     }
@@ -58,6 +58,4 @@ public class AuthenticationService implements AuthenticationServiceInterface {
         AccessToken validAccessToken = accessTokenBusinessService.findAccessTokenByValue(sanitizedTokenString);
         authenticationBusinessService.authenticateUserWithAccessTokenAndGroup(validAccessToken, group);
     }
-
-
 }

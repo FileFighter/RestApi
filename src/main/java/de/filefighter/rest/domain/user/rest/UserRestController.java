@@ -10,8 +10,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import javax.servlet.http.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -32,7 +33,7 @@ public class UserRestController {
 
     @PostMapping(USER_BASE_URI + "register")
     public ResponseEntity<ServerResponse> registerNewUser(
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "admin-token") String accessToken,
+            @RequestHeader(value = "Authorization") String accessToken,
             @RequestBody UserRegisterForm newUser) {
 
         log.info("Registered new User {}.", newUser);
@@ -41,25 +42,26 @@ public class UserRestController {
 
     @GetMapping(USER_BASE_URI + "login")
     public ResponseEntity<RefreshToken> loginWithUsernameAndPassword(
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BASIC_PREFIX + "S2V2aW46MTIzNA==") String base64encodedUserAndPassword) {
+            @RequestHeader(value = "Authorization") String base64encodedUserAndPassword) {
 
         log.info("Requested Login.");
         return userRestService.getRefreshTokenWithUsernameAndPassword(base64encodedUserAndPassword);
     }
 
     @GetMapping(USER_BASE_URI + "auth")
-    public ResponseEntity<AccessToken> getAccessToken(HttpServletResponse response,
-                                                      @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String refreshToken) {
+    public ResponseEntity<AccessToken> getAccessToken(
+            HttpServletResponse response,
+            @RequestHeader(value = "Authorization") String refreshToken) {
 
+        log.info("Requested login for token {}.", refreshToken);
         ResponseEntity<AccessToken> responseEntity = userRestService.getAccessTokenByRefreshToken(refreshToken);
 
-        Cookie cookie = new Cookie(AUTHORIZATION_ACCESSTOKEN_COOKIE, Objects.requireNonNull(responseEntity.getBody()).getTokenValue());
+        Cookie cookie = new Cookie(AUTHORIZATION_ACCESS_TOKEN_COOKIE, Objects.requireNonNull(responseEntity.getBody()).getTokenValue());
         cookie.setMaxAge((int) ACCESS_TOKEN_DURATION_IN_SECONDS);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-
         response.addCookie(cookie);
-        log.info("Requested login for token {}.", refreshToken);
+
         return responseEntity;
     }
 
@@ -67,7 +69,7 @@ public class UserRestController {
     @GetMapping(USER_BASE_URI + "{userId}/info")
     public ResponseEntity<User> getUserInfo(
             @PathVariable long userId,
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken) {
+            @RequestHeader(value = "Authorization") String accessToken) {
 
         log.info("Requested User {} with token {}.", userId, accessToken);
         return userRestService.getUserByUserIdAuthenticateWithAccessToken(accessToken, userId);
@@ -76,7 +78,7 @@ public class UserRestController {
     @PutMapping(USER_BASE_URI + "{userId}/edit")
     public ResponseEntity<ServerResponse> updateUser(
             @PathVariable long userId,
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
+            @RequestHeader(value = "Authorization") String accessToken,
             @RequestBody UserRegisterForm updatedUser) {
 
         log.info("Updated User {} and Token {}, with form {}.", userId, accessToken, updatedUser);
@@ -85,7 +87,7 @@ public class UserRestController {
 
     @GetMapping(USER_BASE_URI + "find")
     public ResponseEntity<User> findUserByUsername(
-            @RequestHeader(value = "Authorization", defaultValue = AUTHORIZATION_BEARER_PREFIX + "token") String accessToken,
+            @RequestHeader(value = "Authorization") String accessToken,
             @RequestParam(name = "username", value = "username") String username
     ) {
         log.info("Requested finding User with the username {} and Token {}", username, accessToken);

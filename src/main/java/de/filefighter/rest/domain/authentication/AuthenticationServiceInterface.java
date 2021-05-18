@@ -8,7 +8,7 @@ public interface AuthenticationServiceInterface {
 
     User bearerAuthenticationWithAccessToken(String accessTokenWithHeader);
 
-    User authenticationWithAccessToken(String accessToken);
+    User cookieAuthenticationWithAccessToken(String accessToken);
 
     User bearerAuthenticationWithRefreshToken(String refreshTokenWithHeader);
 
