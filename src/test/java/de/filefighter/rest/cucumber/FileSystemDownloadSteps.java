@@ -27,7 +27,7 @@ public class FileSystemDownloadSteps extends RestApplicationIntegrationTest {
         // parse ids
         StringBuilder idParamString = new StringBuilder("?ids=");
         for (Long l : ids) {
-            idParamString.append(l);
+            idParamString.append(l).append(",");
         }
 
         String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;

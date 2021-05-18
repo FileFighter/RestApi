@@ -216,32 +216,40 @@ public class FileSystemBusinessService {
         if (ids.isEmpty())
             return new Pair<>(new ArrayList<>(), null);
 
-        List<FileSystemEntity> entities = ids.stream()
+        List<FileSystemEntity> uncheckedEntities = ids.stream()
                 .filter(Objects::nonNull)
-                .map(fileSystemRepository::findByFileSystemId)
+                .map(id -> {
+                    FileSystemEntity possibleEntity = fileSystemRepository.findByFileSystemId(id);
+                    if (null == possibleEntity)
+                        throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
+
+                    return possibleEntity;
+                }).collect(Collectors.toList());
+
+        List<FileSystemEntity> checkedEntities = uncheckedEntities.stream()
                 .filter(entity -> fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ))
                 .collect(Collectors.toList());
 
-        if (entities.size() != ids.size()) {
-            log.debug("Entities size and ids size does not match after validation");
+        if (checkedEntities.size() != uncheckedEntities.size()) {
+            log.debug("Entities size and ids size does not match after validation. pre: {} / after: {}", uncheckedEntities.size(), checkedEntities.size());
             throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity does not exist or you are not allowed to see the entity.");
         }
 
-        boolean allEntitiesAreInRoot = entities.stream().allMatch(entity -> !entity.isFile() && entity.getPath().equals("/"));
-        boolean singleEntity = entities.size() == 1;
+        boolean allEntitiesAreInRoot = checkedEntities.stream().allMatch(entity -> !entity.isFile() && entity.getPath().equals("/"));
+        boolean singleEntity = checkedEntities.size() == 1;
 
         List<FileSystemItem> returnList = new ArrayList<>();
         String zipName;
 
         if (singleEntity) {
-            FileSystemEntity currentEntity = entities.get(0);
+            FileSystemEntity currentEntity = checkedEntities.get(0);
             zipName = fileSystemHelperService.getNameOfZipWhenOnlyOneEntityNeedsToBeDownloaded(currentEntity, allEntitiesAreInRoot);
             fileSystemHelperService.getContentsOfFolderRecursivly(returnList, currentEntity, authenticatedUser, "", false);
 
         } else {
-            zipName = fileSystemHelperService.getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(entities, allEntitiesAreInRoot);
+            zipName = fileSystemHelperService.getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(checkedEntities, allEntitiesAreInRoot);
             if (!allEntitiesAreInRoot) {
-                long countOfDifferentParents = entities.stream()
+                long countOfDifferentParents = checkedEntities.stream()
                         .map(fileSystemHelperService.getParentForEntity())
                         .distinct()
                         .count();
@@ -249,7 +257,7 @@ public class FileSystemBusinessService {
                 if (countOfDifferentParents != 1)
                     throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a common parent entity.");
             }
-            entities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, "", true));
+            checkedEntities.forEach(entity -> fileSystemHelperService.getContentsOfFolderRecursivly(returnList, entity, authenticatedUser, "", true));
         }
         return new Pair<>(returnList, zipName);
     }
