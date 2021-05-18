@@ -39,6 +39,20 @@ Feature: Download Files
     # this will be the name of the zip archive (could also return gebäude.zip)
     And the response has a header "X-FF-NAME" set with the value "gebäude"
 
+  Scenario: Successful interaction, download of multiple files in personal folder
+    And fileSystemItem with the fileSystemId 420 is a folder and contains the fileSystemId 333
+    And fileSystemItem with the fileSystemId 333 exists, has owner with userId 420 and name "cheatsheet_crusader.md" and mimeType "text/plain"
+    When the user with token "Nasir" wants to download the fileSystemItems with Ids [42,333]
+    Then response status code is 200
+    And the response contains a entity with the path "gebäude/bergfried.avi" that has key "name" with value "Bergfried.avi"
+    And the response contains a entity with the path "gebäude/bergfried.avi" that has key "fileSystemId" with value "72"
+    And the response contains a entity with the path "gebäude/bergfried.avi" that has key "mimeType" with value "video/avi"
+    And the response contains a entity with the path "cheatsheet_crusader.md" that has key "name" with value "cheatsheet_crusader.md"
+    And the response contains a entity with the path "cheatsheet_crusader.md" that has key "fileSystemId" with value "333"
+    And the response contains a entity with the path "cheatsheet_crusader.md" that has key "mimeType" with value "text/plain"
+    # this will be the name of the zip archive (could also return gebäude.zip)
+    And the response has a header "X-FF-NAME" set with the value "Nasir"
+
   Scenario: Successful interaction, download of two files
     Given fileSystemItem with the fileSystemId 73 exists, has owner with userId 420 and name "Torhaus.avi"
     # does this step update the content?

@@ -249,7 +249,7 @@ public class FileSystemBusinessService {
             zipName = fileSystemHelperService.getNameOfZipWhenMultipleEntitiesNeedToBeDownloaded(checkedEntities, allEntitiesAreInRoot);
             if (!allEntitiesAreInRoot) {
                 long countOfDifferentParents = checkedEntities.stream()
-                        .map(fileSystemHelperService.getParentForEntity())
+                        .map(entity -> fileSystemHelperService.getParentNameEntity().apply(entity))
                         .distinct()
                         .count();
 

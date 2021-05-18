@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 
@@ -371,15 +370,13 @@ public class FileSystemHelperService {
             return sb.toString();
         }
 
-        List<FileSystemEntity> parents = entities.stream()
-                .map(getParentForEntity())
-                .distinct()
-                .collect(Collectors.toList());
+        Optional<String> parentEntityName = entities.stream()
+                .map(entity -> this.getParentNameEntity().apply(entity)).findFirst();
 
-        if (parents.size() != 1)
+        if (parentEntityName.isEmpty())
             throw new FileSystemItemCouldNotBeDownloadedException("FileSystemEntity need to have a common parent entity.");
 
-        return parents.get(0).getName();
+        return parentEntityName.get();
     }
 
     public String getNameOfZipWhenOnlyOneEntityNeedsToBeDownloaded(FileSystemEntity currentEntity, boolean allEntitiesAreInRoot) {
@@ -389,14 +386,7 @@ public class FileSystemHelperService {
         if (!currentEntity.isFile()) {
             if (allEntitiesAreInRoot) {
                 // get owner name and set it as header.
-                User ownerOfCurrentEntity;
-                try {
-                    ownerOfCurrentEntity = userBusinessService.findUserById(currentEntity.getOwnerId());
-                } catch (UserNotFoundException ex) {
-                    log.debug(ex);
-                    throw new FileFighterDataException("Couldn't find the Owner of the fileSystemEntity with id " + currentEntity.getOwnerId());
-                }
-                zipName = ownerOfCurrentEntity.getUsername();
+                zipName = this.getOwnerUsernameForEntity(currentEntity);
             } else {
                 zipName = currentEntity.getName();
             }
@@ -405,14 +395,18 @@ public class FileSystemHelperService {
         return zipName;
     }
 
-    public Function<FileSystemEntity, FileSystemEntity> getParentForEntity() {
+    public Function<FileSystemEntity, String> getParentNameEntity() {
         return entity -> {
             if (!entity.isFile() && entity.getPath().equals("/")) return null;
 
             FileSystemEntity parent = fileSystemRepository.findByItemIdsContaining(entity.getFileSystemId());
             if (null == parent)
                 throw new FileFighterDataException("Couldn't find the parent of the fileSystemEntity with id " + entity.getFileSystemId());
-            return parent;
+
+            if (parent.getPath().equals("/"))
+                return this.getOwnerUsernameForEntity(parent);
+
+            return parent.getName();
         };
     }
 
