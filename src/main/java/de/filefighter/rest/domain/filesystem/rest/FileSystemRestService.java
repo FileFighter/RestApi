@@ -8,6 +8,7 @@ import de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService;
 import de.filefighter.rest.domain.filesystem.business.FileSystemUploadService;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.CreateNewFolder;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.domain.user.data.dto.User;
@@ -59,6 +60,16 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set(RestConfiguration.FS_DOWNLOAD_NAME_HEADER, listStringPair.getSecond());
         return new ResponseEntity<>(listStringPair.getFirst(), responseHeaders, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<FileSystemItem> createNewFolder(long parentId, CreateNewFolder newFolder, String accessToken) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
+        String sanitizedName = inputSanitizerService.sanitizeString(newFolder.getName());
+        newFolder = CreateNewFolder.builder().name(sanitizedName).build();
+
+        FileSystemItem folderItem = fileSystemUploadService.createNewFolder(parentId, newFolder, authenticatedUser);
+        return new ResponseEntity<>(folderItem, HttpStatus.CREATED);
     }
 
     @Override
