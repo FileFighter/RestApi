@@ -391,10 +391,10 @@ public class FileSystemUploadService {
     public FileSystemItem createNewFolder(long parentId, CreateNewFolder newFolderRequest, User authenticatedUser) {
         FileSystemEntity parent = fileSystemRepository.findByFileSystemId(parentId);
         if (null == parent)
-            throw new FileSystemItemCouldNotBeUploadedException("Could not find parent entity or you are not allowed to see it");
+            throw new FileSystemItemCouldNotBeUploadedException("Could not find parent entity or you are not allowed to see it.");
 
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.READ))
-            throw new FileSystemItemCouldNotBeUploadedException("Could not find parent entity or you are not allowed to see it");
+            throw new FileSystemItemCouldNotBeUploadedException("Could not find parent entity or you are not allowed to see it.");
 
         if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.CHANGE))
             throw new FileSystemItemCouldNotBeUploadedException("You dont have write permissions in that directory.");
@@ -403,7 +403,7 @@ public class FileSystemUploadService {
         List<FileSystemEntity> children = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parent, authenticatedUser, false, false);
         Optional<FileSystemEntity> entityWithSameName = children.stream().filter(child -> child.getName().equalsIgnoreCase(newFolderRequest.getName())).findFirst();
         if (entityWithSameName.isPresent())
-            throw new FileSystemItemCouldNotBeUploadedException("A Entity with the same name already exists in this directory");
+            throw new FileSystemItemCouldNotBeUploadedException("A Entity with the same name already exists in this directory.");
 
         long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
         FileSystemEntity newFolder = FileSystemEntity.builder()
@@ -439,7 +439,7 @@ public class FileSystemUploadService {
         } catch (UserNotFoundException ex) {
             throw new FileFighterDataException("Could not find the owner of the entity with id: " + parentId);
         }
-        String path = "/" + owner.getUsername() + parent.getPath() + newFolderRequest.getName().toLowerCase();
+        String path = "/" + owner.getUsername() + parent.getPath() + "/" + newFolderRequest.getName().toLowerCase();
         return fileSystemHelperService.createDTO(newFolder, authenticatedUser, path);
     }
 }
