@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import de.filefighter.rest.RestApplicationIntegrationTest;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.CreateNewFolder;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.PreflightResponse;
 import io.cucumber.java.en.Then;
@@ -109,5 +110,22 @@ public class FileSystemUploadSteps extends RestApplicationIntegrationTest {
                 .build());
 
         executeRestApiCall(HttpMethod.POST, url, header, jsonBody);
+    }
+
+    @When("the user with token {string} wants to create a folder with name {string} in the the folder with the id {long}")
+    public void theUserWithTokenWantsToCreateAFolderWithNameInTheTheFolderWithTheId(String accessToken, String name, long parentId ) throws JsonProcessingException {
+
+        String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessToken;
+        String url = BASE_API_URI + FS_BASE_URI + parentId + "/folder/create";
+
+        HashMap<String, String> header = new HashMap<>();
+        header.put("Authorization", authHeaderString);
+
+        String jsonBody = objectMapper.writeValueAsString(CreateNewFolder.builder()
+                .name(name)
+                .build());
+
+        executeRestApiCall(HttpMethod.POST, url, header, jsonBody);
+
     }
 }
