@@ -3,6 +3,7 @@ package de.filefighter.rest.domain.filesystem.rest;
 import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItemUpdate;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.CreateNewFolder;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,6 +65,16 @@ public class FileSystemRestController {
 
         log.info("Tried downloading FileSystemEntities with the ids {}", ids);
         return fileSystemRestService.downloadFileSystemEntity(ids, new Pair<>(cookieValue, accessToken));
+    }
+
+    @PostMapping(FS_BASE_URI + "{fsItemId}/folder/create")
+    public ResponseEntity<FileSystemItem> createNewFolder(
+            @PathVariable long fsItemId,
+            @RequestBody CreateNewFolder newFolder,
+            @RequestHeader(value = "Authorization") String accessToken) {
+
+        log.info("Tried creating new Folder {}", newFolder);
+        return fileSystemRestService.createNewFolder(fsItemId, newFolder, accessToken);
     }
 
     @PostMapping(FS_BASE_URI + "{fsItemId}/upload")

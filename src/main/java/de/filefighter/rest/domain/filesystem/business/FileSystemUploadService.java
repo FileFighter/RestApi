@@ -5,6 +5,7 @@ import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
 import de.filefighter.rest.domain.filesystem.data.dto.FileSystemItem;
+import de.filefighter.rest.domain.filesystem.data.dto.upload.CreateNewFolder;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUpload;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.FileSystemUploadPreflightResponse;
 import de.filefighter.rest.domain.filesystem.data.dto.upload.PreflightResponse;
@@ -385,5 +386,76 @@ public class FileSystemUploadService {
                 }
             }
         }
+    }
+
+    public FileSystemItem createNewFolder(long parentId, CreateNewFolder newFolderRequest, User authenticatedUser) {
+        FileSystemEntity parent = fileSystemRepository.findByFileSystemId(parentId);
+        if (null == parent)
+            throw new FileSystemItemCouldNotBeUploadedException("Could not find parent entity or you are not allowed to see it.");
+
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.READ))
+            throw new FileSystemItemCouldNotBeUploadedException("Could not find parent entity or you are not allowed to see it.");
+
+        if (!fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(parent, authenticatedUser, InteractionType.CHANGE))
+            throw new FileSystemItemCouldNotBeUploadedException("You dont have write permissions in that directory.");
+
+        // check for already existing folder.
+        List<FileSystemEntity> children = fileSystemHelperService.getFolderContentsOfEntityAndPermissions(parent, authenticatedUser, false, false);
+        Optional<FileSystemEntity> entityWithSameName = children.stream().filter(child -> child.getName().equalsIgnoreCase(newFolderRequest.getName())).findFirst();
+        if (entityWithSameName.isPresent())
+            throw new FileSystemItemCouldNotBeUploadedException("A Entity with the same name already exists in this directory.");
+
+        long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
+
+        String dbPath;
+        if (parent.getPath().equals("/")) {
+            dbPath = parent.getPath() + newFolderRequest.getName().toLowerCase();
+        } else {
+            dbPath = parent.getPath() + "/" + newFolderRequest.getName().toLowerCase();
+        }
+
+        FileSystemEntity newFolder = FileSystemEntity.builder()
+                .path(dbPath)
+                .name(newFolderRequest.getName())
+                .fileSystemId(idGenerationService.consumeNext())
+                .ownerId(parent.getOwnerId())
+                .editableForUserIds(parent.getEditableForUserIds())
+                .editableFoGroupIds(parent.getEditableFoGroupIds())
+                .visibleForGroupIds(parent.getVisibleForGroupIds())
+                .visibleForUserIds(parent.getVisibleForUserIds())
+                .size(0)
+                .typeId(FileSystemType.FOLDER.getId())
+                .isFile(false)
+                .lastUpdatedBy(authenticatedUser.getUserId())
+                .lastUpdated(timeStamp)
+                .build();
+
+        fileSystemRepository.insert(newFolder);
+
+        // add folder to children of parent.
+        long[] childrenWithNewFolder = fileSystemHelperService.addLongToLongArray(parent.getItemIds(), newFolder.getFileSystemId());
+        Query query = new Query().addCriteria(Criteria.where("fileSystemId").is(parent.getFileSystemId()));
+        Update update = new Update().set("itemIds", childrenWithNewFolder);
+        mongoTemplate.findAndModify(query, update, FileSystemEntity.class);
+
+        // update timestamps.
+        fileSystemHelperService.recursivlyUpdateTimeStamps(parent, authenticatedUser, timeStamp);
+
+        User owner;
+        try {
+            owner = userBusinessService.findUserById(parent.getOwnerId());
+        } catch (UserNotFoundException ex) {
+            throw new FileFighterDataException("Could not find the owner of the entity with id: " + parentId);
+        }
+
+        StringBuilder absolutePathBuilder = new StringBuilder("/").append(owner.getUsername());
+        if (parent.getPath().equals("/")) {
+            absolutePathBuilder.append(parent.getPath());
+        } else {
+            absolutePathBuilder.append(parent.getPath()).append("/");
+        }
+        absolutePathBuilder.append(newFolderRequest.getName().toLowerCase());
+
+        return fileSystemHelperService.createDTO(newFolder, authenticatedUser, absolutePathBuilder.toString());
     }
 }
