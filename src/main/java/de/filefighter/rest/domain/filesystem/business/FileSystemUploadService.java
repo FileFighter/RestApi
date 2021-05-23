@@ -406,8 +406,16 @@ public class FileSystemUploadService {
             throw new FileSystemItemCouldNotBeUploadedException("A Entity with the same name already exists in this directory.");
 
         long timeStamp = fileSystemHelperService.getCurrentTimeStamp();
+
+        String dbPath;
+        if (parent.getPath().equals("/")) {
+            dbPath = parent.getPath() + newFolderRequest.getName().toLowerCase();
+        } else {
+            dbPath = parent.getPath() + "/" + newFolderRequest.getName().toLowerCase();
+        }
+
         FileSystemEntity newFolder = FileSystemEntity.builder()
-                .path(parent.getPath() + "/" + newFolderRequest.getName().toLowerCase())
+                .path(dbPath)
                 .name(newFolderRequest.getName())
                 .fileSystemId(idGenerationService.consumeNext())
                 .ownerId(parent.getOwnerId())
@@ -439,7 +447,15 @@ public class FileSystemUploadService {
         } catch (UserNotFoundException ex) {
             throw new FileFighterDataException("Could not find the owner of the entity with id: " + parentId);
         }
-        String path = "/" + owner.getUsername() + parent.getPath() + "/" + newFolderRequest.getName().toLowerCase();
-        return fileSystemHelperService.createDTO(newFolder, authenticatedUser, path);
+
+        StringBuilder absolutePathBuilder = new StringBuilder("/").append(owner.getUsername());
+        if (parent.getPath().equals("/")) {
+            absolutePathBuilder.append(parent.getPath());
+        } else {
+            absolutePathBuilder.append(parent.getPath()).append("/");
+        }
+        absolutePathBuilder.append(newFolderRequest.getName().toLowerCase());
+
+        return fileSystemHelperService.createDTO(newFolder, authenticatedUser, absolutePathBuilder.toString());
     }
 }
