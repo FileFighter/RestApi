@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static de.filefighter.rest.domain.filesystem.business.FileSystemBusinessService.DELETION_FAILED_MSG;
 
@@ -410,7 +411,7 @@ public class FileSystemHelperService {
         };
     }
 
-    private String getOwnerUsernameForEntity(FileSystemEntity entity) {
+    public String getOwnerUsernameForEntity(FileSystemEntity entity) {
         User owner;
         try {
             owner = userBusinessService.findUserById(entity.getOwnerId());
@@ -418,6 +419,21 @@ public class FileSystemHelperService {
             throw new FileFighterDataException("Owner for id " + entity.getOwnerId() + " could not be found.");
         }
         return owner.getUsername();
+    }
+
+    public FileSystemEntity getRootEntityForUser(User userWithTheName) {
+        List<FileSystemEntity> rootForUser = fileSystemRepository.findByPath("/")
+                .stream()
+                .filter(entity -> entity.getOwnerId() == userWithTheName.getUserId())
+                .collect(Collectors.toList());
+
+        if (rootForUser.isEmpty())
+            throw new FileFighterDataException("Found not root folder for user with id: " + userWithTheName.getUserId());
+
+        if (rootForUser.size() > 1)
+            throw new FileFighterDataException("Found more than one root folder for user with id: " + userWithTheName.getUserId());
+
+        return rootForUser.get(0);
     }
 
     public double getTotalFileSize() {

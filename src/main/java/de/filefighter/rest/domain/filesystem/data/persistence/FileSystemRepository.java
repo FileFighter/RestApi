@@ -19,6 +19,8 @@ public interface FileSystemRepository extends MongoRepository<FileSystemEntity, 
 
     List<FileSystemEntity> findAllByFileSystemIdInAndNameIgnoreCase(List<Long> fileSystemId, String name);
 
+    List<FileSystemEntity> findAllByNameContainingIgnoreCase(String name);
+
     // this does work tho.
     FileSystemEntity findByItemIdsContaining(long id);
 

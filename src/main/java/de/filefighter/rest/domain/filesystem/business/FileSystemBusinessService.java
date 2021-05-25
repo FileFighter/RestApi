@@ -1,5 +1,6 @@
 package de.filefighter.rest.domain.filesystem.business;
 
+import de.filefighter.rest.configuration.RestConfiguration;
 import de.filefighter.rest.domain.common.Pair;
 import de.filefighter.rest.domain.common.exceptions.FileFighterDataException;
 import de.filefighter.rest.domain.filesystem.data.InteractionType;
@@ -262,6 +263,47 @@ public class FileSystemBusinessService {
     }
 
     public List<FileSystemItem> searchFileSystemEntity(String sanitizedSearch, User authenticatedUser) {
-        return null;
+        // check for username with the same name
+        User userWithTheName;
+        List<FileSystemEntity> foundEntities = fileSystemRepository.findAllByNameContainingIgnoreCase(sanitizedSearch);
+
+        try {
+            userWithTheName = userBusinessService.findUserByUsername(sanitizedSearch);
+
+            if (userWithTheName.getUserId() != RestConfiguration.RUNTIME_USER_ID) {
+                // there is a user with the name -> add the users root to list.
+                foundEntities.add(fileSystemHelperService.getRootEntityForUser(userWithTheName));
+            }
+        } catch (UserNotFoundException ignored) {
+            log.debug("Searched for {}, was not a username.", sanitizedSearch);
+        }
+
+        if (null == foundEntities)
+            throw new FileSystemItemNotFoundException();
+
+        List<FileSystemEntity> visibleEntities = foundEntities.stream()
+                .filter(entity -> fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(entity, authenticatedUser, InteractionType.READ))
+                .collect(Collectors.toList());
+
+        return visibleEntities.stream()
+                .map(entity -> {
+                    String username = fileSystemHelperService.getOwnerUsernameForEntity(entity);
+                    String path;
+                    if (entity.isFile() || entity.getTypeId() != FileSystemType.FOLDER.getId()) {
+                        FileSystemEntity parent = fileSystemRepository.findByItemIdsContaining(entity.getFileSystemId());
+                        if (null == parent)
+                            throw new FileFighterDataException("Couldn't find parent entity for id: " + entity.getFileSystemId());
+                        path = parent.getPath();
+                        if (path.equals("/")) {
+                            path += entity.getName();
+                        } else {
+                            path += "/" + entity.getName();
+                        }
+                    } else {
+                        path = entity.getPath();
+                    }
+                    return fileSystemHelperService.createDTO(entity, authenticatedUser, "/" + username + path);
+                })
+                .collect(Collectors.toList());
     }
 }
