@@ -96,8 +96,10 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken) {
-        return null;
+    public ResponseEntity<List<FileSystemItem>> findFileOrFolderByNameAndAccessToken(String name, String accessToken) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
+        String sanitizedSearch = inputSanitizerService.sanitizeString(name);
+        return new ResponseEntity<>(fileSystemBusinessService.searchFileSystemEntity(sanitizedSearch, authenticatedUser), HttpStatus.OK);
     }
 
     @Override

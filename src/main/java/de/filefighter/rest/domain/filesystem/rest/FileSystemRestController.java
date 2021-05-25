@@ -48,7 +48,7 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "search")
-    public ResponseEntity<FileSystemItem> searchFileOrFolderByName(
+    public ResponseEntity<List<FileSystemItem>> searchFileOrFolderByName(
             @RequestParam(name = "name", defaultValue = "name") String name,
             @RequestHeader(value = "Authorization") String accessToken
     ) {

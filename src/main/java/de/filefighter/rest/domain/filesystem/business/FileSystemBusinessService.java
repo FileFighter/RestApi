@@ -260,4 +260,8 @@ public class FileSystemBusinessService {
         }
         return new Pair<>(returnList, zipName);
     }
+
+    public List<FileSystemItem> searchFileSystemEntity(String sanitizedSearch, User authenticatedUser) {
+        return null;
+    }
 }
