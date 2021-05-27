@@ -20,6 +20,11 @@ Feature: Search Files and Directories
     Then response status code is 200
     And the response contains a entity with the path "/richard/bla/wow.txt" that has key "name" with value "wow.txt"
 
+  Scenario: Successful interaction, searching for personal root folder
+    When user with token "Richard" searches for "Richard"
+    Then response status code is 200
+    And the response contains a entity with the path "/richard" that has key "name" with value "Richard"
+
   Scenario: Successful interaction, found file in personal folder, ignore case
     When user with token "Richard" searches for "WOW.TXT"
     Then response status code is 200
@@ -65,7 +70,6 @@ Feature: Search Files and Directories
     And the response contains a entity with the path "/richard/bla" that has key "fileSystemId" with value "42"
 
 
-
   Scenario Outline: Search for <filename> with <search>
     Given fileSystemItem with the fileSystemId 73 exists, has owner with userId 1234 and name "<filename>"
     And fileSystemItem with the fileSystemId 42 is a folder and contains the fileSystemId 73
@@ -74,14 +78,14 @@ Feature: Search Files and Directories
     And the response contains the file with fileSystemId 73 and name "<filename>"
 
     Examples:
-    |filename |search |
-    |HansWurst |st |
-    |Esel.txt |.txt |
-    |HinterhältigesWiesel.wav |Hältiges |
-    |HilfeHilfe |hilfe |
-    |DuDummeSau |du |
-    |NichtDasNagetier |Tier |
-    |DuBauer |auer |
-    |DasIstWahreMacht |d  |
-    |DIesESMALWerdeICHEuchBesiegen |DiesesMalWerdeIchEuchBesiegen |
-    |filename |filename |
+      | filename                      | search                        |
+      | HansWurst                     | st                            |
+      | Esel.txt                      | .txt                          |
+      | HinterhältigesWiesel.wav      | Hältiges                      |
+      | HilfeHilfe                    | hilfe                         |
+      | DuDummeSau                    | du                            |
+      | NichtDasNagetier              | Tier                          |
+      | DuBauer                       | auer                          |
+      | DasIstWahreMacht              | d                             |
+      | DIesESMALWerdeICHEuchBesiegen | DiesesMalWerdeIchEuchBesiegen |
+      | filename                      | filename                      |

@@ -272,7 +272,9 @@ public class FileSystemBusinessService {
 
             if (userWithTheName.getUserId() != RestConfiguration.RUNTIME_USER_ID) {
                 // there is a user with the name -> add the users root to list.
-                foundEntities.add(fileSystemHelperService.getRootEntityForUser(userWithTheName));
+                FileSystemEntity userRootEntity = fileSystemHelperService.getRootEntityForUser(userWithTheName);
+                userRootEntity.setName(userWithTheName.getUsername());
+                foundEntities.add(userRootEntity);
             }
         } catch (UserNotFoundException ignored) {
             log.debug("Searched for {}, was not a username.", sanitizedSearch);
