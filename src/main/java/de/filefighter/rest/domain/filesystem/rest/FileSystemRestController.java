@@ -11,6 +11,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -48,12 +50,12 @@ public class FileSystemRestController {
     }
 
     @GetMapping(FS_BASE_URI + "search")
-    public ResponseEntity<FileSystemItem> searchFileOrFolderByName(
+    public ResponseEntity<List<FileSystemItem>> searchFileOrFolderByName(
             @RequestParam(name = "name", defaultValue = "name") String name,
             @RequestHeader(value = "Authorization") String accessToken
     ) {
 
-        log.info("Searching for file or folder with name {}", name);
+        log.info("Searching for file or folder with name {} decoded: ({})", name, URLDecoder.decode(name, StandardCharsets.UTF_8));
         return fileSystemRestService.findFileOrFolderByNameAndAccessToken(name, accessToken);
     }
 

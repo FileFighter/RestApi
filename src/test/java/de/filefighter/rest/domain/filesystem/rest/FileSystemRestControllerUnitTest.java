@@ -59,14 +59,16 @@ class FileSystemRestControllerUnitTest {
     @Test
     void searchFileOrFolderByName() {
         FileSystemItem file = FileSystemItem.builder().build();
-        ResponseEntity<FileSystemItem> expectedModel = new ResponseEntity<>(file, OK);
+        List<FileSystemItem> list = new ArrayList<>();
+        list.add(file);
+        ResponseEntity<List<FileSystemItem>> expectedModel = new ResponseEntity<>(list, OK);
 
         String name = "randomFile.exe";
         String token = "token";
 
         when(fileSystemRestServiceMock.findFileOrFolderByNameAndAccessToken(name, token)).thenReturn(expectedModel);
 
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.searchFileOrFolderByName(name, token);
+        ResponseEntity<List<FileSystemItem>> actualModel = fileSystemRestController.searchFileOrFolderByName(name, token);
         assertEquals(expectedModel, actualModel);
     }
 

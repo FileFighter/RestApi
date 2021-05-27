@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -96,8 +98,12 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> findFileOrFolderByNameAndAccessToken(String name, String accessToken) {
-        return null;
+    public ResponseEntity<List<FileSystemItem>> findFileOrFolderByNameAndAccessToken(String name, String accessToken) {
+        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessToken);
+        String sanitizedSearch = inputSanitizerService.sanitizeString(name);
+        sanitizedSearch = URLDecoder.decode(sanitizedSearch, StandardCharsets.UTF_8);
+
+        return new ResponseEntity<>(fileSystemBusinessService.searchFileSystemEntity(sanitizedSearch, authenticatedUser), HttpStatus.OK);
     }
 
     @Override
