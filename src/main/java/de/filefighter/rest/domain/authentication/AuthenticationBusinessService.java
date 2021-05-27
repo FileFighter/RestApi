@@ -2,6 +2,7 @@ package de.filefighter.rest.domain.authentication;
 
 import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
+import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.business.UserDTOService;
 import de.filefighter.rest.domain.user.data.dto.User;
@@ -24,12 +25,14 @@ public class AuthenticationBusinessService {
     private final UserDTOService userDtoService;
     private final InputSanitizerService inputSanitizerService;
     private final PasswordEncoder passwordEncoder;
+    private final AccessTokenBusinessService accessTokenBusinessService;
 
-    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService, InputSanitizerService inputSanitizerService, PasswordEncoder passwordEncoder) {
+    public AuthenticationBusinessService(UserRepository userRepository, UserDTOService userDtoService, InputSanitizerService inputSanitizerService, PasswordEncoder passwordEncoder, AccessTokenBusinessService accessTokenBusinessService) {
         this.userRepository = userRepository;
         this.userDtoService = userDtoService;
         this.inputSanitizerService = inputSanitizerService;
         this.passwordEncoder = passwordEncoder;
+        this.accessTokenBusinessService = accessTokenBusinessService;
     }
 
     public User authenticateUserWithUsernameAndPassword(String base64encodedUserAndPassword) {
@@ -72,11 +75,16 @@ public class AuthenticationBusinessService {
     }
 
     public User authenticateUserWithAccessToken(AccessToken accessToken) {
-        UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
-        if (null == userEntity)
-            throw new UserNotAuthenticatedException(accessToken.getUserId());
+        if (accessTokenBusinessService.accessTokenIsInvalid(accessToken.getValidUntil())) {
+            log.debug("AccessToken used for auth was invalid: " + accessToken);
+            throw new UserNotAuthenticatedException("AccessToken was not valid anymore.");
+        } else {
+            UserEntity userEntity = userRepository.findByUserId(accessToken.getUserId());
+            if (null == userEntity)
+                throw new UserNotAuthenticatedException(accessToken.getUserId());
 
-        return userDtoService.createDto(userEntity);
+            return userDtoService.createDto(userEntity);
+        }
     }
 
     public void authenticateUserWithAccessTokenAndGroup(AccessToken accessToken, Group groups) {

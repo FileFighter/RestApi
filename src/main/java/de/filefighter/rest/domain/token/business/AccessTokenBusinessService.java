@@ -27,6 +27,7 @@ public class AccessTokenBusinessService {
         this.accessTokenDtoService = accessTokenDtoService;
     }
 
+    // basically auth with refresh token.
     public AccessToken getValidAccessTokenForUser(User user) {
         long userId = user.getUserId();
         AccessTokenEntity accessTokenEntity = accessTokenRepository.findByUserId(userId);
@@ -40,21 +41,19 @@ public class AccessTokenBusinessService {
                     .userId(userId)
                     .build();
             accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
-        } else {
-            if (currentTimeSeconds + ACCESS_TOKEN_SAFETY_MARGIN > accessTokenEntity.getValidUntil()) {
-                log.info("Deleting AccessToken for UserId {}, because its invalid now.", userId);
-                long deletedTokenAmount = accessTokenRepository.deleteByUserId(userId);
-                if (1L != deletedTokenAmount)
-                    throw new FileFighterDataException("AccessToken for userId " + userId + " could not be deleted.");
+        } else if (accessTokenIsInvalid(accessTokenEntity.getValidUntil())) {
+            log.debug("Deleting AccessToken for UserId {}, because its invalid now.", userId);
+            long deletedTokenAmount = accessTokenRepository.deleteByUserId(userId);
+            if (1L != deletedTokenAmount)
+                throw new FileFighterDataException("AccessToken for userId " + userId + " could not be deleted.");
 
-                accessTokenEntity = AccessTokenEntity
-                        .builder()
-                        .validUntil(currentTimeSeconds + ACCESS_TOKEN_DURATION_IN_SECONDS)
-                        .value(generateRandomTokenValue())
-                        .userId(userId)
-                        .build();
-                accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
-            }
+            accessTokenEntity = AccessTokenEntity
+                    .builder()
+                    .validUntil(currentTimeSeconds + ACCESS_TOKEN_DURATION_IN_SECONDS)
+                    .value(generateRandomTokenValue())
+                    .userId(userId)
+                    .build();
+            accessTokenEntity = accessTokenRepository.save(accessTokenEntity);
         }
 
         return accessTokenDtoService.createDto(accessTokenEntity);
@@ -74,6 +73,10 @@ public class AccessTokenBusinessService {
             throw new UserNotAuthenticatedException("AccessToken not found.");
 
         return accessTokenDtoService.createDto(accessTokenEntity);
+    }
+
+    public boolean accessTokenIsInvalid(long timeStampToTest) {
+        return (Instant.now().getEpochSecond() + ACCESS_TOKEN_SAFETY_MARGIN > timeStampToTest);
     }
 
     public static String generateRandomTokenValue() {

@@ -2,6 +2,7 @@ package de.filefighter.rest.domain.authentication;
 
 import de.filefighter.rest.domain.common.InputSanitizerService;
 import de.filefighter.rest.domain.common.exceptions.RequestDidntMeetFormalRequirementsException;
+import de.filefighter.rest.domain.token.business.AccessTokenBusinessService;
 import de.filefighter.rest.domain.token.data.dto.AccessToken;
 import de.filefighter.rest.domain.user.business.UserDTOService;
 import de.filefighter.rest.domain.user.data.dto.User;
@@ -28,12 +29,14 @@ class AuthenticationBusinessServiceUnitTest {
     private final UserDTOService userDtoServiceMock = mock(UserDTOService.class);
     private final InputSanitizerService inputSanitizerServiceMock = mock(InputSanitizerService.class);
     private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
+    private final AccessTokenBusinessService accessTokenBusinessServiceMock = mock(AccessTokenBusinessService.class);
     private final AuthenticationBusinessService authenticationBusinessService =
             new AuthenticationBusinessService(
                     userRepositoryMock,
                     userDtoServiceMock,
                     inputSanitizerServiceMock,
-                    passwordEncoderMock);
+                    passwordEncoderMock,
+                    accessTokenBusinessServiceMock);
 
     @Test
     void authenticateUserWithUsernameAndPasswordThrows() {
@@ -120,11 +123,19 @@ class AuthenticationBusinessServiceUnitTest {
     @Test
     void authenticateUserWithAccessTokenThrows() {
         long userId = 420;
-        AccessToken accessToken = AccessToken.builder().userId(userId).build();
+        long timer = 123872183;
+        AccessToken accessToken = AccessToken.builder().userId(userId).validUntil(timer).build();
 
-        when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
+        when(accessTokenBusinessServiceMock.accessTokenIsInvalid(timer)).thenReturn(true);
 
         UserNotAuthenticatedException ex = assertThrows(UserNotAuthenticatedException.class, () ->
+                authenticationBusinessService.authenticateUserWithAccessToken(accessToken));
+        assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " AccessToken was not valid anymore.", ex.getMessage());
+
+        when(userRepositoryMock.findByUserId(userId)).thenReturn(null);
+        when(accessTokenBusinessServiceMock.accessTokenIsInvalid(timer)).thenReturn(false);
+
+        ex = assertThrows(UserNotAuthenticatedException.class, () ->
                 authenticationBusinessService.authenticateUserWithAccessToken(accessToken));
         assertEquals(UserNotAuthenticatedException.getErrorMessagePrefix() + " UserId was " + userId, ex.getMessage());
     }
