@@ -4,6 +4,9 @@ import de.filefighter.rest.RestApplicationIntegrationTest;
 import io.cucumber.java.en.When;
 import org.springframework.http.HttpMethod;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static de.filefighter.rest.configuration.RestConfiguration.*;
@@ -41,4 +44,14 @@ public class CrudFileSystemSteps extends RestApplicationIntegrationTest {
 
     }
 
+    @When("user with token {string} searches for {string}")
+    public void userWithTokenSearchesFor(String accessTokenValue, String searchValue) throws UnsupportedEncodingException {
+
+        String authHeaderString = AUTHORIZATION_BEARER_PREFIX + accessTokenValue;
+
+        HashMap<String, String> authHeader = new HashMap<>();
+        authHeader.put("Authorization", authHeaderString);
+
+        executeRestApiCall(HttpMethod.GET, BASE_API_URI + FS_BASE_URI  + "/search?name="+ URLEncoder.encode(searchValue, StandardCharsets.UTF_8.toString()), authHeader);
+    }
 }
