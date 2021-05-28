@@ -13,7 +13,7 @@ import java.util.List;
 public interface FileSystemRestServiceInterface {
     ResponseEntity<List<FileSystemItem>> getContentsOfFolderByPathAndAccessToken(String path, String accessToken);
 
-    ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, String accessToken);
+    ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, Pair<String, String> authPair);
 
     ResponseEntity<List<FileSystemItem>> findFileOrFolderByNameAndAccessToken(String name, String accessToken);
 

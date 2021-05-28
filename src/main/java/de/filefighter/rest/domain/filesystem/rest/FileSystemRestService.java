@@ -49,8 +49,8 @@ public class FileSystemRestService implements FileSystemRestServiceInterface {
     }
 
     @Override
-    public ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, String accessTokenValue) {
-        User authenticatedUser = authenticationService.bearerAuthenticationWithAccessToken(accessTokenValue);
+    public ResponseEntity<FileSystemItem> getInfoAboutFileOrFolderByIdAndAccessToken(long fsItemId, Pair<String, String> accessTokenValueOrHeader) {
+        User authenticatedUser = authenticationService.authenticateUserWithCookieOrHeader(accessTokenValueOrHeader);
         return new ResponseEntity<>(fileSystemBusinessService.getFileSystemItemInfo(fsItemId, authenticatedUser), HttpStatus.OK);
     }
 

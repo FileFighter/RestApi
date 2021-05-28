@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
@@ -49,10 +51,11 @@ class FileSystemRestControllerUnitTest {
 
         long id = 420;
         String token = "token";
+        String cookieValue = null;
 
-        when(fileSystemRestServiceMock.getInfoAboutFileOrFolderByIdAndAccessToken(id, token)).thenReturn(expectedModel);
+        when(fileSystemRestServiceMock.getInfoAboutFileOrFolderByIdAndAccessToken(eq(id), any())).thenReturn(expectedModel);
 
-        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.getFileOrFolderInfo(id, token);
+        ResponseEntity<FileSystemItem> actualModel = fileSystemRestController.getFileOrFolderInfo(id, cookieValue, token);
         assertEquals(expectedModel, actualModel);
     }
 

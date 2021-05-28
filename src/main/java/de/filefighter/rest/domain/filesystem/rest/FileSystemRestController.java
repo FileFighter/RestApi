@@ -42,11 +42,13 @@ public class FileSystemRestController {
     @GetMapping(FS_BASE_URI + "{fsItemId}/info")
     public ResponseEntity<FileSystemItem> getFileOrFolderInfo(
             @PathVariable long fsItemId,
-            @RequestHeader(value = "Authorization") String accessToken
+            @CookieValue(name = AUTHORIZATION_ACCESS_TOKEN_COOKIE, required = false) String cookieValue,
+            @RequestHeader(value = "Authorization", required = false) String accessToken
+
     ) {
 
         log.info("Requested information about FileSystemItem with id {}.", fsItemId);
-        return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, accessToken);
+        return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, new Pair<>(cookieValue, accessToken));
     }
 
     @GetMapping(FS_BASE_URI + "search")
