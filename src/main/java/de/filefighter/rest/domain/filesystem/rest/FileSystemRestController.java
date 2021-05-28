@@ -42,11 +42,13 @@ public class FileSystemRestController {
     @GetMapping(FS_BASE_URI + "{fsItemId}/info")
     public ResponseEntity<FileSystemItem> getFileOrFolderInfo(
             @PathVariable long fsItemId,
-            @RequestHeader(value = "Authorization") String accessToken
+            @CookieValue(name = AUTHORIZATION_ACCESS_TOKEN_COOKIE, required = false) String cookieValue,
+            @RequestHeader(value = "Authorization", required = false) String accessToken
     ) {
 
         log.info("Requested information about FileSystemItem with id {}.", fsItemId);
-        return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, accessToken);
+        log.debug("Header was {}, Cookie was {}", accessToken, cookieValue);
+        return fileSystemRestService.getInfoAboutFileOrFolderByIdAndAccessToken(fsItemId, new Pair<>(cookieValue, accessToken));
     }
 
     @GetMapping(FS_BASE_URI + "search")
@@ -63,9 +65,11 @@ public class FileSystemRestController {
     public ResponseEntity<List<FileSystemItem>> downloadFileOrFolder(
             @RequestParam(name = "ids") List<Long> ids,
             @CookieValue(name = AUTHORIZATION_ACCESS_TOKEN_COOKIE, required = false) String cookieValue,
-            @RequestHeader(value = "Authorization", required = false) String accessToken) {
+            @RequestHeader(value = "Authorization", required = false) String accessToken
+    ) {
 
         log.info("Tried downloading FileSystemEntities with the ids {}", ids);
+        log.debug("Header was {}, Cookie was {}", accessToken, cookieValue);
         return fileSystemRestService.downloadFileSystemEntity(ids, new Pair<>(cookieValue, accessToken));
     }
 
@@ -73,7 +77,8 @@ public class FileSystemRestController {
     public ResponseEntity<FileSystemItem> createNewFolder(
             @PathVariable long fsItemId,
             @RequestBody CreateNewFolder newFolder,
-            @RequestHeader(value = "Authorization") String accessToken) {
+            @RequestHeader(value = "Authorization") String accessToken
+    ) {
 
         log.info("Tried creating new Folder {}", newFolder);
         return fileSystemRestService.createNewFolder(fsItemId, newFolder, accessToken);
@@ -83,7 +88,8 @@ public class FileSystemRestController {
     public ResponseEntity<List<FileSystemItem>> uploadFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody FileSystemUpload fileSystemUpload,
-            @RequestHeader(value = "Authorization") String accessToken) {
+            @RequestHeader(value = "Authorization") String accessToken
+    ) {
 
         log.info("Tried uploading new FileSystemUpload {}", fileSystemUpload);
         return fileSystemRestService.uploadFileSystemItemWithAccessToken(fsItemId, fileSystemUpload, accessToken);
@@ -93,7 +99,8 @@ public class FileSystemRestController {
     public ResponseEntity<List<FileSystemUploadPreflightResponse>> preflightUploadFileOrFolder(
             @PathVariable long fsItemId,
             @RequestBody List<FileSystemUpload> fileSystemUpload,
-            @RequestHeader(value = "Authorization") String accessToken) {
+            @RequestHeader(value = "Authorization") String accessToken
+    ) {
 
         log.info("Preflight for {} in id {}.", fileSystemUpload, fsItemId);
         return fileSystemRestService.preflightUploadOfFileSystemItem(fsItemId, fileSystemUpload, accessToken);
