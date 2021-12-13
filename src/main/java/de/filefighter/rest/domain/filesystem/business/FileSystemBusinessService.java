@@ -156,11 +156,11 @@ public class FileSystemBusinessService {
         log.info("User is {}.", authenticatedUser);
 
         ArrayList<FileSystemItem> returnList = new ArrayList<>();
-        recursivlyDeleteFileSystemEntity(parentEntity, authenticatedUser, returnList);
+        recursivelyDeleteFileSystemEntity(parentEntity, authenticatedUser, returnList);
         return returnList;
     }
 
-    private Pair<Boolean, Boolean> recursivlyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
+    private Pair<Boolean, Boolean> recursivelyDeleteFileSystemEntity(FileSystemEntity parentEntity, User authenticatedUser, ArrayList<FileSystemItem> returnList) {
         boolean foundNonDeletable = false;
         boolean foundInvisible = false;
 
@@ -175,7 +175,7 @@ public class FileSystemBusinessService {
                 for (FileSystemEntity item : items) {
                     if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.READ)) {
                         if (fileSystemHelperService.userIsAllowedToInteractWithFileSystemEntity(item, authenticatedUser, InteractionType.DELETE)) {
-                            Pair<Boolean, Boolean> recursiveReturn = recursivlyDeleteFileSystemEntity(item, authenticatedUser, returnList);
+                            Pair<Boolean, Boolean> recursiveReturn = recursivelyDeleteFileSystemEntity(item, authenticatedUser, returnList);
                             foundInvisible = recursiveReturn.getFirst() || foundInvisible;
                             foundNonDeletable = recursiveReturn.getSecond() || foundNonDeletable;
                         } else {
@@ -201,7 +201,7 @@ public class FileSystemBusinessService {
                     returnList.add(fileSystemHelperService.createDTO(parentEntity, authenticatedUser, null));
                 } else {
                     // else some files are left. invisible or not. but the entity cannot be deleted.
-                    log.info("Some visible entites could not be deleted but are visible.");
+                    log.info("Some visible entities could not be deleted but are visible.");
                 }
             } else {
                 fileSystemHelperService.deleteAndUnbindFileSystemEntity(parentEntity);

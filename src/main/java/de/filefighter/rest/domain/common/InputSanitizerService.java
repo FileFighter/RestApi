@@ -21,7 +21,7 @@ public class InputSanitizerService {
     /**
      * Sanitizes a String, so it can be used.
      *
-     * @param string String that needs to be sanitized.
+     * @param string String that needs to cbe sanitized.
      * @return string without whitespaces and without illegal characters.
      * @throws RequestDidntMeetFormalRequirementsException when string was empty.
      */
