@@ -128,7 +128,6 @@ public class FileSystemHelperService {
         return fileSystemEntities;
     }
 
-    @SuppressWarnings("java:S3776")
     public boolean userIsAllowedToInteractWithFileSystemEntity(FileSystemEntity fileSystemEntity, User authenticatedUser, InteractionType interaction) {
         // file was created by runtime user.
         if ((interaction == InteractionType.DELETE)
