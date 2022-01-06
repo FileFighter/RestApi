@@ -42,7 +42,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
-            <version>2.4.5</version>
+            <version>2.5.8</version>
         </dependency>
 
         <dependency>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.1</version>
+            <version>1.6.3</version>
         </dependency>
 
         <!-- running script plugin -->
