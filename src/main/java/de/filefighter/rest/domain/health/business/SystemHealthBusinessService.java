@@ -37,6 +37,7 @@ public class SystemHealthBusinessService {
         long currentEpoch = getCurrentEpochSeconds();
         return SystemHealth.builder()
                 .uptimeInSeconds(currentEpoch - serverStartedAt)
+                .inodeCount(this.fileSystemHelperService.getTotalInodeCount())
                 .userCount(userBusinessService.getUserCount())
                 .usedStorageInBytes(fileSystemHelperService.getTotalFileSize())
                 .dataIntegrity(calculateDataIntegrity())

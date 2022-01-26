@@ -481,4 +481,8 @@ public class FileSystemHelperService {
     public long getCurrentTimeStamp() {
         return Instant.now().getEpochSecond();
     }
+
+    public long getTotalInodeCount() {
+        return this.fileSystemRepository.count();
+    }
 }
